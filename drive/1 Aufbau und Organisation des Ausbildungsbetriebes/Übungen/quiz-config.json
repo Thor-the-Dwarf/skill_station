@@ -1,0 +1,68 @@
+{
+  "timePerQuestionSeconds": 12,
+  "answerLabels": ["GmbH", "AG", "Einzelunternehmen", "alle", "keine"],
+  "introText": "Klick auf „Start“, um das Quick-Quiz zu starten.",
+  "sublineText": "Wähle die Rechtsform, zu der die Aussage passt – oder „alle“ / „keine“.",
+  "questions": [
+    {
+      "text": "Benötigt mindestens 50.000 € Grundkapital.",
+      "correct": "AG"
+    },
+    {
+      "text": "Hat ein Stammkapital von mindestens 25.000 €.",
+      "correct": "GmbH"
+    },
+    {
+      "text": "Kann von genau einer natürlichen Person allein geführt werden.",
+      "correct": "Einzelunternehmen"
+    },
+    {
+      "text": "Ist eine Kapitalgesellschaft.",
+      "correct": "keine"
+    },
+    {
+      "text": "Die Inhaber haften mit ihrem gesamten Privatvermögen.",
+      "correct": "Einzelunternehmen"
+    },
+    {
+      "text": "Grundkapital ist in Aktien aufgeteilt.",
+      "correct": "AG"
+    },
+    {
+      "text": "Die Rechtsform ist typischerweise für kleinere Unternehmen mit begrenztem Risiko gedacht.",
+      "correct": "GmbH"
+    },
+    {
+      "text": "Die Rechtsform erfordert zwingend mindestens zwei Gesellschafter.",
+      "correct": "keine"
+    },
+    {
+      "text": "Muss ins Handelsregister eingetragen werden.",
+      "correct": "keine"
+    },
+    {
+      "text": "Kann grundsätzlich auch für selbstständige Einzel-IT-Dienstleister genutzt werden.",
+      "correct": "alle"
+    },
+    {
+      "text": "Gewinne sind komplett steuerfrei.",
+      "correct": "keine"
+    },
+    {
+      "text": "Die Eigentümer haften normalerweise nicht über ihre Einlage hinaus.",
+      "correct": "GmbH"
+    },
+    {
+      "text": "Die Rechtsform ist klar auf große Unternehmen und Kapitalmärkte ausgerichtet.",
+      "correct": "AG"
+    },
+    {
+      "text": "Eine Trennung zwischen Geschäfts- und Privatvermögen gibt es hier meist nicht.",
+      "correct": "Einzelunternehmen"
+    },
+    {
+      "text": "Kann auch nur mit sehr geringem Startkapital von 1 € gegründet werden.",
+      "correct": "keine"
+    }
+  ]
+}

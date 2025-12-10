@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Matching-Puzzle – Name · Beschreibung · Beispiel</title>
+    <style>
+        :root {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color-scheme: dark;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #000 100%);
+            color: #e5e7eb;
+        }
+
+        .page {
+            margin: 32px;
+            max-width: 1040px;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.96);
+            border-radius: 18px;
+            padding: 22px 22px 26px;
+            box-shadow:
+                0 18px 40px rgba(0, 0, 0, 0.65),
+                0 0 0 1px rgba(148, 163, 184, 0.18);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 0.03em;
+        }
+
+        .badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: #e5e7eb;
+            background: radial-gradient(circle at top left, #1f2937 0, #020617 70%);
+            white-space: nowrap;
+        }
+
+        #new-game-btn {
+            border-radius: 999px;
+            border: 1px solid rgba(94, 234, 212, 0.7);
+            background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.25), rgba(5, 150, 105, 0.12));
+            color: #ecfeff;
+            padding: 8px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #new-game-btn span.icon {
+            font-size: 16px;
+            transform: translateY(-1px);
+        }
+
+        #new-game-btn:hover {
+            filter: brightness(1.08);
+        }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .stat-chip {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: rgba(15, 23, 42, 0.9);
+            display: inline-flex;
+            gap: 6px;
+            align-items: baseline;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: #9ca3af;
+        }
+
+        .stat-value {
+            font-variant-numeric: tabular-nums;
+            color: #e5e7eb;
+            font-size: 13px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin: 0 0 10px;
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .column {
+            border-radius: 14px;
+            padding: 10px 10px 12px;
+            background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.36), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            min-height: 260px;
+        }
+
+        .column-title {
+            margin: 0 0 6px;
+            font-size: 13px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #e5e7eb;
+        }
+
+        .column-hint {
+            margin: 0 0 6px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card {
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: rgba(15, 23, 42, 0.96);
+            padding: 7px 9px;
+            font-size: 13px;
+            color: #e5e7eb;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+            min-height: 44px;
+        }
+
+        .card:hover {
+            background: rgba(30, 64, 175, 0.7);
+            transform: translateY(-1px);
+        }
+
+        .card.selected {
+            border-color: rgba(129, 140, 248, 0.9);
+            box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.9);
+            background: rgba(30, 64, 175, 0.8);
+        }
+
+        .card.matched {
+            border-color: rgba(34, 197, 94, 0.9);
+            box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.9);
+            background: rgba(22, 163, 74, 0.45);
+            cursor: default;
+        }
+
+        .card.wrong {
+            border-color: rgba(239, 68, 68, 0.9);
+            box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.9);
+            background: rgba(220, 38, 38, 0.35);
+        }
+
+        .card.disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        #feedback {
+            margin: 10px 0 0;
+            font-size: 13px;
+            min-height: 18px;
+        }
+
+        #feedback.ok {
+            color: #bbf7d0;
+        }
+
+        #feedback.info {
+            color: #e5e7eb;
+        }
+
+        #feedback.error {
+            color: #fecaca;
+        }
+
+        @media (max-width: 950px) {
+            .page {
+                margin: 16px;
+                padding: 18px;
+            }
+
+            .columns {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <header>
+            <div>
+                <div class="badge">Prototyp · Matching-Puzzle</div>
+                <h1>Name · Beschreibung · Beispiel</h1>
+            </div>
+            <button id="new-game-btn">
+                <span class="icon">🔁</span>
+                <span>Neue Runde</span>
+            </button>
+        </header>
+
+        <div class="stats-row">
+            <div class="stat-chip">
+                <span class="stat-label">Gefundene Sets</span>
+                <span class="stat-value" id="found-sets">0/0</span>
+            </div>
+            <div class="stat-chip">
+                <span class="stat-label">Versuche</span>
+                <span class="stat-value" id="attempts">0</span>
+            </div>
+        </div>
+
+        <p class="subtitle">
+            Ziel: Wähle jeweils eine Karte aus jeder Spalte (Name, Beschreibung, Praxisbeispiel), sodass ein passender
+            Dreier-Satz entsteht.
+            Klicke erneut auf eine Karte, um sie abzuwählen.
+        </p>
+
+        <div class="columns">
+            <div class="column">
+                <p class="column-title">1 · Rechtsform</p>
+                <p class="column-hint">Wähle einen Namen.</p>
+                <div id="col-names" class="card-list"></div>
+            </div>
+            <div class="column">
+                <p class="column-title">2 · Beschreibung</p>
+                <p class="column-hint">Wähle die passende Kurzbeschreibung.</p>
+                <div id="col-descriptions" class="card-list"></div>
+            </div>
+            <div class="column">
+                <p class="column-title">3 · Praxisbeispiel</p>
+                <p class="column-hint">Suche ein passendes Praxisbeispiel.</p>
+                <div id="col-examples" class="card-list"></div>
+            </div>
+        </div>
+
+        <p id="feedback" class="info">
+            Wähle einen Namen, dann eine Beschreibung und ein Beispiel, um ein Set zu testen.
+        </p>
+    </div>
+
+    <script>
+        const SETS = [
+            {
+                id: "gmbh",
+                name: "GmbH",
+                description: "Kapitalgesellschaft mit beschränkter Haftung, Mindeststammkapital 25.000 €.",
+                example: "Mittelständische IT-Agentur mit 30 Mitarbeitenden, mehrere Gesellschafter."
+            },
+            {
+                id: "ug",
+                name: "UG (haftungsbeschränkt)",
+                description: "Variante der GmbH mit sehr geringem Stammkapital, haftungsbeschränkt.",
+                example: "Zwei Gründer betreiben einen Online-Shop mit geringem Startkapital."
+            },
+            {
+                id: "einzel",
+                name: "Einzelunternehmen",
+                description: "Eine natürliche Person führt das Unternehmen, volle Privat­haftung.",
+                example: "Freiberuflicher Webentwickler mit eigenem kleinen Büro."
+            },
+            {
+                id: "ohg",
+                name: "OHG",
+                description: "Personengesellschaft von Kaufleuten, alle Gesellschafter haften unbeschränkt.",
+                example: "Regionale Großbäckerei, geführt von mehreren Inhabern als Handelsbetrieb."
+            },
+            {
+                id: "ag",
+                name: "AG",
+                description: "Kapitalgesellschaft mit in Aktien zerlegtem Grundkapital.",
+                example: "Börsennotierter Automobilhersteller mit tausenden Aktionären."
+            }
+        ];
+
+        const colNamesEl = document.getElementById("col-names");
+        const colDescriptionsEl = document.getElementById("col-descriptions");
+        const colExamplesEl = document.getElementById("col-examples");
+
+        const foundSetsEl = document.getElementById("found-sets");
+        const attemptsEl = document.getElementById("attempts");
+        const feedbackEl = document.getElementById("feedback");
+        const newGameBtn = document.getElementById("new-game-btn");
+
+        let selection = { name: null, description: null, example: null };
+        let foundSets = 0;
+        let attempts = 0;
+        let totalSets = SETS.length;
+        let evaluationLock = false;
+
+        function shuffle(array) {
+            const copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function updateStats() {
+            foundSetsEl.textContent = `${foundSets}/${totalSets}`;
+            attemptsEl.textContent = String(attempts);
+        }
+
+        function resetSelectionVisuals(typeToSkip) {
+            ["name", "description", "example"].forEach(type => {
+                if (typeToSkip && type === typeToSkip) return;
+                if (selection[type]) {
+                    selection[type].classList.remove("selected");
+                    selection[type] = null;
+                }
+            });
+        }
+
+        function clearAllSelections() {
+            resetSelectionVisuals(null);
+        }
+
+        function clearWrongHighlight() {
+            const wrongCards = document.querySelectorAll(".card.wrong");
+            wrongCards.forEach(card => card.classList.remove("wrong"));
+        }
+
+        function makeCard(text, type, setId) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "card";
+            btn.textContent = text;
+            btn.dataset.type = type;
+            btn.dataset.setId = setId;
+            btn.addEventListener("click", onCardClick);
+            return btn;
+        }
+
+        function renderGrid() {
+            colNamesEl.innerHTML = "";
+            colDescriptionsEl.innerHTML = "";
+            colExamplesEl.innerHTML = "";
+
+            const shuffledNames = shuffle(SETS);
+            const shuffledDescs = shuffle(SETS);
+            const shuffledExamples = shuffle(SETS);
+
+            shuffledNames.forEach(s => {
+                colNamesEl.appendChild(makeCard(s.name, "name", s.id));
+            });
+            shuffledDescs.forEach(s => {
+                colDescriptionsEl.appendChild(makeCard(s.description, "description", s.id));
+            });
+            shuffledExamples.forEach(s => {
+                colExamplesEl.appendChild(makeCard(s.example, "example", s.id));
+            });
+        }
+
+        function setCardsDisabled(disabled) {
+            const cards = document.querySelectorAll(".card");
+            cards.forEach(card => {
+                if (disabled) {
+                    card.classList.add("disabled");
+                    card.disabled = true;
+                } else if (!card.classList.contains("matched")) {
+                    card.classList.remove("disabled");
+                    card.disabled = false;
+                }
+            });
+        }
+
+        function evaluateSelection() {
+            if (!selection.name || !selection.description || !selection.example) {
+                return;
+            }
+
+            evaluationLock = true;
+            attempts++;
+            clearWrongHighlight();
+
+            const setIdName = selection.name.dataset.setId;
+            const setIdDesc = selection.description.dataset.setId;
+            const setIdExample = selection.example.dataset.setId;
+            const isMatch = setIdName === setIdDesc && setIdName === setIdExample;
+
+            if (isMatch) {
+                [selection.name, selection.description, selection.example].forEach(card => {
+                    card.classList.remove("selected");
+                    card.classList.add("matched");
+                    card.classList.add("disabled");
+                    card.disabled = true;
+                });
+                foundSets++;
+                feedbackEl.textContent = "Korrektes Set gefunden!";
+                feedbackEl.className = "ok";
+                selection = { name: null, description: null, example: null };
+                evaluationLock = false;
+                setCardsDisabled(false);
+                updateStats();
+
+                if (foundSets === totalSets) {
+                    feedbackEl.textContent = "Alle Sets korrekt zugeordnet – stark!";
+                    feedbackEl.className = "ok";
+                }
+
+            } else {
+                [selection.name, selection.description, selection.example].forEach(card => {
+                    card.classList.add("wrong");
+                });
+                feedbackEl.textContent = "Das passt noch nicht zusammen. Versuch es erneut.";
+                feedbackEl.className = "error";
+                setCardsDisabled(true);
+
+                setTimeout(() => {
+                    [selection.name, selection.description, selection.example].forEach(card => {
+                        card.classList.remove("selected", "wrong");
+                    });
+                    selection = { name: null, description: null, example: null };
+                    setCardsDisabled(false);
+                    evaluationLock = false;
+                    updateStats();
+                }, 900);
+            }
+        }
+
+        function onCardClick(event) {
+            if (evaluationLock) return;
+
+            const card = event.currentTarget;
+            if (card.classList.contains("matched")) return;
+
+            const type = card.dataset.type;
+
+            if (selection[type] === card) {
+                card.classList.remove("selected");
+                selection[type] = null;
+                return;
+            }
+
+            if (selection[type]) {
+                selection[type].classList.remove("selected");
+            }
+
+            card.classList.add("selected");
+            selection[type] = card;
+
+            if (selection.name && selection.description && selection.example) {
+                evaluateSelection();
+            } else {
+                feedbackEl.textContent = "Wähle noch aus den anderen Spalten, um ein Set zu bilden.";
+                feedbackEl.className = "info";
+            }
+        }
+
+        function resetGame() {
+            foundSets = 0;
+            attempts = 0;
+            selection = { name: null, description: null, example: null };
+            evaluationLock = false;
+            feedbackEl.textContent = "Wähle je eine Karte aus jeder Spalte, um passende Dreier-Sets zu finden.";
+            feedbackEl.className = "info";
+            renderGrid();
+            setCardsDisabled(false);
+            updateStats();
+        }
+
+        newGameBtn.addEventListener("click", resetGame);
+
+        resetGame();
+    </script>
+</body>
+
+</html>

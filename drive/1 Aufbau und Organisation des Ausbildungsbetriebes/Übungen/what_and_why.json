@@ -1,0 +1,352 @@
+{
+  "cases": [
+    {
+      "id": "fall1",
+      "profile": "Zwei Freunde (20 und 22) wollen in ihrer Stadt einen kleinen Streetfood-Laden eröffnen. Sie haben kaum Eigenkapital, sind bereit, mit ihrem Privatvermögen zu haften und wollen schnell und ohne viel Formalitäten starten.",
+      "tags": ["2 Gründer", "kaum Kapital", "Haftung ok", "schneller Start"],
+      "solution": "Für mehrere Personen mit wenig Kapital und hoher Haftungsbereitschaft passt die GbR typischerweise am besten.",
+      "options": [
+        {
+          "id": "einzel",
+          "label": "Einzelunternehmen",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "e1",
+              "text": "Beim Einzelunternehmen gibt es eine Inhaberin bzw. einen Inhaber.",
+              "correct": true
+            },
+            {
+              "id": "e2",
+              "text": "Ein Einzelunternehmen eignet sich besonders für genau eine Person – bei zwei Freunden ist das unpraktisch.",
+              "correct": true
+            },
+            {
+              "id": "e3",
+              "text": "Mehrere Personen können im Einzelunternehmen automatisch gleichberechtigt als Inhaber:innen auftreten.",
+              "correct": false
+            },
+            {
+              "id": "e4",
+              "text": "Für ein Einzelunternehmen ist ein hohes Mindeststammkapital gesetzlich vorgeschrieben.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "gbr",
+          "label": "GbR",
+          "isCorrect": true,
+          "whys": [
+            {
+              "id": "g1",
+              "text": "Die GbR kann von mindestens zwei Personen sehr einfach gegründet werden.",
+              "correct": true
+            },
+            {
+              "id": "g2",
+              "text": "Für die GbR ist kein gesetzliches Mindestkapital vorgeschrieben.",
+              "correct": true
+            },
+            {
+              "id": "g3",
+              "text": "In der GbR haften die Gesellschafter grundsätzlich auch mit ihrem Privatvermögen.",
+              "correct": true
+            },
+            {
+              "id": "g4",
+              "text": "Eine GbR ist an die Börse gebunden und benötigt einen Aufsichtsrat.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "gmbh",
+          "label": "GmbH",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "m1",
+              "text": "Die GmbH verlangt in der Regel ein Stammkapital von mindestens 25.000 €.",
+              "correct": true
+            },
+            {
+              "id": "m2",
+              "text": "Die Haftung der Gesellschafter ist bei der GmbH auf die Einlage beschränkt.",
+              "correct": true
+            },
+            {
+              "id": "m3",
+              "text": "Die Gründung einer GmbH ist genauso formlos wie ein Treffen in der Mittagspause.",
+              "correct": false
+            },
+            {
+              "id": "m4",
+              "text": "Für eine GmbH gibt es überhaupt keine Notarpflichten.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "ug",
+          "label": "UG (haftungsbeschränkt)",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "u1",
+              "text": "Die UG (haftungsbeschränkt) kann mit sehr geringem Stammkapital gegründet werden.",
+              "correct": true
+            },
+            {
+              "id": "u2",
+              "text": "Die UG ist eine Variante der GmbH mit beschränkter Haftung.",
+              "correct": true
+            },
+            {
+              "id": "u3",
+              "text": "In der UG haften die Gesellschafter immer unbeschränkt mit Privatvermögen.",
+              "correct": false
+            },
+            {
+              "id": "u4",
+              "text": "Die UG darf nur von genau einer Person gegründet werden.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fall2",
+      "profile": "Eine Entwicklerin möchte allein einen Online-Shop für digitale Produkte aufbauen. Sie startet nebenberuflich mit sehr wenig Kapital und möchte ihr privates Haus vor Risiken schützen.",
+      "tags": ["1 Gründerin", "sehr wenig Kapital", "Privatvermögen schützen"],
+      "solution": "Für die Gründerin ist die UG (haftungsbeschränkt) sinnvoll, weil sie mit wenig Kapital starten und gleichzeitig die Haftung begrenzen kann.",
+      "options": [
+        {
+          "id": "einzel",
+          "label": "Einzelunternehmen",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "e1",
+              "text": "Im Einzelunternehmen haftet die Inhaberin grundsätzlich auch mit Privatvermögen.",
+              "correct": true
+            },
+            {
+              "id": "e2",
+              "text": "Das Einzelunternehmen ist formal einfach zu gründen und eignet sich für eine Person.",
+              "correct": true
+            },
+            {
+              "id": "e3",
+              "text": "Im Einzelunternehmen ist die Haftung automatisch auf das Betriebsvermögen beschränkt.",
+              "correct": false
+            },
+            {
+              "id": "e4",
+              "text": "Bei einem Einzelunternehmen ist ein Börsengang obligatorisch.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "ug",
+          "label": "UG (haftungsbeschränkt)",
+          "isCorrect": true,
+          "whys": [
+            {
+              "id": "u1",
+              "text": "Die UG erlaubt Haftungsbeschränkung mit sehr geringem Stammkapital.",
+              "correct": true
+            },
+            {
+              "id": "u2",
+              "text": "Die Gründerin trennt Geschäfts- und Privatvermögen besser als im Einzelunternehmen.",
+              "correct": true
+            },
+            {
+              "id": "u3",
+              "text": "Die UG ist rechtlich eine Sonderform der GmbH.",
+              "correct": true
+            },
+            {
+              "id": "u4",
+              "text": "Eine UG darf ausschließlich von mindestens drei Personen gegründet werden.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "gmbh",
+          "label": "GmbH",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "m1",
+              "text": "Die GmbH bietet ebenfalls Haftungsbeschränkung.",
+              "correct": true
+            },
+            {
+              "id": "m2",
+              "text": "Für die GmbH ist ein höheres Stammkapital erforderlich als für die UG.",
+              "correct": true
+            },
+            {
+              "id": "m3",
+              "text": "Die GmbH ist speziell für sehr kleine Nebentätigkeiten mit Mini-Umsatz gedacht.",
+              "correct": false
+            },
+            {
+              "id": "m4",
+              "text": "Die GmbH kann nicht von Einzelpersonen gegründet werden.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "gbr",
+          "label": "GbR",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "g1",
+              "text": "Eine GbR setzt mindestens zwei Gesellschafter:innen voraus.",
+              "correct": true
+            },
+            {
+              "id": "g2",
+              "text": "In der GbR haften die Gesellschafter mit ihrem Privatvermögen.",
+              "correct": true
+            },
+            {
+              "id": "g3",
+              "text": "Die GbR ist die sicherste Form, um das Privatvermögen vollständig auszuschließen.",
+              "correct": false
+            },
+            {
+              "id": "g4",
+              "text": "Eine Ein-Personen-GbR ist gesetzlich vorgesehen.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fall3",
+      "profile": "Eine Familie (Eltern und erwachsener Sohn) betreibt einen Elektrofachhandel und will einen zweiten Standort eröffnen. Alle drei arbeiten aktiv mit und sind als Kaufleute im Handelsregister eingetragen. Sie akzeptieren die Haftung mit Privatvermögen.",
+      "tags": ["Familienbetrieb", "Handelsgewerbe", "aktive Mitarbeit", "Haftung akzeptiert"],
+      "solution": "Mehrere aktive Kaufleute mit Handelsgewerbe und akzeptierter Privat-Haftung – klassische Situation für eine OHG.",
+      "options": [
+        {
+          "id": "ohg",
+          "label": "OHG",
+          "isCorrect": true,
+          "whys": [
+            {
+              "id": "o1",
+              "text": "Die OHG ist eine Personengesellschaft von Kaufleuten mit gemeinsamem Handelsgewerbe.",
+              "correct": true
+            },
+            {
+              "id": "o2",
+              "text": "In der OHG haften alle Gesellschafter unbeschränkt, solidarisch und persönlich.",
+              "correct": true
+            },
+            {
+              "id": "o3",
+              "text": "Für die OHG ist ein hohes Mindeststammkapital gesetzlich vorgeschrieben.",
+              "correct": false
+            },
+            {
+              "id": "o4",
+              "text": "Die OHG ist nur für gemeinnützige Vereine zulässig.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "gmbh",
+          "label": "GmbH",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "m1",
+              "text": "Mit einer GmbH könnte die Familie ihre Haftung auf die Einlagen beschränken.",
+              "correct": true
+            },
+            {
+              "id": "m2",
+              "text": "Die GmbH eignet sich auch für Handelsunternehmen mit mehreren Gesellschaftern.",
+              "correct": true
+            },
+            {
+              "id": "m3",
+              "text": "In der GmbH haften alle Gesellschafter automatisch privat für alle Schulden.",
+              "correct": false
+            },
+            {
+              "id": "m4",
+              "text": "Eine GmbH darf keinen zweiten Standort eröffnen.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "einzel",
+          "label": "Einzelunternehmen",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "e1",
+              "text": "Beim klassischen Einzelunternehmen gibt es nur eine:n Inhaber:in.",
+              "correct": true
+            },
+            {
+              "id": "e2",
+              "text": "Mehrere gleichberechtigte Familienmitglieder als Inhaber:innen passen nicht gut zum Einzelunternehmen.",
+              "correct": true
+            },
+            {
+              "id": "e3",
+              "text": "Im Einzelunternehmen haften Angestellte automatisch als Mitunternehmer.",
+              "correct": false
+            },
+            {
+              "id": "e4",
+              "text": "Das Einzelunternehmen ist die typische Rechtsform für eine Investorengruppe.",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "id": "ug",
+          "label": "UG (haftungsbeschränkt)",
+          "isCorrect": false,
+          "whys": [
+            {
+              "id": "u1",
+              "text": "Die UG wäre eine Möglichkeit, die Haftung der Familie zu begrenzen.",
+              "correct": true
+            },
+            {
+              "id": "u2",
+              "text": "Für größere Handelsunternehmen wirkt eine UG manchmal weniger seriös als eine GmbH.",
+              "correct": true
+            },
+            {
+              "id": "u3",
+              "text": "Eine UG ist ausschließlich für reine Online-Geschäfte zulässig.",
+              "correct": false
+            },
+            {
+              "id": "u4",
+              "text": "In der UG müssen keine Rücklagen gebildet werden.",
+              "correct": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

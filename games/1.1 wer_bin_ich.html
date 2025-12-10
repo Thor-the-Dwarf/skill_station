@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Wer-bin-ich? – Unternehmensformen-Edition</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
+    }
+
+    .page {
+      margin: 32px;
+      max-width: 960px;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.92);
+      border-radius: 18px;
+      padding: 24px 24px 28px;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.65),
+        0 0 0 1px rgba(148, 163, 184, 0.18);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0.03em;
+    }
+
+    .badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: #e5e7eb;
+      background: radial-gradient(circle at top left, #1f2937 0, #020617 70%);
+      white-space: nowrap;
+    }
+
+    #new-game-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(94, 234, 212, 0.6);
+      background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.25), rgba(5, 150, 105, 0.12));
+      color: #ecfeff;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #new-game-btn span.icon {
+      font-size: 16px;
+      transform: translateY(-1px);
+    }
+
+    #new-game-btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    section {
+      border-radius: 14px;
+      padding: 14px 14px 16px;
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.36), rgba(15, 23, 42, 0.85));
+      border: 1px solid rgba(148, 163, 184, 0.32);
+    }
+
+    section h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .section-subtitle {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .stats-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .stat-chip {
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .stat-chip span.label {
+      color: #9ca3af;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .stat-chip span.value {
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+    }
+
+    .question-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .question-btn {
+      width: 100%;
+      text-align: left;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.96);
+      color: #e5e7eb;
+      padding: 7px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .question-btn span.text {
+      flex: 1;
+    }
+
+    .question-btn span.hotkey {
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    .question-btn:hover {
+      background: rgba(30, 64, 175, 0.55);
+    }
+
+    .question-btn.disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .answer-section {
+      margin-top: 10px;
+    }
+
+    .answer-buttons {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 3px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      margin-bottom: 8px;
+    }
+
+    .answer-btn {
+      border: none;
+      padding: 6px 16px;
+      font-size: 13px;
+      border-radius: 999px;
+      background: transparent;
+      color: #9ca3af;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .answer-btn.active[data-type="yes"] {
+      background: radial-gradient(circle at top, rgba(34, 197, 94, 0.3), rgba(21, 128, 61, 0.5));
+      color: #ecfdf5;
+    }
+
+    .answer-btn.active[data-type="no"] {
+      background: radial-gradient(circle at top, rgba(239, 68, 68, 0.3), rgba(153, 27, 27, 0.5));
+      color: #fef2f2;
+    }
+
+    .answer-text {
+      margin: 0 0 4px;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+
+    .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 6px 0 0;
+      max-height: 160px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.6);
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-question {
+      color: #cbd5f5;
+    }
+
+    .pill {
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .pill-yes {
+      border-color: rgba(34, 197, 94, 0.7);
+      background: rgba(22, 163, 74, 0.22);
+      color: #bbf7d0;
+    }
+
+    .pill-no {
+      border-color: rgba(248, 113, 113, 0.7);
+      background: rgba(220, 38, 38, 0.24);
+      color: #fecaca;
+    }
+
+    .guess-section {
+      margin-top: 10px;
+    }
+
+    .guess-row {
+      display: flex;
+      gap: 8px;
+      margin: 4px 0 6px;
+    }
+
+    #guess-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      padding: 7px 12px;
+      font-size: 13px;
+    }
+
+    #guess-input::placeholder {
+      color: #64748b;
+    }
+
+    #guess-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(129, 140, 248, 0.8);
+      background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.35), rgba(79, 70, 229, 0.45));
+      color: #e0e7ff;
+      padding: 7px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #guess-btn:hover {
+      filter: brightness(1.07);
+    }
+
+    #guess-feedback {
+      margin: 0;
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    #guess-feedback.success {
+      color: #bbf7d0;
+    }
+
+    #guess-feedback.error {
+      color: #fecaca;
+    }
+
+    .secret-hint {
+      font-size: 11px;
+      color: #9ca3af;
+      margin: 0;
+    }
+
+    .secret-name {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 800px) {
+      .page {
+        margin: 16px;
+        padding: 18px;
+      }
+
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="badge">Prototyp · Wer-bin-ich?</div>
+        <h1>Unternehmensformen-Edition</h1>
+      </div>
+      <button id="new-game-btn">
+        <span class="icon">🎲</span>
+        <span>Neue Runde</span>
+      </button>
+    </header>
+
+    <div class="layout">
+      <!-- Linke Seite: Fragenkatalog & Zähler -->
+      <section>
+        <div class="stats-row">
+          <div class="stat-chip">
+            <span class="label">Fragen</span>
+            <span class="value" id="question-count">0</span>
+          </div>
+          <p class="secret-hint">
+            Das System hat heimlich eine
+            <span class="secret-name">Rechtsform</span> gewählt.
+          </p>
+        </div>
+
+        <h2>Fragenkatalog</h2>
+        <p class="section-subtitle">
+          Klicke auf eine Frage, um sie der geheimen Rechtsform zu stellen.
+        </p>
+        <div id="question-list" class="question-list"></div>
+
+        <div class="answer-section">
+          <h2>Antwort der Rechtsform</h2>
+          <div class="answer-buttons">
+            <button class="answer-btn" data-type="yes">Ja</button>
+            <button class="answer-btn" data-type="no">Nein</button>
+          </div>
+          <p id="answer-text" class="answer-text">
+            Stelle eine Frage aus dem Katalog, um eine Antwort zu erhalten.
+          </p>
+          <ul id="history-list" class="history-list"></ul>
+        </div>
+      </section>
+
+      <!-- Rechte Seite: Raten & Info -->
+      <section>
+        <h2>Rechtsform raten</h2>
+        <p class="section-subtitle">
+          Nutze deine Hinweise, um zu raten, welche Rechtsform gemeint ist.
+        </p>
+        <div class="guess-section">
+          <div class="guess-row">
+            <input id="guess-input" type="text"
+              placeholder="z. B. GmbH, UG (haftungsbeschränkt), OHG, Einzelunternehmen, AG">
+            <button id="guess-btn">Raten</button>
+          </div>
+          <p id="guess-feedback"></p>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <h2>Im Pool der Rechtsformen</h2>
+          <p class="section-subtitle" style="margin-bottom:6px;">
+            Diese Rechtsformen kommen aktuell im Spiel vor:
+          </p>
+          <ul style="margin:0; padding-left:16px; font-size:13px; color:#e5e7eb;">
+            <li>GmbH</li>
+            <li>UG (haftungsbeschränkt)</li>
+            <li>OHG</li>
+            <li>Einzelunternehmen</li>
+            <li>AG</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const LEGAL_FORMS = [
+      {
+        id: "gmbh",
+        name: "GmbH",
+        attributes: {
+          minCapital: true,
+          personalLiability: false,
+          onePersonPossible: true,
+          tradeRegisterRequired: true,
+          typicalForSmallBusiness: false
+        }
+      },
+      {
+        id: "ug",
+        name: "UG (haftungsbeschränkt)",
+        attributes: {
+          minCapital: true, // formal: 1€, hier: "Ja"
+          personalLiability: false,
+          onePersonPossible: true,
+          tradeRegisterRequired: true,
+          typicalForSmallBusiness: true
+        }
+      },
+      {
+        id: "ohg",
+        name: "OHG",
+        attributes: {
+          minCapital: false,
+          personalLiability: true,
+          onePersonPossible: false,
+          tradeRegisterRequired: true,
+          typicalForSmallBusiness: true
+        }
+      },
+      {
+        id: "einzelunternehmen",
+        name: "Einzelunternehmen",
+        attributes: {
+          minCapital: false,
+          personalLiability: true,
+          onePersonPossible: true,
+          tradeRegisterRequired: false,
+          typicalForSmallBusiness: true
+        }
+      },
+      {
+        id: "ag",
+        name: "AG",
+        attributes: {
+          minCapital: true,
+          personalLiability: false,
+          onePersonPossible: true,
+          tradeRegisterRequired: true,
+          typicalForSmallBusiness: false
+        }
+      }
+    ];
+
+    const QUESTIONS = [
+      {
+        id: "minCapital",
+        text: "Gibt es ein festes Mindestkapital?",
+        hotkey: "1",
+        evaluate: form => form.attributes.minCapital
+      },
+      {
+        id: "personalLiability",
+        text: "Haften die Gesellschafter persönlich / privat?",
+        hotkey: "2",
+        evaluate: form => form.attributes.personalLiability
+      },
+      {
+        id: "onePersonPossible",
+        text: "Kann die Rechtsform von nur einer Person gegründet werden?",
+        hotkey: "3",
+        evaluate: form => form.attributes.onePersonPossible
+      },
+      {
+        id: "tradeRegisterRequired",
+        text: "Ist ein Eintrag ins Handelsregister zwingend notwendig?",
+        hotkey: "4",
+        evaluate: form => form.attributes.tradeRegisterRequired
+      },
+      {
+        id: "typicalForSmallBusiness",
+        text: "Ist die Rechtsform eher für kleine Unternehmen typisch?",
+        hotkey: "5",
+        evaluate: form => form.attributes.typicalForSmallBusiness
+      }
+    ];
+
+    let secretForm = null;
+    let questionCount = 0;
+    let gameOver = false;
+
+    const questionListEl = document.getElementById("question-list");
+    const questionCountEl = document.getElementById("question-count");
+    const answerTextEl = document.getElementById("answer-text");
+    const historyListEl = document.getElementById("history-list");
+    const answerButtons = document.querySelectorAll(".answer-btn");
+    const newGameBtn = document.getElementById("new-game-btn");
+    const guessInput = document.getElementById("guess-input");
+    const guessBtn = document.getElementById("guess-btn");
+    const guessFeedbackEl = document.getElementById("guess-feedback");
+
+    function pickRandomForm() {
+      const idx = Math.floor(Math.random() * LEGAL_FORMS.length);
+      return LEGAL_FORMS[idx];
+    }
+
+    function resetAnswerButtons() {
+      answerButtons.forEach(btn => btn.classList.remove("active"));
+    }
+
+    function setActiveAnswerButton(type) {
+      resetAnswerButtons();
+      const btn = document.querySelector(`.answer-btn[data-type="${type}"]`);
+      if (btn) {
+        btn.classList.add("active");
+      }
+    }
+
+    function updateQuestionCount() {
+      questionCountEl.textContent = String(questionCount);
+    }
+
+    function addHistoryEntry(question, answerIsYes) {
+      const li = document.createElement("li");
+      li.className = "history-item";
+
+      const qSpan = document.createElement("span");
+      qSpan.className = "history-question";
+      qSpan.textContent = question.text;
+
+      const pill = document.createElement("span");
+      pill.className = "pill " + (answerIsYes ? "pill-yes" : "pill-no");
+      pill.textContent = answerIsYes ? "Ja" : "Nein";
+
+      li.appendChild(qSpan);
+      li.appendChild(pill);
+      historyListEl.prepend(li);
+    }
+
+    function askQuestion(question) {
+      if (!secretForm || gameOver) {
+        return;
+      }
+
+      questionCount++;
+      updateQuestionCount();
+
+      const answerIsYes = !!question.evaluate(secretForm);
+      setActiveAnswerButton(answerIsYes ? "yes" : "no");
+      answerTextEl.textContent = (answerIsYes ? "Ja" : "Nein") + " – " + question.text;
+
+      addHistoryEntry(question, answerIsYes);
+    }
+
+    function initQuestionButtons() {
+      questionListEl.innerHTML = "";
+      QUESTIONS.forEach(q => {
+        const btn = document.createElement("button");
+        btn.className = "question-btn";
+        btn.type = "button";
+
+        const spanText = document.createElement("span");
+        spanText.className = "text";
+        spanText.textContent = q.text;
+
+        const spanHotkey = document.createElement("span");
+        spanHotkey.className = "hotkey";
+        spanHotkey.textContent = "Frage #" + q.hotkey;
+
+        btn.appendChild(spanText);
+        btn.appendChild(spanHotkey);
+
+        btn.addEventListener("click", () => askQuestion(q));
+
+        questionListEl.appendChild(btn);
+      });
+    }
+
+    function sanitizeGuess(value) {
+      return value
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/[().-]/g, "");
+    }
+
+    function findFormByGuess(value) {
+      const sanitized = sanitizeGuess(value);
+      if (!sanitized) return null;
+
+      return LEGAL_FORMS.find(form => {
+        const formNameSanitized = sanitizeGuess(form.name);
+        return formNameSanitized === sanitized;
+      }) || null;
+    }
+
+    function handleGuess() {
+      if (!secretForm) return;
+
+      const guess = guessInput.value.trim();
+      if (!guess) {
+        guessFeedbackEl.textContent = "Gib eine Rechtsform ein, bevor du rätst.";
+        guessFeedbackEl.className = "error";
+        return;
+      }
+
+      const guessedForm = findFormByGuess(guess);
+
+      if (!guessedForm) {
+        guessFeedbackEl.textContent = "Diese Rechtsform ist in diesem Prototyp nicht im Pool. Nutze die Liste rechts als Orientierung.";
+        guessFeedbackEl.className = "error";
+        return;
+      }
+
+      if (guessedForm.id === secretForm.id) {
+        gameOver = true;
+        guessFeedbackEl.textContent = `Richtig! Die gesuchte Rechtsform war: ${secretForm.name}. Starte eine neue Runde mit „Neue Runde“.`;
+        guessFeedbackEl.className = "success";
+      } else {
+        guessFeedbackEl.textContent = `Leider falsch. Gesucht ist eine andere Rechtsform. Stelle weitere Fragen und versuche es erneut.`;
+        guessFeedbackEl.className = "error";
+      }
+    }
+
+    function setQuestionButtonsDisabled(disabled) {
+      const buttons = document.querySelectorAll(".question-btn");
+      buttons.forEach(btn => {
+        if (disabled) {
+          btn.classList.add("disabled");
+        } else {
+          btn.classList.remove("disabled");
+        }
+      });
+    }
+
+    function startNewGame() {
+      secretForm = pickRandomForm();
+      questionCount = 0;
+      gameOver = false;
+      updateQuestionCount();
+      resetAnswerButtons();
+      historyListEl.innerHTML = "";
+      answerTextEl.textContent = "Neue Runde gestartet. Stelle eine Frage aus dem Katalog.";
+      guessInput.value = "";
+      guessFeedbackEl.textContent = "";
+      guessFeedbackEl.className = "";
+      setQuestionButtonsDisabled(false);
+    }
+
+    newGameBtn.addEventListener("click", () => {
+      startNewGame();
+    });
+
+    guessBtn.addEventListener("click", () => {
+      handleGuess();
+    });
+
+    guessInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        handleGuess();
+      }
+    });
+
+    // Init
+    initQuestionButtons();
+    startNewGame();
+  </script>
+</body>
+
+</html>

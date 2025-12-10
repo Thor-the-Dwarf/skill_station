@@ -1,0 +1,137 @@
+{
+  "sections": [
+    {
+      "id": "haftung-sort",
+      "type": "sort",
+      "title": "Rätsel 1: Haftung einsortieren",
+      "subtitle": "Ziehe die Haftungseigenschaften in die passende Kategorie.",
+      "hintDefault": "Tipp: Wer haftet privat, wer nur mit der Gesellschaft?",
+      "sortColumns": [
+        {
+          "zone": "person",
+          "label": "Personengesellschaften",
+          "hint": "(Einzelunternehmen, GbR, OHG, KG)"
+        },
+        {
+          "zone": "kapital",
+          "label": "Kapitalgesellschaften",
+          "hint": "(GmbH, UG)"
+        },
+        {
+          "zone": "beide",
+          "label": "Kann zu beiden passen",
+          "hint": ""
+        }
+      ],
+      "sortCards": [
+        {
+          "id": "s1",
+          "text": "Volle persönliche Haftung mit Privatvermögen",
+          "correctZone": "person"
+        },
+        {
+          "id": "s2",
+          "text": "Haftung grundsätzlich auf Gesellschaftsvermögen beschränkt",
+          "correctZone": "kapital"
+        },
+        {
+          "id": "s3",
+          "text": "Kein gesetzliches Mindestkapital vorgeschrieben",
+          "correctZone": "person"
+        },
+        {
+          "id": "s4",
+          "text": "Stammkapital muss eingezahlt werden",
+          "correctZone": "kapital"
+        },
+        {
+          "id": "s5",
+          "text": "Kann je nach Ausgestaltung bei allen Rechtsformen durch Bürgschaften verstärkt werden",
+          "correctZone": "beide"
+        }
+      ]
+    },
+    {
+      "id": "quiz-rechtsformen",
+      "type": "quiz",
+      "title": "Rätsel 2: Kurz-Quiz Rechtsformen",
+      "subtitle": "Beantworte zwei Fragen – jede mit einer richtigen Antwort.",
+      "hintDefault": "Nur wenn alle Antworten richtig sind, zählt das Rätsel als gelöst.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "1. Welche Aussage zur GmbH stimmt?",
+          "options": [
+            { "value": "a", "text": "Die Gesellschafter haften immer mit ihrem gesamten Privatvermögen." },
+            { "value": "b", "text": "Es gibt kein gesetzliches Mindestkapital." },
+            { "value": "c", "text": "Es ist ein Stammkapital von 25.000 € vorgeschrieben." }
+          ],
+          "correct": "c"
+        },
+        {
+          "id": "q2",
+          "text": "2. Was ist typisch für eine GbR?",
+          "options": [
+            { "value": "a", "text": "Es muss mindestens eine Million Euro Kapital eingebracht werden." },
+            { "value": "b", "text": "Mindestens zwei Personen schließen sich zusammen und haften persönlich." },
+            { "value": "c", "text": "Sie ist immer an der Börse notiert." }
+          ],
+          "correct": "b"
+        }
+      ]
+    },
+    {
+      "id": "capital-mindestkapital",
+      "type": "capital",
+      "title": "Rätsel 3: Form → Mindestkapital",
+      "subtitle": "Ordne das typische Mindestkapital zu den Rechtsformen zu.",
+      "hintDefault": "Hinweis: Personengesellschaften brauchen in der Regel kein gesetzliches Mindestkapital.",
+      "rows": [
+        {
+          "key": "einzel",
+          "label": "Einzelunternehmen",
+          "correct": "kein",
+          "options": [
+            { "value": "", "text": "– bitte wählen –" },
+            { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
+            { "value": "1euro", "text": "ab 1 € Stammkapital" },
+            { "value": "25000", "text": "25.000 € Stammkapital" }
+          ]
+        },
+        {
+          "key": "gbr",
+          "label": "GbR",
+          "correct": "kein",
+          "options": [
+            { "value": "", "text": "– bitte wählen –" },
+            { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
+            { "value": "1euro", "text": "ab 1 € Stammkapital" },
+            { "value": "25000", "text": "25.000 € Stammkapital" }
+          ]
+        },
+        {
+          "key": "ug",
+          "label": "UG (haftungsbeschränkt)",
+          "correct": "1euro",
+          "options": [
+            { "value": "", "text": "– bitte wählen –" },
+            { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
+            { "value": "1euro", "text": "ab 1 € Stammkapital" },
+            { "value": "25000", "text": "25.000 € Stammkapital" }
+          ]
+        },
+        {
+          "key": "gmbh",
+          "label": "GmbH",
+          "correct": "25000",
+          "options": [
+            { "value": "", "text": "– bitte wählen –" },
+            { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
+            { "value": "1euro", "text": "ab 1 € Stammkapital" },
+            { "value": "25000", "text": "25.000 € Stammkapital" }
+          ]
+        }
+      ]
+    }
+  ]
+}

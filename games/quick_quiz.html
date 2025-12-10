@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Quick-Quiz – Form oder Fake?</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
+    }
+
+    .page {
+      margin: 32px;
+      max-width: 900px;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 18px;
+      padding: 22px 22px 26px;
+      box-shadow:
+              0 18px 40px rgba(0, 0, 0, 0.65),
+              0 0 0 1px rgba(148, 163, 184, 0.18);
+    }
+
+    header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    #restart-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(96, 165, 250, 0.8);
+      background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.35), rgba(30, 64, 175, 0.2));
+      color: #ecfeff;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: filter 0.12s ease-out, background 0.15s ease-out, border-color 0.15s ease-out;
+    }
+
+    #restart-btn.running {
+      border-color: rgba(94, 234, 212, 0.6);
+      background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.25), rgba(5, 150, 105, 0.12));
+    }
+
+    #restart-btn span.icon {
+      font-size: 16px;
+      transform: translateY(-1px);
+    }
+
+    #restart-btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .top-row {
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    .panel {
+      border-radius: 14px;
+      padding: 12px 14px 14px;
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.36), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(148, 163, 184, 0.32);
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .stat-chip {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      gap: 6px;
+      align-items: baseline;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #9ca3af;
+    }
+
+    .stat-value {
+      font-variant-numeric: tabular-nums;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+
+    .timer-container {
+      margin-top: 6px;
+    }
+
+    .timer-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 3px;
+    }
+
+    .timer-bar {
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .timer-bar-inner {
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+      transform-origin: left center;
+      transform: scaleX(1);
+      transition: transform 0.1s linear;
+    }
+
+    .question-text {
+      font-size: 18px;
+      margin: 6px 0 8px;
+    }
+
+    .subline {
+      font-size: 13px;
+      margin: 0 0 4px;
+      color: #94a3b8;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .option-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.96);
+      color: #e5e7eb;
+      padding: 7px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .option-btn:hover {
+      background: rgba(30, 64, 175, 0.7);
+    }
+
+    .option-btn.correct {
+      border-color: rgba(34, 197, 94, 0.9);
+      background: rgba(22, 163, 74, 0.4);
+    }
+
+    .option-btn.wrong {
+      border-color: rgba(239, 68, 68, 0.9);
+      background: rgba(220, 38, 38, 0.35);
+    }
+
+    .option-btn.disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    #feedback {
+      margin: 8px 0 0;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    #feedback.ok {
+      color: #bbf7d0;
+    }
+
+    #feedback.error {
+      color: #fecaca;
+    }
+
+    @media (max-width: 800px) {
+      .page {
+        margin: 16px;
+        padding: 18px;
+      }
+
+      .top-row {
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="page">
+  <header>
+    <button id="restart-btn">
+      <span class="icon" id="restart-icon">▶</span>
+      <span id="restart-label">Start</span>
+    </button>
+  </header>
+
+  <div class="top-row">
+    <div class="panel">
+      <h2>Aktuelle Aussage</h2>
+      <div class="stats-row">
+        <div class="stat-chip">
+          <span class="stat-label">Score</span>
+          <span class="stat-value" id="score">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Highscore</span>
+          <span class="stat-value" id="highscore">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Fragen</span>
+          <span class="stat-value" id="question-count">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Streak</span>
+          <span class="stat-value" id="streak">0</span>
+        </div>
+      </div>
+
+      <div class="timer-container">
+        <div class="timer-label-row">
+          <span>Timer</span>
+          <span id="timer-label">– s</span>
+        </div>
+        <div class="timer-bar">
+          <div id="timer-bar-inner" class="timer-bar-inner"></div>
+        </div>
+      </div>
+
+      <p class="question-text" id="question-text">
+        Klick auf „Start“, um das Quick-Quiz zu starten.
+      </p>
+      <p class="subline" id="subline">
+        Wähle die Rechtsform, zu der die Aussage passt – oder „alle“ / „keine“.
+      </p>
+
+      <div id="options" class="options-grid"></div>
+      <p id="feedback"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Konfigurierbare Daten (werden aus quiz-config.json geladen)
+  let ANSWER_LABELS = [];
+  let QUESTIONS = [];
+  let TIME_PER_QUESTION = 12; // Fallback
+
+  const questionTextEl = document.getElementById("question-text");
+  const sublineEl = document.getElementById("subline");
+  const optionsContainer = document.getElementById("options");
+  const feedbackEl = document.getElementById("feedback");
+
+  const scoreEl = document.getElementById("score");
+  const highscoreEl = document.getElementById("highscore");
+  const questionCountEl = document.getElementById("question-count");
+  const streakEl = document.getElementById("streak");
+
+  const timerLabelEl = document.getElementById("timer-label");
+  const timerBarInnerEl = document.getElementById("timer-bar-inner");
+
+  const restartBtn = document.getElementById("restart-btn");
+  const restartIconEl = document.getElementById("restart-icon");
+  const restartLabelEl = document.getElementById("restart-label");
+
+  let score = 0;
+  let highscore = 0;
+  let questionCount = 0;
+  let streak = 0;
+
+  let currentQuestion = null;
+  let remainingTime = TIME_PER_QUESTION;
+  let timerId = null;
+  let locked = true; // bevor das Spiel startet
+  let hasStarted = false;
+  let configLoaded = false;
+
+  async function loadConfig() {
+    try {
+      const response = await fetch("quiz-config.json");
+      if (!response.ok) {
+        throw new Error("Config konnte nicht geladen werden");
+      }
+      const data = await response.json();
+
+      if (Array.isArray(data.answerLabels)) {
+        ANSWER_LABELS = data.answerLabels;
+      }
+      if (Array.isArray(data.questions)) {
+        QUESTIONS = data.questions;
+      }
+      if (typeof data.timePerQuestionSeconds === "number") {
+        TIME_PER_QUESTION = data.timePerQuestionSeconds;
+      }
+      if (typeof data.introText === "string") {
+        questionTextEl.textContent = data.introText;
+      }
+      if (typeof data.sublineText === "string") {
+        sublineEl.textContent = data.sublineText;
+      }
+
+      configLoaded = true;
+
+      renderOptions();
+      setOptionsDisabled(true);
+      updateStats();
+      timerLabelEl.textContent = "– s";
+      timerBarInnerEl.style.transform = "scaleX(0)";
+      updateRestartButton();
+    } catch (error) {
+      console.error(error);
+      questionTextEl.textContent = "Die Quiz-Konfiguration konnte nicht geladen werden.";
+      sublineEl.textContent = "Stelle sicher, dass die Datei „quiz-config.json“ erreichbar ist.";
+      restartBtn.disabled = true;
+    }
+  }
+
+  function shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function updateStats() {
+    scoreEl.textContent = String(score);
+    highscoreEl.textContent = String(highscore);
+    questionCountEl.textContent = String(questionCount);
+    streakEl.textContent = String(streak);
+  }
+
+  function resetFeedback() {
+    feedbackEl.textContent = "";
+    feedbackEl.className = "";
+  }
+
+  function stopTimer() {
+    if (timerId !== null) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+  }
+
+  function updateTimerUI() {
+    timerLabelEl.textContent = `${remainingTime.toFixed(1)} s`;
+    const factor = Math.max(0, Math.min(1, remainingTime / TIME_PER_QUESTION));
+    timerBarInnerEl.style.transform = `scaleX(${factor})`;
+  }
+
+  function startTimer() {
+    stopTimer();
+    remainingTime = TIME_PER_QUESTION;
+    updateTimerUI();
+
+    timerId = setInterval(() => {
+      remainingTime -= 0.1;
+      if (remainingTime <= 0) {
+        remainingTime = 0;
+        updateTimerUI();
+        stopTimer();
+        handleTimeout();
+      } else {
+        updateTimerUI();
+      }
+    }, 100);
+  }
+
+  function renderOptions() {
+    optionsContainer.innerHTML = "";
+    const labels = [...ANSWER_LABELS];
+    labels.forEach(label => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.textContent = label;
+      btn.dataset.value = label;
+      btn.addEventListener("click", () => handleAnswer(label));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function setOptionsDisabled(disabled) {
+    const buttons = optionsContainer.querySelectorAll(".option-btn");
+    buttons.forEach(btn => {
+      if (disabled) {
+        btn.classList.add("disabled");
+        btn.disabled = true;
+      } else {
+        btn.classList.remove("disabled");
+        btn.disabled = false;
+        btn.classList.remove("correct", "wrong");
+      }
+    });
+  }
+
+  function pickRandomQuestion() {
+    const shuffled = shuffleArray(QUESTIONS);
+    return shuffled[0];
+  }
+
+  function nextQuestion() {
+    if (!QUESTIONS.length) {
+      questionTextEl.textContent = "Keine Fragen in der Konfiguration definiert.";
+      return;
+    }
+    locked = false;
+    resetFeedback();
+    setOptionsDisabled(false);
+    currentQuestion = pickRandomQuestion();
+    questionTextEl.textContent = currentQuestion.text;
+    questionCount++;
+    updateStats();
+    startTimer();
+  }
+
+  function handleTimeout() {
+    if (locked) return;
+    locked = true;
+    setOptionsDisabled(true);
+
+    streak = 0;
+    updateStats();
+
+    const buttons = optionsContainer.querySelectorAll(".option-btn");
+    buttons.forEach(btn => {
+      if (btn.dataset.value === currentQuestion.correct) {
+        btn.classList.add("correct");
+      }
+    });
+
+    feedbackEl.textContent = `Zeit abgelaufen! Richtig wäre: ${currentQuestion.correct}.`;
+    feedbackEl.className = "error";
+
+    setTimeout(() => {
+      nextQuestion();
+    }, 900);
+  }
+
+  function handleAnswer(selected) {
+    if (locked) return;
+    locked = true;
+    stopTimer();
+    setOptionsDisabled(true);
+
+    const isCorrect = selected === currentQuestion.correct;
+
+    const buttons = optionsContainer.querySelectorAll(".option-btn");
+    buttons.forEach(btn => {
+      const value = btn.dataset.value;
+      if (value === currentQuestion.correct) {
+        btn.classList.add("correct");
+      }
+      if (value === selected && !isCorrect) {
+        btn.classList.add("wrong");
+      }
+    });
+
+    if (isCorrect) {
+      score++;
+      streak++;
+      if (score > highscore) {
+        highscore = score;
+      }
+      feedbackEl.textContent = "Korrekt – weiter!";
+      feedbackEl.className = "ok";
+    } else {
+      streak = 0;
+      feedbackEl.textContent = `Falsch. Richtig wäre: ${currentQuestion.correct}.`;
+      feedbackEl.className = "error";
+    }
+
+    updateStats();
+
+    setTimeout(() => {
+      nextQuestion();
+    }, 800);
+  }
+
+  function restartGame() {
+    score = 0;
+    streak = 0;
+    questionCount = 0;
+    resetFeedback();
+    updateStats();
+    renderOptions();
+    nextQuestion();
+  }
+
+  function updateRestartButton() {
+    if (!hasStarted) {
+      restartBtn.classList.remove("running");
+      restartIconEl.textContent = "▶";
+      restartLabelEl.textContent = "Start";
+    } else {
+      restartBtn.classList.add("running");
+      restartIconEl.textContent = "↻";
+      restartLabelEl.textContent = "Neustart";
+    }
+  }
+
+  restartBtn.addEventListener("click", () => {
+    if (!configLoaded) {
+      return;
+    }
+    if (!hasStarted) {
+      hasStarted = true;
+    }
+    restartGame();
+    updateRestartButton();
+  });
+
+  // Start: Config laden
+  loadConfig();
+</script>
+</body>
+
+</html>
