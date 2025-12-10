@@ -15,6 +15,18 @@
             --border: #1f2937;
         }
 
+        /* Light-Theme über Klasse auf <html> */
+        :root.theme-light {
+            --bg: #f9fafb;
+            --panel: #e5e7eb;
+            --panel-soft: rgba(243, 244, 246, 0.98);
+            --accent: #2563eb;
+            --accent-soft: rgba(37, 99, 235, 0.12);
+            --text: #111827;
+            --text-muted: #4b5563;
+            --border: #d1d5db;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -289,6 +301,48 @@
             gap: 1rem;
         }
 
+        /* Top-App-Bar mit Spruch + Theme-Toggle */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0 0.75rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+        }
+
+        .top-bar-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .theme-toggle-btn {
+            width: 40px;
+            height: 24px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition:
+                    background 120ms ease-out,
+                    border-color 120ms ease-out,
+                    transform 80ms ease-out,
+                    color 120ms ease-out;
+        }
+
+        .theme-toggle-btn:hover {
+            background: rgba(30, 64, 175, 0.95);
+            border-color: rgba(59, 130, 246, 0.95);
+            color: #e5e7eb;
+            transform: translateY(-1px);
+        }
+
         .content-header {
             display: flex;
             flex-direction: column;
@@ -409,6 +463,19 @@
 
     <!-- Content rechts -->
     <main class="content">
+        <header class="top-bar">
+            <div class="top-bar-title">
+                Wiederholung ist die Mutter des Lernens
+            </div>
+            <button
+                    id="theme-toggle"
+                    class="theme-toggle-btn"
+                    type="button"
+                    aria-label="Theme wechseln">
+                🌙
+            </button>
+        </header>
+
         <header class="content-header">
             <div class="view-title" id="view-title">Drive-Struktur wird geladen …</div>
             <div class="view-path" id="view-path"></div>
@@ -440,6 +507,7 @@
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
         const STORAGE_KEY = 'driveTreeSpaState_v2';
+        const THEME_KEY   = 'globalTheme_v1';
 
         // =====================================================================
         // STATE
@@ -456,15 +524,16 @@
         // =====================================================================
         // DOM
         // =====================================================================
-        const appRootEl = document.getElementById('app-root');
-        const treeDrawerEl = document.getElementById('tree-drawer');
-        const menuTreeBtn = document.getElementById('menu-tree-btn');
-        const drawerTitleEl = document.getElementById('drawer-title');
-        const treeRootEl = document.getElementById('tree-root');
+        const appRootEl       = document.getElementById('app-root');
+        const treeDrawerEl    = document.getElementById('tree-drawer');
+        const menuTreeBtn     = document.getElementById('menu-tree-btn');
+        const drawerTitleEl   = document.getElementById('drawer-title');
+        const treeRootEl      = document.getElementById('tree-root');
         const selectedLabelEl = document.getElementById('state-selected-label');
-        const viewTitleEl = document.getElementById('view-title');
-        const viewPathEl = document.getElementById('view-path');
-        const viewBodyEl = document.getElementById('view-body');
+        const viewTitleEl     = document.getElementById('view-title');
+        const viewPathEl      = document.getElementById('view-path');
+        const viewBodyEl      = document.getElementById('view-body');
+        const themeToggleBtn  = document.getElementById('theme-toggle');
 
         // =====================================================================
         // STATE-HELPER
@@ -502,6 +571,39 @@
                 appRootEl.classList.remove('tree-open');
                 menuTreeBtn.classList.remove('active');
             }
+        }
+
+        // =====================================================================
+        // THEME
+        // =====================================================================
+        function applyTheme(theme) {
+            const rootEl = document.documentElement;
+            if (theme === 'light') {
+                rootEl.classList.add('theme-light');
+            } else {
+                rootEl.classList.remove('theme-light');
+            }
+            if (themeToggleBtn) {
+                themeToggleBtn.textContent = theme === 'light' ? '☀️' : '🌙';
+            }
+        }
+
+        function initTheme() {
+            let stored = null;
+            try {
+                stored = localStorage.getItem(THEME_KEY);
+            } catch (_) {}
+            const initial = stored === 'light' || stored === 'dark' ? stored : 'dark';
+            applyTheme(initial);
+        }
+
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.contains('theme-light');
+            const next = isLight ? 'dark' : 'light';
+            applyTheme(next);
+            try {
+                localStorage.setItem(THEME_KEY, next);
+            } catch (_) {}
         }
 
         // =====================================================================
@@ -649,7 +751,13 @@
                 const label = document.createElement('button');
                 label.type = 'button';
                 label.className = 'tree-label';
-                label.textContent = node.name;
+
+                // KEINE Dateiendungen im Tree
+                const baseName = node.isFolder
+                    ? (node.name || '')
+                    : (node.name || '').replace(/\.[^.]+$/, '');
+                label.textContent = baseName;
+
                 row.appendChild(label);
 
                 wrapper.appendChild(row);
@@ -752,15 +860,14 @@
             selectedLabelEl.textContent = name;
         }
 
-// Alte Funktion openPdfView(...) ERSETZEN durch:
-
+        // Statt interner pdf_view: direkt Drive-/view in neuem Tab
         function openPdfView(node) {
             const url = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
             window.open(url, '_blank', 'noopener,noreferrer');
         }
 
         function setupEvents() {
-            // Tree interactions – Klick
+            // Tree interactions – Klick (Single-Klick reicht)
             treeRootEl.addEventListener('click', (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLElement)) return;
@@ -791,7 +898,7 @@
                     return;
                 }
 
-                // Auswahl (Label oder Icon)
+                // Auswahl (Label oder Icon) + bei PDF direkt öffnen
                 if (target.classList.contains('tree-label') || target.classList.contains('tree-icon')) {
                     const nodeEl = target.closest('.tree-node');
                     if (!nodeEl) return;
@@ -803,7 +910,6 @@
                     applySelectedCss();
                     renderViewForId(id);
 
-                    // NEU: bei PDF direkt in neuem Tab öffnen
                     const node = findNodeById(rootTree, id);
                     if (node && !node.isFolder && node.kind === 'pdf') {
                         openPdfView(node);
@@ -811,12 +917,21 @@
                 }
             });
 
+            // KEIN dblclick mehr nötig – entfernt
+
             // Menü-Icon toggelt Drawer
             menuTreeBtn.addEventListener('click', () => {
                 const open = !state.drawerOpen;
                 saveState({ drawerOpen: open });
                 applyDrawerOpen();
             });
+
+            // Theme-Toggle
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    toggleTheme();
+                });
+            }
         }
 
         function showError(message) {
@@ -847,6 +962,7 @@
         // INIT
         // =====================================================================
         (async function init() {
+            initTheme();
             loadState();
             applyDrawerOpen();
 
