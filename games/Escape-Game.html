@@ -15,734 +15,737 @@
 </head>
 
 <body>
-    <div class="page" id="game-root">
-        <main class="panel">
-            <header class="header">
-                <div class="title-block">
-                    <h1>Mini-Escape-Room</h1>
-                    <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
+<div class="page" id="game-root">
+    <main class="panel">
+        <header class="header">
+            <div class="title-block">
+                <h1>Mini-Escape-Room</h1>
+                <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
+            </div>
+            <div class="stats">
+                <div class="stat-chip stat-chip--timer">
+                    <span>Zeit</span>
+                    <span id="stat-timer">03:00</span>
                 </div>
-                <div class="stats">
-                    <div class="stat-chip stat-chip--timer">
-                        <span>Zeit</span>
-                        <span id="stat-timer">03:00</span>
-                    </div>
-                    <div class="stat-chip">
-                        <span>Rätsel gelöst</span>
-                        <span id="stat-solved">0 / 3</span>
-                    </div>
-                    <!-- optional, falls du es im Layout hast:
                 <div class="stat-chip">
-                    <span>Status</span>
-                    <span id="stat-status">Laden ist offen</span>
+                    <span>Rätsel gelöst</span>
+                    <span id="stat-solved">0 / 3</span>
                 </div>
-                -->
-                </div>
-            </header>
-
-            <div class="toolbar">
-                <button class="btn-secondary btn" id="restart-btn" type="button">
-                    <span>↻</span> Neu starten
-                </button>
+                <!-- optional, falls du es im Layout hast:
+            <div class="stat-chip">
+                <span>Status</span>
+                <span id="stat-status">Laden ist offen</span>
             </div>
-
-            <div class="door-wrapper">
-                <div class="door-scene">
-                    <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
-                    <div class="door" id="door"></div>
-                    <div class="door-floor"></div>
-                    <div class="door-glow" id="door-glow"></div>
-                </div>
+            -->
             </div>
+        </header>
 
-            <div class="layout-grid">
-                <!-- Sortieraufgabe Haftung -->
-                <section class="section-card" id="section-sort">
-                    <div class="section-header">
-                        <div>
-                            <div class="section-title">Rätsel 1: Haftung einsortieren</div>
-                            <div class="section-sub">Ziehe die Haftungseigenschaften in die passende Kategorie.</div>
-                        </div>
-                        <div class="section-status" id="status-sort">offen</div>
+        <div class="toolbar">
+            <button class="btn-secondary btn" id="restart-btn" type="button">
+                <span>↻</span> Neu starten
+            </button>
+        </div>
+
+        <div class="door-wrapper">
+            <div class="door-scene">
+                <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
+                <div class="door" id="door"></div>
+                <div class="door-floor"></div>
+                <div class="door-glow" id="door-glow"></div>
+            </div>
+        </div>
+
+        <div class="layout-grid">
+            <!-- Sortieraufgabe Haftung -->
+            <section class="section-card" id="section-sort">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Rätsel 1: Haftung einsortieren</div>
+                        <div class="section-sub">Ziehe die Haftungseigenschaften in die passende Kategorie.</div>
                     </div>
-                    <div class="section-body">
-                        <div class="sort-pool" id="sort-pool"></div>
-                        <div class="sort-board">
-                            <div class="escape-dropzone" data-zone="person">
-                                <div class="escape-dropzone-label">
-                                    Personengesellschaften<br>
-                                    <span style="font-size:10px;color:var(--muted);">(Einzelunternehmen, GbR, OHG,
+                    <div class="section-status" id="status-sort">offen</div>
+                </div>
+                <div class="section-body">
+                    <div class="sort-pool" id="sort-pool"></div>
+                    <div class="sort-board">
+                        <div class="escape-dropzone" data-zone="person">
+                            <div class="escape-dropzone-label">
+                                Personengesellschaften<br>
+                                <span style="font-size:10px;color:hsl(var(--txt-muted));">(Einzelunternehmen, GbR, OHG,
                                         KG)</span>
-                                </div>
-                            </div>
-                            <div class="escape-dropzone" data-zone="kapital">
-                                <div class="escape-dropzone-label">
-                                    Kapitalgesellschaften<br>
-                                    <span style="font-size:10px;color:var(--muted);">(GmbH, UG)</span>
-                                </div>
-                            </div>
-                            <div class="escape-dropzone" data-zone="beide">
-                                <div class="escape-dropzone-label">Kann zu beiden passen</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="section-footer">
-                        <button class="btn" id="check-sort-btn" type="button">
-                            <span>✔</span> Rätsel prüfen
-                        </button>
-                    </div>
-                </section>
-
-                <!-- Quiz -->
-                <section class="section-card" id="section-quiz">
-                    <div class="section-header">
-                        <div>
-                            <div class="section-title">Rätsel 2: Kurz-Quiz Rechtsformen</div>
-                            <div class="section-sub">Beantworte zwei Fragen – jede mit einer richtigen Antwort.</div>
+                        <div class="escape-dropzone" data-zone="kapital">
+                            <div class="escape-dropzone-label">
+                                Kapitalgesellschaften<br>
+                                <span style="font-size:10px;color:hsl(var(--txt-muted));">(GmbH, UG)</span>
+                            </div>
                         </div>
-                        <div class="section-status" id="status-quiz">offen</div>
-                    </div>
-                    <div class="section-body">
-                        <div class="quiz-question" data-quiz-id="q1">
-                            <div class="quiz-text">1. Welche Aussage zur GmbH stimmt?</div>
-                            <ul class="quiz-options">
-                                <li><label><input type="radio" name="q1" value="a"> Die Gesellschafter haften immer mit
-                                        ihrem gesamten Privatvermögen.</label></li>
-                                <li><label><input type="radio" name="q1" value="b"> Es gibt kein gesetzliches
-                                        Mindestkapital.</label></li>
-                                <li><label><input type="radio" name="q1" value="c"> Es ist ein Stammkapital von 25.000 €
-                                        vorgeschrieben.</label></li>
-                            </ul>
+                        <div class="escape-dropzone" data-zone="beide">
+                            <div class="escape-dropzone-label">Kann zu beiden passen</div>
                         </div>
-                        <div class="quiz-question" data-quiz-id="q2">
-                            <div class="quiz-text">2. Was ist typisch für eine GbR?</div>
-                            <ul class="quiz-options">
-                                <li><label><input type="radio" name="q2" value="a"> Es muss mindestens eine Million Euro
-                                        Kapital eingebracht werden.</label></li>
-                                <li><label><input type="radio" name="q2" value="b"> Mindestens zwei Personen schließen
-                                        sich zusammen und haften persönlich.</label></li>
-                                <li><label><input type="radio" name="q2" value="c"> Sie ist immer an der Börse
-                                        notiert.</label></li>
-                            </ul>
-                        </div>
-                        <div class="quiz-feedback" id="quiz-feedback">Wähle je Frage eine Antwort.</div>
                     </div>
-                    <div class="section-footer">
-                        <button class="btn" id="check-quiz-btn" type="button">
-                            <span>✔</span> Quiz prüfen
-                        </button>
+                </div>
+                <div class="section-footer">
+                    <button class="btn" id="check-sort-btn" type="button">
+                        <span>✔</span> Rätsel prüfen
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quiz -->
+            <section class="section-card" id="section-quiz">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Rätsel 2: Kurz-Quiz Rechtsformen</div>
+                        <div class="section-sub">Beantworte zwei Fragen – jede mit einer richtigen Antwort.</div>
                     </div>
-                </section>
-
-                <!-- Mindestkapital -->
-                <section class="section-card" id="section-capital">
-                    <div class="section-header">
-                        <div>
-                            <div class="section-title">Rätsel 3: Form → Mindestkapital</div>
-                            <div class="section-sub">Ordne das typische Mindestkapital zu den Rechtsformen zu.</div>
-                        </div>
-                        <div class="section-status" id="status-capital">offen</div>
+                    <div class="section-status" id="status-quiz">offen</div>
+                </div>
+                <div class="section-body">
+                    <div class="quiz-question" data-quiz-id="q1">
+                        <div class="quiz-text">1. Welche Aussage zur GmbH stimmt?</div>
+                        <ul class="quiz-options">
+                            <li><label><input type="radio" name="q1" value="a"> Die Gesellschafter haften immer mit
+                                ihrem gesamten Privatvermögen.</label></li>
+                            <li><label><input type="radio" name="q1" value="b"> Es gibt kein gesetzliches
+                                Mindestkapital.</label></li>
+                            <li><label><input type="radio" name="q1" value="c"> Es ist ein Stammkapital von 25.000 €
+                                vorgeschrieben.</label></li>
+                        </ul>
                     </div>
-                    <div class="section-body">
-                        <table class="capital-table">
-                            <thead>
-                                <tr>
-                                    <th>Rechtsform</th>
-                                    <th>Mindestkapital</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Einzelunternehmen</td>
-                                    <td>
-                                        <select data-form="Einzelunternehmen">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>GbR</td>
-                                    <td>
-                                        <select data-form="GbR">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>UG (haftungsbeschränkt)</td>
-                                    <td>
-                                        <select data-form="UG (haftungsbeschränkt)">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>GmbH</td>
-                                    <td>
-                                        <select data-form="GmbH">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="quiz-question" data-quiz-id="q2">
+                        <div class="quiz-text">2. Was ist typisch für eine GbR?</div>
+                        <ul class="quiz-options">
+                            <li><label><input type="radio" name="q2" value="a"> Es muss mindestens eine Million Euro
+                                Kapital eingebracht werden.</label></li>
+                            <li><label><input type="radio" name="q2" value="b"> Mindestens zwei Personen schließen
+                                sich zusammen und haften persönlich.</label></li>
+                            <li><label><input type="radio" name="q2" value="c"> Sie ist immer an der Börse
+                                notiert.</label></li>
+                        </ul>
                     </div>
-                    <div class="section-footer">
-                        <button class="btn" id="check-capital-btn" type="button">
-                            <span>✔</span> Zuordnung prüfen
-                        </button>
+                    <div class="quiz-feedback" id="quiz-feedback">Wähle je Frage eine Antwort.</div>
+                </div>
+                <div class="section-footer">
+                    <button class="btn" id="check-quiz-btn" type="button">
+                        <span>✔</span> Quiz prüfen
+                    </button>
+                </div>
+            </section>
+
+            <!-- Mindestkapital -->
+            <section class="section-card" id="section-capital">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Rätsel 3: Form → Mindestkapital</div>
+                        <div class="section-sub">Ordne das typische Mindestkapital zu den Rechtsformen zu.</div>
                     </div>
-                </section>
-            </div>
-        </main>
-    </div>
+                    <div class="section-status" id="status-capital">offen</div>
+                </div>
+                <div class="section-body">
+                    <table class="capital-table">
+                        <thead>
+                        <tr>
+                            <th>Rechtsform</th>
+                            <th>Mindestkapital</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>Einzelunternehmen</td>
+                            <td>
+                                <select data-form="Einzelunternehmen">
+                                    <option value="">– bitte wählen –</option>
+                                    <option value="kein">kein gesetzliches Mindestkapital</option>
+                                    <option value="1euro">ab 1 € Stammkapital</option>
+                                    <option value="25000">25.000 € Stammkapital</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>GbR</td>
+                            <td>
+                                <select data-form="GbR">
+                                    <option value="">– bitte wählen –</option>
+                                    <option value="kein">kein gesetzliches Mindestkapital</option>
+                                    <option value="1euro">ab 1 € Stammkapital</option>
+                                    <option value="25000">25.000 € Stammkapital</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>UG (haftungsbeschränkt)</td>
+                            <td>
+                                <select data-form="UG (haftungsbeschränkt)">
+                                    <option value="">– bitte wählen –</option>
+                                    <option value="kein">kein gesetzliches Mindestkapital</option>
+                                    <option value="1euro">ab 1 € Stammkapital</option>
+                                    <option value="25000">25.000 € Stammkapital</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>GmbH</td>
+                            <td>
+                                <select data-form="GmbH">
+                                    <option value="">– bitte wählen –</option>
+                                    <option value="kein">kein gesetzliches Mindestkapital</option>
+                                    <option value="1euro">ab 1 € Stammkapital</option>
+                                    <option value="25000">25.000 € Stammkapital</option>
+                                </select>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="section-footer">
+                    <button class="btn" id="check-capital-btn" type="button">
+                        <span>✔</span> Zuordnung prüfen
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
 
-    <!-- GameBase einbinden -->
-    <script src="game_base.js"></script>
+<!-- GameBase einbinden -->
+<script src="game_base.js"></script>
 
-    <script>
-        class EscapeGame extends GameBase {
-            constructor() {
-                super({
-                    expectedGameType: 'escape_game',
-                    rootElementId: 'game-root'
-                });
+<script>
+    class EscapeGame extends GameBase {
+        constructor() {
+            super({
+                expectedGameType: 'escape_game',
+                rootElementId: 'game-root'
+            });
 
-                this.START_SECONDS = 180;
-                this.remainingSeconds = this.START_SECONDS;
-                this.timerId = null;
-                this.gameLocked = false;
+            this.START_SECONDS = 180;
+            this.remainingSeconds = this.START_SECONDS;
+            this.timerId = null;
+            this.gameLocked = false;
 
-                this.sectionSolved = {
-                    sort: false,
-                    quiz: false,
-                    capital: false
-                };
+            this.sectionSolved = {
+                sort: false,
+                quiz: false,
+                capital: false
+            };
 
+            this.sortCardsData = [];
+            this.quizSolutions = {};
+            this.capitalSolutions = {};
+            this.draggingCardId = null;
+        }
+
+        onDataLoaded(config) {
+            this.config = config;
+
+            // DOM-Referenzen
+            this.statTimerEl = document.getElementById('stat-timer');
+            this.statSolvedEl = document.getElementById('stat-solved');
+            this.statStatusEl = document.getElementById('stat-status'); // optional
+
+            this.restartBtn = document.getElementById('restart-btn');
+
+            this.doorEl = document.getElementById('door');
+            this.doorSignEl = document.getElementById('door-sign');
+            this.doorGlowEl = document.getElementById('door-glow');
+
+            this.statusSortEl = document.getElementById('status-sort');
+            this.statusQuizEl = document.getElementById('status-quiz');
+            this.statusCapitalEl = document.getElementById('status-capital');
+
+            this.checkSortBtn = document.getElementById('check-sort-btn');
+            this.checkQuizBtn = document.getElementById('check-quiz-btn');
+            this.checkCapitalBtn = document.getElementById('check-capital-btn');
+
+            this.sortPoolEl = document.getElementById('sort-pool');
+            this.dropzones = Array.from(document.querySelectorAll('.escape-dropzone'));
+            this.capitalSelects = Array.from(document.querySelectorAll('.capital-table select'));
+
+            this.quizFeedbackEl = document.getElementById('quiz-feedback');
+
+            this._applyConfig(config);
+            this._wireEvents();
+            this.resetGame();
+        }
+
+        _applyConfig(config) {
+            const sections = Array.isArray(config.sections) ? config.sections : [];
+
+            const sortSection = sections.find(s => s.type === 'sort');
+            const quizSection = sections.find(s => s.type === 'quiz');
+            const capitalSection = sections.find(s => s.type === 'capital');
+
+            // Sortierkarten
+            if (sortSection && Array.isArray(sortSection.sortCards)) {
+                this.sortCardsData = sortSection.sortCards;
+            } else {
                 this.sortCardsData = [];
+            }
+
+            // Quiz
+            if (quizSection && Array.isArray(quizSection.questions)) {
                 this.quizSolutions = {};
+                quizSection.questions.forEach(q => {
+                    this.quizSolutions[q.id] = q.correct;
+
+                    const qRoot = document.querySelector(`.quiz-question[data-quiz-id="${q.id}"]`);
+                    if (!qRoot) return;
+
+                    const textEl = qRoot.querySelector('.quiz-text');
+                    if (textEl) textEl.textContent = q.text;
+
+                    const listEl = qRoot.querySelector('.quiz-options');
+                    if (listEl && Array.isArray(q.options)) {
+                        listEl.innerHTML = '';
+                        q.options.forEach(o => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `<label><input type="radio" name="${q.id}" value="${o.value}"> ${o.text}</label>`;
+                            listEl.appendChild(li);
+                        });
+                    }
+                });
+            } else {
+                this.quizSolutions = {};
+            }
+
+            // Mindestkapital
+            if (capitalSection && Array.isArray(capitalSection.rows)) {
                 this.capitalSolutions = {};
-                this.draggingCardId = null;
-            }
+                capitalSection.rows.forEach(row => {
+                    this.capitalSolutions[row.label] = row.correct;
 
-            onDataLoaded(config) {
-                this.config = config;
-
-                // DOM-Referenzen
-                this.statTimerEl = document.getElementById('stat-timer');
-                this.statSolvedEl = document.getElementById('stat-solved');
-                this.statStatusEl = document.getElementById('stat-status'); // optional
-
-                this.restartBtn = document.getElementById('restart-btn');
-
-                this.doorEl = document.getElementById('door');
-                this.doorSignEl = document.getElementById('door-sign');
-                this.doorGlowEl = document.getElementById('door-glow');
-
-                this.statusSortEl = document.getElementById('status-sort');
-                this.statusQuizEl = document.getElementById('status-quiz');
-                this.statusCapitalEl = document.getElementById('status-capital');
-
-                this.checkSortBtn = document.getElementById('check-sort-btn');
-                this.checkQuizBtn = document.getElementById('check-quiz-btn');
-                this.checkCapitalBtn = document.getElementById('check-capital-btn');
-
-                this.sortPoolEl = document.getElementById('sort-pool');
-                this.dropzones = Array.from(document.querySelectorAll('.escape-dropzone'));
-                this.capitalSelects = Array.from(document.querySelectorAll('.capital-table select'));
-
-                this.quizFeedbackEl = document.getElementById('quiz-feedback');
-
-                this._applyConfig(config);
-                this._wireEvents();
-                this.resetGame();
-            }
-
-            _applyConfig(config) {
-                const sections = Array.isArray(config.sections) ? config.sections : [];
-
-                const sortSection = sections.find(s => s.type === 'sort');
-                const quizSection = sections.find(s => s.type === 'quiz');
-                const capitalSection = sections.find(s => s.type === 'capital');
-
-                // Sortierkarten
-                if (sortSection && Array.isArray(sortSection.sortCards)) {
-                    this.sortCardsData = sortSection.sortCards;
-                } else {
-                    this.sortCardsData = [];
-                }
-
-                // Quiz
-                if (quizSection && Array.isArray(quizSection.questions)) {
-                    this.quizSolutions = {};
-                    quizSection.questions.forEach(q => {
-                        this.quizSolutions[q.id] = q.correct;
-
-                        const qRoot = document.querySelector(`.quiz-question[data-quiz-id="${q.id}"]`);
-                        if (!qRoot) return;
-
-                        const textEl = qRoot.querySelector('.quiz-text');
-                        if (textEl) textEl.textContent = q.text;
-
-                        const listEl = qRoot.querySelector('.quiz-options');
-                        if (listEl && Array.isArray(q.options)) {
-                            listEl.innerHTML = '';
-                            q.options.forEach(o => {
-                                const li = document.createElement('li');
-                                li.innerHTML = `<label><input type="radio" name="${q.id}" value="${o.value}"> ${o.text}</label>`;
-                                listEl.appendChild(li);
-                            });
-                        }
-                    });
-                } else {
-                    this.quizSolutions = {};
-                }
-
-                // Mindestkapital
-                if (capitalSection && Array.isArray(capitalSection.rows)) {
-                    this.capitalSolutions = {};
-                    capitalSection.rows.forEach(row => {
-                        this.capitalSolutions[row.label] = row.correct;
-
-                        const sel = document.querySelector(`select[data-form="${row.label}"]`);
-                        if (sel && Array.isArray(row.options)) {
-                            sel.innerHTML = '';
-                            row.options.forEach(o => {
-                                const opt = document.createElement('option');
-                                opt.value = o.value;
-                                opt.textContent = o.text;
-                                sel.appendChild(opt);
-                            });
-                        }
-                    });
-                } else {
-                    this.capitalSolutions = {};
-                }
-
-                this._resetSortBoard();
-            }
-
-            _wireEvents() {
-                if (this.checkSortBtn) {
-                    this.checkSortBtn.addEventListener('click', () => this.checkSort());
-                }
-                if (this.checkQuizBtn) {
-                    this.checkQuizBtn.addEventListener('click', () => this.checkQuiz());
-                }
-                if (this.checkCapitalBtn) {
-                    this.checkCapitalBtn.addEventListener('click', () => this.checkCapital());
-                }
-                if (this.restartBtn) {
-                    this.restartBtn.addEventListener('click', () => this.resetGame());
-                }
-
-                this.dropzones.forEach(zone => {
-                    zone.addEventListener('dragover', (e) => this._handleDragOverZone(e));
-                    zone.addEventListener('dragleave', (e) => this._handleDragLeaveZone(e));
-                    zone.addEventListener('drop', (e) => this._handleDropZone(e));
+                    const sel = document.querySelector(`select[data-form="${row.label}"]`);
+                    if (sel && Array.isArray(row.options)) {
+                        sel.innerHTML = '';
+                        row.options.forEach(o => {
+                            const opt = document.createElement('option');
+                            opt.value = o.value;
+                            opt.textContent = o.text;
+                            sel.appendChild(opt);
+                        });
+                    }
                 });
+            } else {
+                this.capitalSolutions = {};
             }
 
-            // ===================== Timer =====================
-            _formatTime(seconds) {
-                const m = Math.floor(seconds / 60);
-                const s = seconds % 60;
-                const mm = m < 10 ? '0' + m : String(m);
-                const ss = s < 10 ? '0' + s : String(s);
-                return mm + ':' + ss;
+            this._resetSortBoard();
+        }
+
+        _wireEvents() {
+            if (this.checkSortBtn) {
+                this.checkSortBtn.addEventListener('click', () => this.checkSort());
+            }
+            if (this.checkQuizBtn) {
+                this.checkQuizBtn.addEventListener('click', () => this.checkQuiz());
+            }
+            if (this.checkCapitalBtn) {
+                this.checkCapitalBtn.addEventListener('click', () => this.checkCapital());
+            }
+            if (this.restartBtn) {
+                this.restartBtn.addEventListener('click', () => this.resetGame());
             }
 
-            _updateTimerDisplay() {
-                if (!this.statTimerEl) return;
-                this.statTimerEl.textContent = this._formatTime(this.remainingSeconds);
-                this.statTimerEl.style.color = this.remainingSeconds <= 10 ? 'var(--error)' : 'var(--text)';
-            }
+            this.dropzones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => this._handleDragOverZone(e));
+                zone.addEventListener('dragleave', (e) => this._handleDragLeaveZone(e));
+                zone.addEventListener('drop', (e) => this._handleDropZone(e));
+            });
+        }
 
-            _tickTimer() {
-                if (this.gameLocked) return;
-                this.remainingSeconds -= 1;
-                if (this.remainingSeconds <= 0) {
-                    this.remainingSeconds = 0;
-                    this._updateTimerDisplay();
-                    this._handleTimeUp();
-                    return;
-                }
+        // ===================== Timer =====================
+        _formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            const mm = m < 10 ? '0' + m : String(m);
+            const ss = s < 10 ? '0' + s : String(s);
+            return mm + ':' + ss;
+        }
+
+        _updateTimerDisplay() {
+            if (!this.statTimerEl) return;
+            this.statTimerEl.textContent = this._formatTime(this.remainingSeconds);
+            // FIX: Farben über HSL-Variablen, damit Theme greift
+            this.statTimerEl.style.color = this.remainingSeconds <= 10
+                ? 'hsl(var(--error))'
+                : 'hsl(var(--txt))';
+        }
+
+        _tickTimer() {
+            if (this.gameLocked) return;
+            this.remainingSeconds -= 1;
+            if (this.remainingSeconds <= 0) {
+                this.remainingSeconds = 0;
                 this._updateTimerDisplay();
+                this._handleTimeUp();
+                return;
+            }
+            this._updateTimerDisplay();
+        }
+
+        _startTimer() {
+            if (this.timerId) clearInterval(this.timerId);
+            this.timerId = setInterval(() => this._tickTimer(), 1000);
+        }
+
+        _handleTimeUp() {
+            if (this.timerId) {
+                clearInterval(this.timerId);
+                this.timerId = null;
+            }
+            this.gameLocked = true;
+
+            if (this.statStatusEl) {
+                this.statStatusEl.textContent = 'Ladenschluss!';
+                this.statStatusEl.style.color = 'hsl(var(--error))';
             }
 
-            _startTimer() {
-                if (this.timerId) clearInterval(this.timerId);
-                this.timerId = setInterval(() => this._tickTimer(), 1000);
+            if (this.doorSignEl) {
+                this.doorSignEl.textContent = 'ZU SPÄT';
+                this.doorSignEl.classList.remove('door-sign--open');
+                this.doorSignEl.classList.add('door-sign--closed');
+            }
+            if (this.doorEl) {
+                this.doorEl.classList.remove('door--open');
+            }
+            if (this.doorGlowEl) {
+                this.doorGlowEl.classList.remove('door-glow--active');
             }
 
-            _handleTimeUp() {
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.timerId = null;
-                }
-                this.gameLocked = true;
+            if (this.checkSortBtn) this.checkSortBtn.disabled = true;
+            if (this.checkQuizBtn) this.checkQuizBtn.disabled = true;
+            if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = true;
+        }
 
-                if (this.statStatusEl) {
-                    this.statStatusEl.textContent = 'Ladenschluss!';
-                    this.statStatusEl.style.color = 'var(--error)';
-                }
-
-                if (this.doorSignEl) {
-                    this.doorSignEl.textContent = 'ZU SPÄT';
-                    this.doorSignEl.classList.remove('door-sign--open');
-                    this.doorSignEl.classList.add('door-sign--closed');
-                }
-                if (this.doorEl) {
-                    this.doorEl.classList.remove('door--open');
-                }
-                if (this.doorGlowEl) {
-                    this.doorGlowEl.classList.remove('door-glow--active');
-                }
-
-                if (this.checkSortBtn) this.checkSortBtn.disabled = true;
-                if (this.checkQuizBtn) this.checkQuizBtn.disabled = true;
-                if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = true;
+        _updateSolvedStatus() {
+            const solvedCount = Object.values(this.sectionSolved).filter(Boolean).length;
+            if (this.statSolvedEl) {
+                this.statSolvedEl.textContent = solvedCount + ' / 3';
             }
 
-            _updateSolvedStatus() {
-                const solvedCount = Object.values(this.sectionSolved).filter(Boolean).length;
-                if (this.statSolvedEl) {
-                    this.statSolvedEl.textContent = solvedCount + ' / 3';
-                }
-
-                if (solvedCount === 3 && !this.gameLocked && this.remainingSeconds > 0) {
-                    this._openDoor();
-                }
-            }
-
-            _openDoor() {
-                this.gameLocked = true;
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.timerId = null;
-                }
-
-                if (this.doorEl) {
-                    this.doorEl.classList.add('door--open');
-                }
-                if (this.doorGlowEl) {
-                    this.doorGlowEl.classList.add('door-glow--active');
-                }
-                if (this.doorSignEl) {
-                    this.doorSignEl.textContent = 'OFFEN';
-                    this.doorSignEl.classList.remove('door-sign--closed');
-                    this.doorSignEl.classList.add('door-sign--open');
-                }
-
-                if (this.statStatusEl) {
-                    this.statStatusEl.textContent = 'Tür geöffnet!';
-                    this.statStatusEl.style.color = 'var(--success)';
-                }
-
-                if (this.checkSortBtn) this.checkSortBtn.disabled = true;
-                if (this.checkQuizBtn) this.checkQuizBtn.disabled = true;
-                if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = true;
-            }
-
-            // ===================== Sortieraufgabe =====================
-            _createSortCard(cardData) {
-                const el = document.createElement('div');
-                el.className = 'drag-card';
-                el.draggable = true;
-                el.dataset.cardId = cardData.id;
-                el.dataset.correctZone = cardData.correctZone;
-
-                const textSpan = document.createElement('span');
-                textSpan.className = 'drag-card-text';
-                textSpan.textContent = cardData.text;
-                el.appendChild(textSpan);
-
-                el.addEventListener('dragstart', (e) => {
-                    if (this.gameLocked) {
-                        e.preventDefault();
-                        return;
-                    }
-                    this.draggingCardId = cardData.id;
-                    el.classList.add('dragging');
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', cardData.id);
-                });
-
-                el.addEventListener('dragend', () => {
-                    this.draggingCardId = null;
-                    el.classList.remove('dragging');
-                });
-
-                return el;
-            }
-
-            _resetSortBoard() {
-                if (!this.sortPoolEl) return;
-                this.sortPoolEl.innerHTML = '';
-
-                this.sortCardsData.forEach(card => {
-                    const el = this._createSortCard(card);
-                    this.sortPoolEl.appendChild(el);
-                });
-
-                this.dropzones.forEach(zone => {
-                    zone.classList.remove('is-over');
-                    const children = Array.from(zone.children)
-                        .filter(c => !c.classList.contains('escape-dropzone-label'));
-                    children.forEach(c => c.remove());
-                });
-            }
-
-            _handleDragOverZone(e) {
-                if (this.gameLocked) return;
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                e.currentTarget.classList.add('is-over');
-            }
-
-            _handleDragLeaveZone(e) {
-                e.currentTarget.classList.remove('is-over');
-            }
-
-            _handleDropZone(e) {
-                if (this.gameLocked) return;
-                e.preventDefault();
-                const zone = e.currentTarget;
-                zone.classList.remove('is-over');
-
-                const cardId = e.dataTransfer.getData('text/plain') || this.draggingCardId;
-                if (!cardId) return;
-
-                const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
-                if (!cardEl) return;
-
-                cardEl.classList.remove('correct', 'wrong');
-                zone.appendChild(cardEl);
-            }
-
-            checkSort() {
-                if (this.gameLocked) return;
-
-                let correct = 0;
-                const total = this.sortCardsData.length;
-
-                document.querySelectorAll('.drag-card').forEach(card => {
-                    card.classList.remove('correct', 'wrong');
-                });
-
-                this.sortCardsData.forEach(cardData => {
-                    const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
-                    if (!cardEl) return;
-
-                    const parentZone = cardEl.closest('.escape-dropzone');
-                    const zoneName = parentZone ? parentZone.dataset.zone : null;
-
-                    if (!zoneName) {
-                        cardEl.classList.add('wrong');
-                        return;
-                    }
-
-                    if (zoneName === cardData.correctZone) {
-                        cardEl.classList.add('correct');
-                        correct += 1;
-                    } else {
-                        cardEl.classList.add('wrong');
-                    }
-                });
-
-                if (correct === total) {
-                    this.sectionSolved.sort = true;
-                    if (this.statusSortEl) {
-                        this.statusSortEl.textContent = 'gelöst';
-                        this.statusSortEl.className = 'section-status section-status--done';
-                    }
-                } else {
-                    this.sectionSolved.sort = false;
-                    if (this.statusSortEl) {
-                        this.statusSortEl.textContent = 'noch Fehler';
-                        this.statusSortEl.className = 'section-status section-status--fail';
-                    }
-                }
-
-                this._updateSolvedStatus();
-            }
-
-            // ===================== Quiz =====================
-            checkQuiz() {
-                if (this.gameLocked) return;
-
-                const q1 = document.querySelector('input[name="q1"]:checked');
-                const q2 = document.querySelector('input[name="q2"]:checked');
-
-                if (!q1 || !q2) {
-                    if (this.quizFeedbackEl) {
-                        this.quizFeedbackEl.textContent = 'Bitte jede der beiden Fragen beantworten.';
-                    }
-                    this.sectionSolved.quiz = false;
-                    if (this.statusQuizEl) {
-                        this.statusQuizEl.textContent = 'unvollständig';
-                        this.statusQuizEl.className = 'section-status section-status--fail';
-                    }
-                    this._updateSolvedStatus();
-                    return;
-                }
-
-                const correctQ1 = this.quizSolutions.q1 ? q1.value === this.quizSolutions.q1 : false;
-                const correctQ2 = this.quizSolutions.q2 ? q2.value === this.quizSolutions.q2 : false;
-
-                if (correctQ1 && correctQ2) {
-                    this.sectionSolved.quiz = true;
-                    if (this.statusQuizEl) {
-                        this.statusQuizEl.textContent = 'gelöst';
-                        this.statusQuizEl.className = 'section-status section-status--done';
-                    }
-                    if (this.quizFeedbackEl) {
-                        this.quizFeedbackEl.textContent = 'Beide Antworten sind richtig.';
-                    }
-                } else {
-                    this.sectionSolved.quiz = false;
-                    if (this.statusQuizEl) {
-                        this.statusQuizEl.textContent = 'noch Fehler';
-                        this.statusQuizEl.className = 'section-status section-status--fail';
-                    }
-                    if (this.quizFeedbackEl) {
-                        this.quizFeedbackEl.textContent = 'Mindestens eine Antwort ist falsch.';
-                    }
-                }
-
-                this._updateSolvedStatus();
-            }
-
-            // ===================== Mindestkapital =====================
-            checkCapital() {
-                if (this.gameLocked) return;
-
-                let correct = 0;
-                const total = Object.keys(this.capitalSolutions).length;
-
-                this.capitalSelects.forEach(sel => {
-                    sel.classList.remove('correct', 'wrong');
-                });
-
-                this.capitalSelects.forEach(sel => {
-                    const form = sel.dataset.form;
-                    const expected = this.capitalSolutions[form];
-                    const chosen = sel.value;
-
-                    if (!chosen) {
-                        sel.classList.add('wrong');
-                        return;
-                    }
-
-                    if (chosen === expected) {
-                        sel.classList.add('correct');
-                        correct += 1;
-                    } else {
-                        sel.classList.add('wrong');
-                    }
-                });
-
-                if (correct === total) {
-                    this.sectionSolved.capital = true;
-                    if (this.statusCapitalEl) {
-                        this.statusCapitalEl.textContent = 'gelöst';
-                        this.statusCapitalEl.className = 'section-status section-status--done';
-                    }
-                } else {
-                    this.sectionSolved.capital = false;
-                    if (this.statusCapitalEl) {
-                        this.statusCapitalEl.textContent = 'noch Fehler';
-                        this.statusCapitalEl.className = 'section-status section-status--fail';
-                    }
-                }
-
-                this._updateSolvedStatus();
-            }
-
-            // ===================== Reset / Init =====================
-            resetGame() {
-                if (this.timerId) clearInterval(this.timerId);
-
-                this.remainingSeconds = this.START_SECONDS;
-                this._updateTimerDisplay();
-                this.gameLocked = false;
-
-                this.sectionSolved.sort = false;
-                this.sectionSolved.quiz = false;
-                this.sectionSolved.capital = false;
-
-                if (this.statusSortEl) {
-                    this.statusSortEl.textContent = 'offen';
-                    this.statusSortEl.className = 'section-status';
-                }
-                if (this.statusQuizEl) {
-                    this.statusQuizEl.textContent = 'offen';
-                    this.statusQuizEl.className = 'section-status';
-                }
-                if (this.statusCapitalEl) {
-                    this.statusCapitalEl.textContent = 'offen';
-                    this.statusCapitalEl.className = 'section-status';
-                }
-
-                if (this.statStatusEl) {
-                    this.statStatusEl.textContent = 'Laden ist offen';
-                    this.statStatusEl.style.color = 'var(--text)';
-                }
-
-                if (this.statSolvedEl) {
-                    this.statSolvedEl.textContent = '0 / 3';
-                }
-
-                if (this.doorEl) {
-                    this.doorEl.classList.remove('door--open');
-                }
-                if (this.doorGlowEl) {
-                    this.doorGlowEl.classList.remove('door-glow--active');
-                }
-                if (this.doorSignEl) {
-                    this.doorSignEl.textContent = 'GESCHLOSSEN';
-                    this.doorSignEl.classList.add('door-sign--closed');
-                    this.doorSignEl.classList.remove('door-sign--open');
-                }
-
-                this._resetSortBoard();
-
-                document.querySelectorAll('input[name="q1"]').forEach(i => i.checked = false);
-                document.querySelectorAll('input[name="q2"]').forEach(i => i.checked = false);
-                if (this.quizFeedbackEl) {
-                    this.quizFeedbackEl.textContent = 'Wähle je Frage eine Antwort.';
-                }
-
-                this.capitalSelects.forEach(sel => {
-                    sel.value = '';
-                    sel.classList.remove('correct', 'wrong');
-                });
-
-                if (this.checkSortBtn) this.checkSortBtn.disabled = false;
-                if (this.checkQuizBtn) this.checkQuizBtn.disabled = false;
-                if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = false;
-
-                this._startTimer();
+            if (solvedCount === 3 && !this.gameLocked && this.remainingSeconds > 0) {
+                this._openDoor();
             }
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const game = new EscapeGame();
-            game.init();
-        });
-    </script>
+        _openDoor() {
+            this.gameLocked = true;
+            if (this.timerId) {
+                clearInterval(this.timerId);
+                this.timerId = null;
+            }
+
+            if (this.doorEl) {
+                this.doorEl.classList.add('door--open');
+            }
+            if (this.doorGlowEl) {
+                this.doorGlowEl.classList.add('door-glow--active');
+            }
+            if (this.doorSignEl) {
+                this.doorSignEl.textContent = 'OFFEN';
+                this.doorSignEl.classList.remove('door-sign--closed');
+                this.doorSignEl.classList.add('door-sign--open');
+            }
+
+            if (this.statStatusEl) {
+                this.statStatusEl.textContent = 'Tür geöffnet!';
+                this.statStatusEl.style.color = 'hsl(var(--success))';
+            }
+
+            if (this.checkSortBtn) this.checkSortBtn.disabled = true;
+            if (this.checkQuizBtn) this.checkQuizBtn.disabled = true;
+            if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = true;
+        }
+
+        // ===================== Sortieraufgabe =====================
+        _createSortCard(cardData) {
+            const el = document.createElement('div');
+            el.className = 'drag-card';
+            el.draggable = true;
+            el.dataset.cardId = cardData.id;
+            el.dataset.correctZone = cardData.correctZone;
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'drag-card-text';
+            textSpan.textContent = cardData.text;
+            el.appendChild(textSpan);
+
+            el.addEventListener('dragstart', (e) => {
+                if (this.gameLocked) {
+                    e.preventDefault();
+                    return;
+                }
+                this.draggingCardId = cardData.id;
+                el.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', cardData.id);
+            });
+
+            el.addEventListener('dragend', () => {
+                this.draggingCardId = null;
+                el.classList.remove('dragging');
+            });
+
+            return el;
+        }
+
+        _resetSortBoard() {
+            if (!this.sortPoolEl) return;
+            this.sortPoolEl.innerHTML = '';
+
+            this.sortCardsData.forEach(card => {
+                const el = this._createSortCard(card);
+                this.sortPoolEl.appendChild(el);
+            });
+
+            this.dropzones.forEach(zone => {
+                zone.classList.remove('is-over');
+                const children = Array.from(zone.children)
+                    .filter(c => !c.classList.contains('escape-dropzone-label'));
+                children.forEach(c => c.remove());
+            });
+        }
+
+        _handleDragOverZone(e) {
+            if (this.gameLocked) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('is-over');
+        }
+
+        _handleDragLeaveZone(e) {
+            e.currentTarget.classList.remove('is-over');
+        }
+
+        _handleDropZone(e) {
+            if (this.gameLocked) return;
+            e.preventDefault();
+            const zone = e.currentTarget;
+            zone.classList.remove('is-over');
+
+            const cardId = e.dataTransfer.getData('text/plain') || this.draggingCardId;
+            if (!cardId) return;
+
+            const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
+            if (!cardEl) return;
+
+            cardEl.classList.remove('correct', 'wrong');
+            zone.appendChild(cardEl);
+        }
+
+        checkSort() {
+            if (this.gameLocked) return;
+
+            let correct = 0;
+            const total = this.sortCardsData.length;
+
+            document.querySelectorAll('.drag-card').forEach(card => {
+                card.classList.remove('correct', 'wrong');
+            });
+
+            this.sortCardsData.forEach(cardData => {
+                const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
+                if (!cardEl) return;
+
+                const parentZone = cardEl.closest('.escape-dropzone');
+                const zoneName = parentZone ? parentZone.dataset.zone : null;
+
+                if (!zoneName) {
+                    cardEl.classList.add('wrong');
+                    return;
+                }
+
+                if (zoneName === cardData.correctZone) {
+                    cardEl.classList.add('correct');
+                    correct += 1;
+                } else {
+                    cardEl.classList.add('wrong');
+                }
+            });
+
+            if (correct === total) {
+                this.sectionSolved.sort = true;
+                if (this.statusSortEl) {
+                    this.statusSortEl.textContent = 'gelöst';
+                    this.statusSortEl.className = 'section-status section-status--done';
+                }
+            } else {
+                this.sectionSolved.sort = false;
+                if (this.statusSortEl) {
+                    this.statusSortEl.textContent = 'noch Fehler';
+                    this.statusSortEl.className = 'section-status section-status--fail';
+                }
+            }
+
+            this._updateSolvedStatus();
+        }
+
+        // ===================== Quiz =====================
+        checkQuiz() {
+            if (this.gameLocked) return;
+
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+
+            if (!q1 || !q2) {
+                if (this.quizFeedbackEl) {
+                    this.quizFeedbackEl.textContent = 'Bitte jede der beiden Fragen beantworten.';
+                }
+                this.sectionSolved.quiz = false;
+                if (this.statusQuizEl) {
+                    this.statusQuizEl.textContent = 'unvollständig';
+                    this.statusQuizEl.className = 'section-status section-status--fail';
+                }
+                this._updateSolvedStatus();
+                return;
+            }
+
+            const correctQ1 = this.quizSolutions.q1 ? q1.value === this.quizSolutions.q1 : false;
+            const correctQ2 = this.quizSolutions.q2 ? q2.value === this.quizSolutions.q2 : false;
+
+            if (correctQ1 && correctQ2) {
+                this.sectionSolved.quiz = true;
+                if (this.statusQuizEl) {
+                    this.statusQuizEl.textContent = 'gelöst';
+                    this.statusQuizEl.className = 'section-status section-status--done';
+                }
+                if (this.quizFeedbackEl) {
+                    this.quizFeedbackEl.textContent = 'Beide Antworten sind richtig.';
+                }
+            } else {
+                this.sectionSolved.quiz = false;
+                if (this.statusQuizEl) {
+                    this.statusQuizEl.textContent = 'noch Fehler';
+                    this.statusQuizEl.className = 'section-status section-status--fail';
+                }
+                if (this.quizFeedbackEl) {
+                    this.quizFeedbackEl.textContent = 'Mindestens eine Antwort ist falsch.';
+                }
+            }
+
+            this._updateSolvedStatus();
+        }
+
+        // ===================== Mindestkapital =====================
+        checkCapital() {
+            if (this.gameLocked) return;
+
+            let correct = 0;
+            const total = Object.keys(this.capitalSolutions).length;
+
+            this.capitalSelects.forEach(sel => {
+                sel.classList.remove('correct', 'wrong');
+            });
+
+            this.capitalSelects.forEach(sel => {
+                const form = sel.dataset.form;
+                const expected = this.capitalSolutions[form];
+                const chosen = sel.value;
+
+                if (!chosen) {
+                    sel.classList.add('wrong');
+                    return;
+                }
+
+                if (chosen === expected) {
+                    sel.classList.add('correct');
+                    correct += 1;
+                } else {
+                    sel.classList.add('wrong');
+                }
+            });
+
+            if (correct === total) {
+                this.sectionSolved.capital = true;
+                if (this.statusCapitalEl) {
+                    this.statusCapitalEl.textContent = 'gelöst';
+                    this.statusCapitalEl.className = 'section-status section-status--done';
+                }
+            } else {
+                this.sectionSolved.capital = false;
+                if (this.statusCapitalEl) {
+                    this.statusCapitalEl.textContent = 'noch Fehler';
+                    this.statusCapitalEl.className = 'section-status section-status--fail';
+                }
+            }
+
+            this._updateSolvedStatus();
+        }
+
+        // ===================== Reset / Init =====================
+        resetGame() {
+            if (this.timerId) clearInterval(this.timerId);
+
+            this.remainingSeconds = this.START_SECONDS;
+            this._updateTimerDisplay();
+            this.gameLocked = false;
+
+            this.sectionSolved.sort = false;
+            this.sectionSolved.quiz = false;
+            this.sectionSolved.capital = false;
+
+            if (this.statusSortEl) {
+                this.statusSortEl.textContent = 'offen';
+                this.statusSortEl.className = 'section-status';
+            }
+            if (this.statusQuizEl) {
+                this.statusQuizEl.textContent = 'offen';
+                this.statusQuizEl.className = 'section-status';
+            }
+            if (this.statusCapitalEl) {
+                this.statusCapitalEl.textContent = 'offen';
+                this.statusCapitalEl.className = 'section-status';
+            }
+
+            if (this.statStatusEl) {
+                this.statStatusEl.textContent = 'Laden ist offen';
+                this.statStatusEl.style.color = 'hsl(var(--txt))';
+            }
+
+            if (this.statSolvedEl) {
+                this.statSolvedEl.textContent = '0 / 3';
+            }
+
+            if (this.doorEl) {
+                this.doorEl.classList.remove('door--open');
+            }
+            if (this.doorGlowEl) {
+                this.doorGlowEl.classList.remove('door-glow--active');
+            }
+            if (this.doorSignEl) {
+                this.doorSignEl.textContent = 'GESCHLOSSEN';
+                this.doorSignEl.classList.add('door-sign--closed');
+                this.doorSignEl.classList.remove('door-sign--open');
+            }
+
+            this._resetSortBoard();
+
+            document.querySelectorAll('input[name="q1"]').forEach(i => i.checked = false);
+            document.querySelectorAll('input[name="q2"]').forEach(i => i.checked = false);
+            if (this.quizFeedbackEl) {
+                this.quizFeedbackEl.textContent = 'Wähle je Frage eine Antwort.';
+            }
+
+            this.capitalSelects.forEach(sel => {
+                sel.value = '';
+                sel.classList.remove('correct', 'wrong');
+            });
+
+            if (this.checkSortBtn) this.checkSortBtn.disabled = false;
+            if (this.checkQuizBtn) this.checkQuizBtn.disabled = false;
+            if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = false;
+
+            this._startTimer();
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const game = new EscapeGame();
+        game.init();
+    });
+</script>
 </body>
 
 </html>

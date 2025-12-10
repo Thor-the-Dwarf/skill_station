@@ -1,133 +1,232 @@
 :root {
-    --bg: #020617;
-    --panel: #0f172a;
-    --panel-soft: rgba(15, 23, 42, 0.96);
-    --accent: #38bdf8;
-    --accent-soft: rgba(56, 189, 248, 0.15);
-    --text: #e5e7eb;
-    --text-muted: #9ca3af;
-    --border: #1f2937;
-    --error: #ef4444;
-    --success: #22c55e;
+    /* 
+       HSL Color System - "Cyber-Glass" Edition
+       High Transparency & Neon Glows
+    */
+
+    /* Brand / Accent - Cyan/Electric Blue */
+    --primary-hue: 195;
+    --primary-sat: 100%;
+    --primary-lig: 60%;
+
+    --primary: var(--primary-hue) var(--primary-sat) var(--primary-lig);
+    --primary-fg: 0 0% 100%;
+
+    /* Base - Deep Space Dark */
+    --bg-hue: 230;
+    --bg-sat: 30%;
+    --bg-lig: 6%;
+
+    --bg: var(--bg-hue) var(--bg-sat) var(--bg-lig);
+
+    /* Surface Colors - Base opacity 0.3 for glass feel */
+    --bg-surface: 230 30% 15%;
+    --bg-surface-alpha: 0.75;
+    /* 25% opacity = 75% transparent */
+    --bg-surface-2-alpha: 0.35;
+
+    /* Text */
+    --txt: 210 50% 98%;
+    --txt-muted: 215 30% 75%;
+    /* Brighter muted for contrast on dark */
+
+    /* Status */
+    --success: 142 80% 50%;
+    --error: 0 90% 65%;
+
+    /* Sizing */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1.25rem;
+
+    /* Shadows & Glows */
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+
+    /* Neon Glows */
+    --glow-primary: 0 0 15px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--primary) / 0.3);
+    --glow-text: 0 0 10px hsl(var(--primary) / 0.8);
+    --glow-border: 0 0 8px hsl(var(--primary) / 0.4);
+
+    /* Glass Vars */
+    --glass-bg: 230 30% 10%;
+    --glass-opacity: 0.85;
+    /* Extremely transparent (85%) */
+    --glass-border: 210 50% 30%;
+    --glass-blur: 20px;
 }
 
-/* Light-Theme */
+/* Light Theme Override - Kept "Frosty" */
 :root.theme-light {
-    --bg: #f9fafb;
-    --panel: #e5e7eb;
-    --panel-soft: rgba(243, 244, 246, 0.98);
-    --accent: #2563eb;
-    --accent-soft: rgba(37, 99, 235, 0.12);
-    --text: #111827;
-    --text-muted: #4b5563;
-    --border: #d1d5db;
-    --error: #dc2626;
-    --success: #16a34a;
+    --bg-hue: 210;
+    --bg-sat: 30%;
+    --bg-lig: 95%;
+
+    --bg: var(--bg-hue) var(--bg-sat) var(--bg-lig);
+
+    /* FIX: gültige HSL-Werte für Light-Theme-Flächen */
+    --bg-surface: 0 0% 100%;
+    --bg-surface-alpha: 0.4;
+    --bg-surface-2-alpha: 0.5;
+
+    --txt: 222 47% 11%;
+    --txt-muted: 215 16% 47%;
+
+    /* FIX: gültige HSL-Werte für Glas-Hintergrund im Light-Theme */
+    --glass-bg: 0 0% 100%;
+    --glass-opacity: 0.3;
+    --glass-border: 214 32% 80%;
+
+    --glow-primary: 0 4px 20px hsl(var(--primary) / 0.4);
+    --glow-text: none;
 }
 
+/* --- Global Resets & Typography --- */
 body {
-    background-color: var(--bg);
-    color: var(--text);
+    background-color: hsl(var(--bg));
+    color: hsl(var(--txt));
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* --- Reusable Components --- */
+* {
+    box-sizing: border-box;
+}
 
-/* Cards (Matches .card from index.html and .section-card from game) */
+/* --- Components --- */
+
+/* Cards - Glassy */
 .card,
 .section-card {
-    background: var(--panel-soft);
-    border-radius: 0.9rem;
-    border: 1px solid var(--border);
-    padding: 1rem 1.2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    margin-bottom: 1rem;
-    color: var(--text);
+    background: hsl(var(--bg-surface) / var(--bg-surface-alpha));
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid hsl(var(--glass-border) / 0.5);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    /* Glass shadow */
+    margin-bottom: 1.5rem;
+    color: hsl(var(--txt));
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    border-color: hsl(var(--glass-border));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.02);
 }
 
 .card h2,
 .section-title {
     margin-top: 0;
-    color: var(--text);
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: hsl(var(--txt));
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .section-sub {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+    color: hsl(var(--txt-muted));
+    font-size: 0.925rem;
+    margin-bottom: 1rem;
 }
 
 /* Buttons */
 .btn {
+    appearance: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.925rem;
     cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: hsl(var(--bg-surface) / 0.3);
+    color: hsl(var(--txt));
+    border: 1px solid hsl(var(--glass-border));
+    text-decoration: none;
+    backdrop-filter: blur(4px);
 }
 
 .btn:hover:not(:disabled) {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary));
+    box-shadow: var(--glow-primary);
+    color: hsl(var(--primary));
+    text-shadow: 0 0 8px hsl(var(--primary) / 0.5);
+    background: hsl(var(--bg-surface) / 0.5);
 }
 
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.btn:active:not(:disabled) {
+    transform: translateY(0);
 }
 
-/* Inputs & selects */
+.btn.primary {
+    background: hsl(var(--primary) / 0.8);
+    color: hsl(var(--primary-fg));
+    border-color: transparent;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+}
+
+.btn.primary:hover:not(:disabled) {
+    filter: brightness(1.2);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.6);
+}
+
+/* Inputs */
 input,
 select,
 textarea {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 0.4rem 0.6rem;
-    border-radius: 0.4rem;
-    font-size: 0.9rem;
+    background: hsl(var(--bg-surface) / 0.8);
+    border: 1px solid hsl(var(--glass-border));
+    color: hsl(var(--txt));
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.3s;
+    backdrop-filter: blur(4px);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-soft);
+    border-color: hsl(var(--primary));
+    box-shadow: var(--glow-primary);
+    background: hsl(var(--bg-surface) / 0.8);
 }
 
-/* Status Colors */
+/* Status Pills */
 .section-status {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 99px;
-    background: var(--panel);
-    border: 1px solid var(--border);
+    font-size: 0.7rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: hsl(var(--bg-surface) / 0.7);
+    border: 1px solid hsl(var(--glass-border));
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.05em;
-    color: var(--text-muted);
+    color: hsl(var(--txt-muted));
     display: inline-block;
+    backdrop-filter: blur(4px);
 }
 
 .section-status--done {
-    color: var(--success);
-    border-color: rgba(34, 197, 94, 0.3);
-    background: rgba(34, 197, 94, 0.1);
+    background: hsl(var(--success) / 0.85);
+    color: hsl(var(--success));
+    border-color: hsl(var(--success) / 0.4);
+    box-shadow: 0 0 10px hsl(var(--success) / 0.2);
 }
 
 .section-status--fail {
-    color: var(--error);
-    border-color: rgba(239, 68, 68, 0.3);
-    background: rgba(239, 68, 68, 0.1);
+    background: hsl(var(--error) / 0.85);
+    color: hsl(var(--error));
+    border-color: hsl(var(--error) / 0.4);
+    box-shadow: 0 0 10px hsl(var(--error) / 0.2);
 }
