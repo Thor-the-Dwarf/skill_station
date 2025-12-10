@@ -6,6 +6,8 @@
     <title>Mini-Escape-Game</title>
     <!-- Glas-Look aus deinem globalen Theme -->
     <link rel="stylesheet" href="../shared_theme.css">
+
+
     <style>
         /* Escape-Game.css
            Alte Funktionalität beibehalten, aber alles in modernen Glas-Look drehen.
@@ -469,39 +471,43 @@
 
         /* Quiz-Bereich */
 
-        .quiz-question + .quiz-question {
-            margin-top: 1rem;
+        .quiz-question {
+            max-width: 60rem;          /* alles in einer breiten Spalte, kein rechter "Text-Streifen" */
         }
 
-        .quiz-text {
-            font-weight: 500;
-            margin-bottom: 0.4rem;
-        }
-
+        /* Liste neutralisieren und als Spalte anordnen */
         .quiz-options {
             list-style: none;
-            padding: 0;
             margin: 0;
+            padding: 0;
+            display: flex;             /* vertikale Liste */
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.35rem;
         }
 
+        /* Jeder Eintrag nutzt die volle Breite der Frage */
         .quiz-options li {
-            margin: 0.25rem 0;
+            display: block;
+            width: 100%;
         }
 
-        .quiz-options label {
+        /* Label = Zeile mit Radio + Text */
+        .quiz-options li label {
+            display: flex !important;  /* evtl. Grid/Flex aus anderen Styles überschreiben */
+            align-items: flex-start;
+            gap: 0.5rem;
+            width: 100%;
             cursor: pointer;
             font-size: 0.92rem;
         }
 
-        .quiz-options input[type="radio"] {
-            margin-right: 0.45rem;
+        /* Radio bleibt kompakt links */
+        .quiz-options li input[type="radio"] {
+            flex: 0 0 auto;
+            margin-top: 0.2rem;        /* optische Zentrierung */
+            margin-right: 0;           /* Abstand kommt über gap */
             accent-color: var(--accent);
-        }
-
-        .quiz-feedback {
-            margin-top: 0.8rem;
-            font-size: 0.88rem;
-            color: var(--muted);
         }
 
         /* Capital-Tabelle */
@@ -617,6 +623,33 @@
         .quiz-options li input[type="radio"] {
             order: 0;                        /* Input bleibt links */
             margin-top: 0.2rem;
+        }
+
+        .quiz-options {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .quiz-options li {
+            display: block;
+            margin: 0.25rem 0;
+        }
+
+        /* Label ist eine kleine Zeile: links Radio, rechts Text, Text darf voll umbrechen */
+        .quiz-options li label {
+            display: inline-flex !important;
+            align-items: flex-start;
+            gap: 0.5rem;
+            max-width: 100%;
+            white-space: normal;
+        }
+
+        /* Radio bekommt KEIN Flex mehr – verhält sich wie ein einzelnes Zeichen */
+        .quiz-options li input[type="radio"] {
+            flex: 0 0 auto !important;
+            width: auto;
+            margin-top: 0.2rem; /* optische Zentrierung zum Text */
         }
 
         /* 3) Türschild vor die Tür holen */
@@ -828,7 +861,7 @@
 </div>
 
 <script type="module">
-    const CONFIG_URL = 'Escape-Game-data2.json';
+    const CONFIG_URL = 'Escape-Game-data.json';
 
     const START_SECONDS = 180;
     let remainingSeconds = START_SECONDS;
