@@ -25,69 +25,16 @@
         }
 
         /* -----------------------------
-           Linke Glas-Menüleiste
-        ----------------------------- */
-        .menu-bar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 72px; /* etwas breiter für Touch */
-            background: hsl(var(--glass-bg) / var(--glass-opacity));
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-right: 1px solid hsl(var(--glass-border));
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1rem 0;
-            gap: 1rem;
-            z-index: 50;
-            transition: width 0.3s ease;
-        }
-
-        .menu-spacer {
-            flex: 1;
-        }
-
-        .menu-icon-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            border: 1px solid transparent;
-            background: transparent;
-            color: hsl(var(--txt-muted));
-            font-size: 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .menu-icon-btn:hover {
-            background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
-            color: hsl(var(--txt));
-            transform: scale(1.05);
-        }
-
-        .menu-icon-btn.active {
-            background: hsl(var(--primary) / 0.15);
-            color: hsl(var(--primary));
-            border-color: hsl(var(--primary) / 0.3);
-        }
-
-        /* -----------------------------
            Tree-Drawer (Overlay)
         ----------------------------- */
         .drawer {
             position: fixed;
-            top: 0;
-            left: 72px; /* Breite der Menüleiste */
-            height: 100vh;
+            top: 64px; /* unterhalb der oberen AppBar */
+            left: 0;
+            height: calc(100vh - 64px);
             width: 25vw;
             min-width: 320px;
-            background: hsl(var(--bg-surface) / 0.32); /* vorher 0.95 → 3× durchsichtiger */
+            background: hsl(var(--bg-surface) / 0.32);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-right: 1px solid hsl(var(--glass-border));
@@ -98,7 +45,7 @@
             padding: 1.5rem;
             transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 40;
+            z-index: 30;
         }
 
         .app.tree-open .drawer {
@@ -243,12 +190,13 @@
         }
 
         /* -----------------------------
-           Haupt-Content rechts
+           Haupt-Content
         ----------------------------- */
         .content {
             flex: 1;
-            margin-left: 72px; /* Platz für Menüleiste */
+            margin-left: 0;
             padding: 2rem;
+            padding-top: calc(2rem + 64px); /* Platz für obere AppBar */
             max-width: 1600px;
             display: flex;
             flex-direction: column;
@@ -256,22 +204,52 @@
             position: relative;
         }
 
-        /* Floating Top-Bar */
+        /* Obere AppBar mit Folder links, Titel mittig, Theme rechts */
         .top-bar {
-            display: flex;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
             align-items: center;
-            justify-content: space-between;
             padding: 0.75rem 1.5rem;
-            background: hsl(var(--glass-bg) / 0.27); /* vorher 0.8 → 3× durchsichtiger */
+            background: hsl(var(--glass-bg) / var(--glass-opacity));
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid hsl(var(--glass-border));
-            border-radius: 999px;
-            position: sticky;
-            top: 1rem;
-            z-index: 20;
+            border-bottom: 1px solid hsl(var(--glass-border));
+            border-right: 1px solid hsl(var(--glass-border));
+            border-left: 1px solid hsl(var(--glass-border));
+            border-radius: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 60;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
-            margin-bottom: 1rem;
+        }
+
+        .menu-icon-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            background: transparent;
+            color: hsl(var(--txt-muted));
+            font-size: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .menu-icon-btn:hover {
+            background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
+            color: hsl(var(--txt));
+            transform: scale(1.05);
+        }
+
+        .menu-icon-btn.active {
+            background: hsl(var(--primary) / 0.15);
+            color: hsl(var(--primary));
+            border-color: hsl(var(--primary) / 0.3);
         }
 
         .top-bar-title {
@@ -280,6 +258,8 @@
             background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--txt)));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-align: center;
+            justify-self: center;
         }
 
         .theme-toggle-btn {
@@ -338,7 +318,10 @@
             color: hsl(var(--txt-muted));
         }
 
-        /* Iframe-Container für Spiele */
+        .content > .card:first-of-type {
+            border-top: none;
+        }
+
         .iframe-container {
             flex: 1;
             display: flex;
@@ -357,9 +340,6 @@
             height: 100%;
         }
 
-        /* -----------------------------
-           Animationen & Responsive
-        ----------------------------- */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -373,32 +353,17 @@
         }
 
         @media (max-width: 768px) {
-            .menu-bar {
-                width: 100%;
-                height: 60px;
-                bottom: auto;
-                flex-direction: row;
-                padding: 0 1rem;
-                justify-content: space-between;
-                border-right: none;
-                border-bottom: 1px solid hsl(var(--glass-border));
-            }
-
             .content {
                 margin: 0;
                 padding: 1rem;
-                padding-top: 80px;
+                padding-top: calc(64px + 16px);
             }
 
             .drawer {
-                top: 60px;
+                top: 64px;
                 left: 0;
                 width: 100vw;
-                height: calc(100vh - 60px);
-            }
-
-            .top-bar {
-                top: 4.5rem; /* nicht mit Menü kollidieren */
+                height: calc(100vh - 64px);
             }
         }
     </style>
@@ -406,15 +371,7 @@
 
 <body>
 <div class="app" id="app-root">
-    <!-- Linke Menubar -->
-    <nav class="menu-bar">
-        <button id="menu-tree-btn" class="menu-icon-btn" type="button" title="Ordnerstruktur ein-/ausblenden">
-            📁
-        </button>
-        <div class="menu-spacer"></div>
-    </nav>
-
-    <!-- Tree-Drawer (Overlay, 50% Breite) -->
+    <!-- Tree-Drawer (Overlay, 25 % Breite) -->
     <aside class="drawer" id="tree-drawer">
         <header class="drawer-header">
             <div class="drawer-title" id="drawer-title">Drive-Ordner</div>
@@ -436,9 +393,12 @@
         </footer>
     </aside>
 
-    <!-- Content rechts -->
+    <!-- Content -->
     <main class="content">
         <header class="top-bar">
+            <button id="menu-tree-btn" class="menu-icon-btn" type="button" title="Ordnerstruktur ein-/ausblenden">
+                📁
+            </button>
             <div class="top-bar-title">
                 Wiederholung ist die Mutter des Lernens
             </div>
@@ -459,8 +419,8 @@
                 und links als TreeView angezeigt. Sichtbar sind nur Ordner, PDF- und JSON-Dateien.
             </p>
             <div class="pill-row">
-                <span class="pill">Overlay-Drawer (50 %)</span>
-                <span class="pill">Menü-Icon 📁 toggelt Tree</span>
+                <span class="pill">Overlay-Drawer (25 %)</span>
+                <span class="pill">AppBar-Icon 📁 toggelt Tree</span>
                 <span class="pill">PDF 👁 · JSON 🏋</span>
             </div>
         </section>
@@ -469,9 +429,6 @@
 
 <script>
     (() => {
-        // =====================================================================
-        // KONFIG
-        // =====================================================================
         const ROOT_FOLDER_ID = '1kpUMyk5WMoRE6KKM29tdoqYGcYjtn6PJ';
         const API_KEY = 'AIzaSyCNNH3aVsoZ-bkT2i1vD4g72kKJeRYnb_8';
         const DRIVE_FILES_ENDPOINT = 'https://www.googleapis.com/drive/v3/files';
@@ -481,17 +438,12 @@
         const THEME_KEY = 'globalTheme_v1';
         const JSON_SESSION_PREFIX = 'game_payload_';
 
-        // Routing-Map: game_type → HTML-Seite
         const GAME_ROUTE_MAP = {
             escape_game: 'games/Escape-Game.html',
             what_and_why: 'games/what_and_why.html',
             quick_quiz: 'games/quick_quiz.html'
-            // weitere Typen hier ergänzen: 'games/...'
         };
 
-        // =====================================================================
-        // STATE
-        // =====================================================================
         let state = {
             selectedId: null,
             closedIds: [],
@@ -501,9 +453,6 @@
         let rootTree = [];
         let rootName = 'Drive-Ordner';
 
-        // =====================================================================
-        // DOM
-        // =====================================================================
         const appRootEl = document.getElementById('app-root');
         const treeDrawerEl = document.getElementById('tree-drawer');
         const menuTreeBtn = document.getElementById('menu-tree-btn');
@@ -515,9 +464,6 @@
         const viewBodyEl = document.getElementById('view-body');
         const themeToggleBtn = document.getElementById('theme-toggle');
 
-        // =====================================================================
-        // STATE-HELPER
-        // =====================================================================
         function loadState() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
@@ -553,9 +499,6 @@
             }
         }
 
-        // =====================================================================
-        // THEME
-        // =====================================================================
         function applyTheme(theme) {
             const rootEl = document.documentElement;
             if (theme === 'light') {
@@ -582,7 +525,6 @@
             const next = isLight ? 'dark' : 'light';
             applyTheme(next);
 
-            // Sync to iframe if it exists
             const iframe = document.querySelector('iframe.game-iframe');
             if (iframe && iframe.contentDocument) {
                 if (next === 'light') {
@@ -597,9 +539,6 @@
             } catch (_) { }
         }
 
-        // =====================================================================
-        // DRIVE-API
-        // =====================================================================
         async function fetchJson(url) {
             const res = await fetch(url);
             if (!res.ok) {
@@ -692,9 +631,6 @@
             return [...folderNodes, ...fileNodes];
         }
 
-        // =====================================================================
-        // TREE / VIEW
-        // =====================================================================
         function buildTree(container, nodes, level = 0) {
             nodes.forEach(node => {
                 const wrapper = document.createElement('div');
@@ -743,7 +679,6 @@
                 label.type = 'button';
                 label.className = 'tree-label';
 
-                // KEINE Dateiendungen im Tree
                 const baseName = node.isFolder
                     ? (node.name || '')
                     : (node.name || '').replace(/\.[^.]+$/, '');
@@ -811,7 +746,6 @@
                 applySelectedCss();
             }
 
-            // RESET Container-Style (falls vorher Iframe drin war)
             viewBodyEl.innerHTML = '';
             viewBodyEl.classList.add('card');
             viewBodyEl.classList.remove('iframe-container');
@@ -856,13 +790,11 @@
             selectedLabelEl.textContent = name;
         }
 
-        // PDFs: direkt Drive-/view in neuem Tab
         function openPdfView(node) {
             const url = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
             window.open(url, '_blank', 'noopener,noreferrer');
         }
 
-        // JSON: einmal laden, game_type lesen, in sessionStorage legen, richtige Game-Seite öffnen
         async function openJsonGame(node) {
             const fileId = node.id;
             if (!fileId) return;
@@ -890,7 +822,6 @@
                     return;
                 }
 
-                // session storage logic remains...
                 try {
                     sessionStorage.setItem(storageKey, JSON.stringify(data));
                 } catch (e) {
@@ -900,18 +831,14 @@
                 const targetUrl =
                     `${targetPage}?fileId=${encodeURIComponent(fileId)}&game_type=${encodeURIComponent(gameType)}`;
 
-                // NEU: Iframe statt window.open
-                viewBodyEl.innerHTML = ''; // Card leeren
-
-                // Container-Style anpassen, damit Iframe Platz hat
-                viewBodyEl.classList.remove('card'); // Card-Style (Padding etc.) entfernen für Fullscreen-Feeling
+                viewBodyEl.innerHTML = '';
+                viewBodyEl.classList.remove('card');
                 viewBodyEl.classList.add('iframe-container');
 
                 const iframe = document.createElement('iframe');
                 iframe.src = targetUrl;
                 iframe.className = 'game-iframe';
 
-                // Sync Theme on Load
                 iframe.onload = () => {
                     if (!iframe.contentDocument) return;
                     const isLight = document.documentElement.classList.contains('theme-light');
@@ -924,7 +851,6 @@
 
                 viewBodyEl.appendChild(iframe);
 
-                // Titel anpassen
                 const title = data.title || 'Spiel';
                 viewTitleEl.textContent = title;
 
@@ -935,12 +861,10 @@
         }
 
         function setupEvents() {
-            // Tree interactions – Klick (Single-Klick reicht)
             treeRootEl.addEventListener('click', async (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLElement)) return;
 
-                // Folder auf/zu
                 if (target.classList.contains('tree-toggle')) {
                     event.stopPropagation();
                     const nodeEl = target.closest('.tree-node');
@@ -966,7 +890,6 @@
                     return;
                 }
 
-                // Auswahl (Label oder Icon) + bei PDF/JSON direkt öffnen
                 if (target.classList.contains('tree-label') || target.classList.contains('tree-icon')) {
                     const nodeEl = target.closest('.tree-node');
                     if (!nodeEl) return;
@@ -989,14 +912,12 @@
                 }
             });
 
-            // Menü-Icon toggelt Drawer
             menuTreeBtn.addEventListener('click', () => {
                 const open = !state.drawerOpen;
                 saveState({ drawerOpen: open });
                 applyDrawerOpen();
             });
 
-            // Theme-Toggle
             if (themeToggleBtn) {
                 themeToggleBtn.addEventListener('click', () => {
                     toggleTheme();
@@ -1028,9 +949,6 @@
             }
         }
 
-        // =====================================================================
-        // INIT
-        // =====================================================================
         (async function init() {
             initTheme();
             loadState();
@@ -1045,11 +963,9 @@
                 viewTitleEl.textContent = rootName;
                 viewPathEl.textContent = 'Root-ID: ' + ROOT_FOLDER_ID;
 
-                // Root selbst nicht als Node – nur Kinder
                 const children = await buildTreeData(ROOT_FOLDER_ID);
                 rootTree = children;
 
-                // Alle Ordner initial zu (einmalig)
                 const allFolderIds = [];
                 collectFolderIds(rootTree, allFolderIds);
                 if (!state.closedIds || state.closedIds.length === 0) {
