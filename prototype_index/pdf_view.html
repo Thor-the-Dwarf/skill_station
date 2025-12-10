@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8" />
-    <title>Drive-Tree – Kursstruktur</title>
+    <title>Drive-Tree – PDF-View</title>
     <style>
         :root {
             --bg: #020617;
@@ -279,17 +279,19 @@
             font-weight: 500;
         }
 
-        /* Content rechts – wird nicht gequetscht */
+        /* Content rechts – PDF-WebView fullscreen (unter AppBar) */
         .content {
             flex: 1;
             margin-left: 56px; /* Platz für Menubar */
-            padding: 1.2rem 1.75rem;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            height: 100vh;
         }
 
         .content-header {
+            padding: 1rem 1.75rem 0.5rem 1.75rem;
+            flex-shrink: 0;
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
@@ -305,58 +307,20 @@
             color: var(--text-muted);
         }
 
-        .card {
-            background: var(--panel-soft);
-            border-radius: 0.9rem;
-            border: 1px solid rgba(31, 41, 55, 0.95);
-            padding: 1rem 1.2rem;
+        .pdf-container {
+            flex: 1;
+            padding: 0 1.75rem 1.75rem 1.75rem;
+        }
+
+        .pdf-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            border-radius: 0.6rem;
+            background: #020617;
             box-shadow:
                     0 24px 60px rgba(0, 0, 0, 0.5),
                     0 0 0 1px rgba(15, 23, 42, 0.9);
-            max-width: 900px;
-        }
-
-        .card h2 {
-            font-size: 1.05rem;
-            margin: 0 0 0.4rem;
-        }
-
-        .card p {
-            margin: 0.25rem 0;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .card ul {
-            margin: 0.4rem 0 0;
-            padding-left: 1.3rem;
-            font-size: 0.88rem;
-            color: var(--text-muted);
-        }
-
-        .card a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        .card a:hover {
-            text-decoration: underline;
-        }
-
-        .pill-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.35rem;
-            margin-top: 0.5rem;
-        }
-
-        .pill {
-            padding: 0.24rem 0.55rem;
-            border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            background: rgba(15, 23, 42, 0.96);
         }
 
         @media (max-width: 900px) {
@@ -365,8 +329,12 @@
                 left: 56px;
             }
 
-            .content {
-                padding: 1rem 1.25rem 1.5rem;
+            .content-header {
+                padding: 0.75rem 1.1rem 0.4rem 1.1rem;
+            }
+
+            .pdf-container {
+                padding: 0 1.1rem 1.1rem 1.1rem;
             }
         }
     </style>
@@ -407,24 +375,15 @@
         </footer>
     </aside>
 
-    <!-- Content rechts -->
+    <!-- Content rechts: PDF-WebView -->
     <main class="content">
         <header class="content-header">
-            <div class="view-title" id="view-title">Drive-Struktur wird geladen …</div>
+            <div class="view-title" id="view-title">PDF wird geladen …</div>
             <div class="view-path" id="view-path"></div>
         </header>
 
-        <section class="card" id="view-body">
-            <h2>Verbinde mit Google Drive …</h2>
-            <p>
-                Die Ordnerstruktur wird aus deinem freigegebenen Google-Drive-Ordner geladen
-                und links als TreeView angezeigt. Sichtbar sind nur Ordner, PDF- und JSON-Dateien.
-            </p>
-            <div class="pill-row">
-                <span class="pill">Overlay-Drawer (50 %)</span>
-                <span class="pill">Menü-Icon 📁 toggelt Tree</span>
-                <span class="pill">PDF 👁 · JSON 🏋</span>
-            </div>
+        <section class="pdf-container" id="view-body">
+            <!-- PDF-iframe per JS -->
         </section>
     </main>
 </div>
@@ -440,6 +399,10 @@
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
         const STORAGE_KEY = 'driveTreeSpaState_v2';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialPdfId = urlParams.get('fileId') || urlParams.get('id');
+        const initialPdfName = urlParams.get('name') || null;
 
         // =====================================================================
         // STATE
@@ -457,7 +420,6 @@
         // DOM
         // =====================================================================
         const appRootEl = document.getElementById('app-root');
-        const treeDrawerEl = document.getElementById('tree-drawer');
         const menuTreeBtn = document.getElementById('menu-tree-btn');
         const drawerTitleEl = document.getElementById('drawer-title');
         const treeRootEl = document.getElementById('tree-root');
@@ -700,6 +662,15 @@
             });
         }
 
+        function openPdfView(node) {
+            const url =
+                'pdf_view.html?fileId=' +
+                encodeURIComponent(node.id) +
+                '&name=' +
+                encodeURIComponent(node.name || '');
+            window.location.href = url;
+        }
+
         function renderViewForId(id) {
             if (!rootTree || rootTree.length === 0) return;
 
@@ -719,48 +690,33 @@
             viewTitleEl.textContent = name;
             viewPathEl.textContent = 'Pfad: ' + fullPath.join(' / ');
 
-            if (node.isFolder) {
-                const children = node.children || [];
-                const listItems = children.length
-                    ? children.map(c => {
-                        let icon = '📄';
-                        if (c.isFolder) icon = '📁';
-                        else if (c.kind === 'pdf') icon = '👁';
-                        else if (c.kind === 'json') icon = '🏋';
-                        return `<li>${icon} ${c.name}</li>`;
-                    }).join('')
-                    : '<li><em>Ordner ist leer (oder enthält keine PDF/JSON-Dateien).</em></li>';
-
+            if (!node.isFolder && node.kind === 'pdf') {
+                const embedUrl = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/preview`;
                 viewBodyEl.innerHTML = `
-        <section class="card">
-          <h2>Ordner: ${name}</h2>
-          <p>Enthält ${children.length} Element(e) (nur Ordner, PDF & JSON).</p>
-          <ul>${listItems}</ul>
-        </section>
+        <iframe
+          src="${embedUrl}"
+          allow="autoplay">
+        </iframe>
       `;
-            } else {
+            } else if (!node.isFolder && node.kind === 'json') {
                 const driveUrl = `https://drive.google.com/open?id=${encodeURIComponent(node.id)}`;
                 viewBodyEl.innerHTML = `
-        <section class="card">
-          <h2>Datei: ${name}</h2>
-          <p>Dies ist eine ${node.kind === 'pdf' ? 'PDF-Datei (👁)' : 'JSON-Datei (🏋)'} aus deinem freigegebenen Drive-Ordner.</p>
-          <p><a href="${driveUrl}" target="_blank" rel="noopener noreferrer">In Google Drive öffnen</a></p>
-        </section>
+        <iframe
+          src="${driveUrl}"
+          allow="autoplay">
+        </iframe>
       `;
+            } else if (node.isFolder) {
+                // Für Ordner keinen extra Text – leer lassen
+                viewBodyEl.innerHTML = '';
+            } else {
+                viewBodyEl.innerHTML = '';
             }
 
             selectedLabelEl.textContent = name;
         }
 
-// Alte Funktion openPdfView(...) ERSETZEN durch:
-
-        function openPdfView(node) {
-            const url = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
-            window.open(url, '_blank', 'noopener,noreferrer');
-        }
-
         function setupEvents() {
-            // Tree interactions – Klick
             treeRootEl.addEventListener('click', (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLElement)) return;
@@ -802,12 +758,26 @@
                     saveState({ selectedId: id });
                     applySelectedCss();
                     renderViewForId(id);
+                }
+            });
 
-                    // NEU: bei PDF direkt in neuem Tab öffnen
-                    const node = findNodeById(rootTree, id);
-                    if (node && !node.isFolder && node.kind === 'pdf') {
-                        openPdfView(node);
-                    }
+            // Doppelklick auf PDF => Reload mit neuer ID
+            treeRootEl.addEventListener('dblclick', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) return;
+                if (!(
+                    target.classList.contains('tree-label') ||
+                    target.classList.contains('tree-icon')
+                )) return;
+
+                const nodeEl = target.closest('.tree-node');
+                if (!nodeEl) return;
+                const id = nodeEl.dataset.id;
+                if (!id) return;
+
+                const node = findNodeById(rootTree, id);
+                if (node && !node.isFolder && node.kind === 'pdf') {
+                    openPdfView(node);
                 }
             });
 
@@ -822,14 +792,8 @@
         function showError(message) {
             viewTitleEl.textContent = 'Fehler beim Laden der Drive-Struktur';
             viewPathEl.textContent = '';
-            viewBodyEl.innerHTML = `
-      <section class="card">
-        <h2>Drive-Fehler</h2>
-        <p style="color:#fca5a5;white-space:pre-wrap;font-size:0.86rem;">
-          ${message}
-        </p>
-      </section>
-    `;
+            viewBodyEl.innerHTML = '';
+            console.error(message);
         }
 
         function collectFolderIds(nodes, acc) {
@@ -854,16 +818,12 @@
                 const meta = await fetchFolderMeta(ROOT_FOLDER_ID);
                 rootName = meta && meta.name ? meta.name : 'Drive-Ordner';
 
-                document.title = rootName + ' – Drive-Tree';
+                document.title = rootName + ' – PDF-View';
                 drawerTitleEl.textContent = rootName;
-                viewTitleEl.textContent = rootName;
-                viewPathEl.textContent = 'Root-ID: ' + ROOT_FOLDER_ID;
 
-                // Root selbst nicht als Node – nur Kinder
                 const children = await buildTreeData(ROOT_FOLDER_ID);
                 rootTree = children;
 
-                // Alle Ordner initial zu (einmalig)
                 const allFolderIds = [];
                 collectFolderIds(rootTree, allFolderIds);
                 if (!state.closedIds || state.closedIds.length === 0) {
@@ -874,7 +834,11 @@
                 treeRootEl.innerHTML = '';
                 buildTree(treeRootEl, rootTree, 0);
 
-                if (!state.selectedId && rootTree.length > 0) {
+                // Initial: auf PDF aus Query springen, wenn vorhanden
+                if (initialPdfId) {
+                    state.selectedId = initialPdfId;
+                    saveState({ selectedId: state.selectedId });
+                } else if (!state.selectedId && rootTree.length > 0) {
                     state.selectedId = rootTree[0].id;
                     saveState({ selectedId: state.selectedId });
                 }
@@ -886,7 +850,6 @@
 
                 setupEvents();
             } catch (err) {
-                console.error(err);
                 showError(String(err && err.message ? err.message : err));
             }
         })();
