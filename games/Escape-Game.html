@@ -8,7 +8,7 @@
 </head>
 
 <body>
-<div class="page">
+<div class="page" id="game-root">
     <main class="panel">
         <header class="header">
             <div class="title-block">
@@ -24,6 +24,12 @@
                     <span>Rätsel gelöst</span>
                     <span id="stat-solved">0 / 3</span>
                 </div>
+                <!-- optional, falls du es im Layout hast:
+                <div class="stat-chip">
+                    <span>Status</span>
+                    <span id="stat-status">Laden ist offen</span>
+                </div>
+                -->
             </div>
         </header>
 
@@ -34,7 +40,6 @@
         </div>
 
         <div class="door-wrapper">
-            <!-- KEIN Text-Label mehr neben der Tür -->
             <div class="door-scene">
                 <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
                 <div class="door" id="door"></div>
@@ -74,7 +79,6 @@
                     </div>
                 </div>
                 <div class="section-footer">
-                    <!-- KEIN Hint-Text -->
                     <button class="btn" id="check-sort-btn" type="button">
                         <span>✔</span> Rätsel prüfen
                     </button>
@@ -116,7 +120,6 @@
                     <div class="quiz-feedback" id="quiz-feedback">Wähle je Frage eine Antwort.</div>
                 </div>
                 <div class="section-footer">
-                    <!-- KEIN Hint-Text -->
                     <button class="btn" id="check-quiz-btn" type="button">
                         <span>✔</span> Quiz prüfen
                     </button>
@@ -166,7 +169,7 @@
                         <tr>
                             <td>UG (haftungsbeschränkt)</td>
                             <td>
-                                <select data-form="UG">
+                                <select data-form="UG (haftungsbeschränkt)">
                                     <option value="">– bitte wählen –</option>
                                     <option value="kein">kein gesetzliches Mindestkapital</option>
                                     <option value="1euro">ab 1 € Stammkapital</option>
@@ -189,7 +192,6 @@
                     </table>
                 </div>
                 <div class="section-footer">
-                    <!-- KEIN Hint-Text -->
                     <button class="btn" id="check-capital-btn" type="button">
                         <span>✔</span> Zuordnung prüfen
                     </button>
@@ -199,459 +201,539 @@
     </main>
 </div>
 
-<!-- ganz unten in deiner Datei: ERSETZE dein komplettes <script> durch dieses -->
-<script type="module">
-    const CONFIG_URL = 'Escape-Game-data2.json'; // Name deiner JSON-Datei
+<!-- GameBase einbinden -->
+<script src="game_base.js"></script>
 
-    // Timer
-    const START_SECONDS = 180;
-    let remainingSeconds = START_SECONDS;
-    let timerId = null;
-    let gameLocked = false;
+<script>
+    class EscapeGame extends GameBase {
+        constructor() {
+            super({
+                expectedGameType: 'escape_game',
+                rootElementId: 'game-root'
+            });
 
-    const statTimerEl = document.getElementById("stat-timer");
-    const statSolvedEl = document.getElementById("stat-solved");
-    const statStatusEl = document.getElementById("stat-status");
+            this.START_SECONDS = 180;
+            this.remainingSeconds = this.START_SECONDS;
+            this.timerId = null;
+            this.gameLocked = false;
 
-    const restartBtn = document.getElementById("restart-btn");
+            this.sectionSolved = {
+                sort: false,
+                quiz: false,
+                capital: false
+            };
 
-    const doorEl = document.getElementById("door");
-    const doorSignEl = document.getElementById("door-sign");
-    const doorGlowEl = document.getElementById("door-glow");
-
-    const statusSortEl = document.getElementById("status-sort");
-    const statusQuizEl = document.getElementById("status-quiz");
-    const statusCapitalEl = document.getElementById("status-capital");
-
-    const checkSortBtn = document.getElementById("check-sort-btn");
-    const checkQuizBtn = document.getElementById("check-quiz-btn");
-    const checkCapitalBtn = document.getElementById("check-capital-btn");
-
-    // Sortieraufgabe – DOM
-    const sortPoolEl = document.getElementById("sort-pool");
-    const dropzones = document.querySelectorAll(".escape-dropzone");
-
-    // Daten werden jetzt aus JSON geladen:
-    let sortCardsData = [];
-    let quizSolutions = {};
-    let capitalSolutions = {};
-
-    const capitalSelects = document.querySelectorAll(".capital-table select");
-
-    const sectionSolved = {
-        sort: false,
-        quiz: false,
-        capital: false
-    };
-
-    function formatTime(seconds) {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        const mm = m < 10 ? "0" + m : String(m);
-        const ss = s < 10 ? "0" + s : String(s);
-        return mm + ":" + ss;
-    }
-
-    function updateTimerDisplay() {
-        statTimerEl.textContent = formatTime(remainingSeconds);
-        statTimerEl.style.color = remainingSeconds <= 10 ? "var(--error)" : "var(--text)";
-    }
-
-    function tickTimer() {
-        if (gameLocked) return;
-        remainingSeconds -= 1;
-        if (remainingSeconds <= 0) {
-            remainingSeconds = 0;
-            updateTimerDisplay();
-            handleTimeUp();
-            return;
-        }
-        updateTimerDisplay();
-    }
-
-    function startTimer() {
-        if (timerId) clearInterval(timerId);
-        timerId = setInterval(tickTimer, 1000);
-    }
-
-    function handleTimeUp() {
-        if (timerId) {
-            clearInterval(timerId);
-            timerId = null;
-        }
-        gameLocked = true;
-
-        if (statStatusEl) {
-            statStatusEl.textContent = "Ladenschluss!";
-            statStatusEl.style.color = "var(--error)";
+            this.sortCardsData = [];
+            this.quizSolutions = {};
+            this.capitalSolutions = {};
+            this.draggingCardId = null;
         }
 
-        doorSignEl.textContent = "ZU SPÄT";
-        doorSignEl.classList.remove("door-sign--open");
-        doorSignEl.classList.add("door-sign--closed");
-        doorEl.classList.remove("door--open");
-        doorGlowEl.classList.remove("door-glow--active");
+        onDataLoaded(config) {
+            this.config = config;
 
-        checkSortBtn.disabled = true;
-        checkQuizBtn.disabled = true;
-        checkCapitalBtn.disabled = true;
-    }
+            // DOM-Referenzen
+            this.statTimerEl   = document.getElementById('stat-timer');
+            this.statSolvedEl  = document.getElementById('stat-solved');
+            this.statStatusEl  = document.getElementById('stat-status'); // optional
 
-    function updateSolvedStatus() {
-        const solvedCount = Object.values(sectionSolved).filter(Boolean).length;
-        statSolvedEl.textContent = solvedCount + " / 3";
+            this.restartBtn    = document.getElementById('restart-btn');
 
-        if (solvedCount === 3 && !gameLocked && remainingSeconds > 0) {
-            openDoor();
-        }
-    }
+            this.doorEl        = document.getElementById('door');
+            this.doorSignEl    = document.getElementById('door-sign');
+            this.doorGlowEl    = document.getElementById('door-glow');
 
-    function openDoor() {
-        gameLocked = true;
-        if (timerId) {
-            clearInterval(timerId);
-            timerId = null;
-        }
+            this.statusSortEl    = document.getElementById('status-sort');
+            this.statusQuizEl    = document.getElementById('status-quiz');
+            this.statusCapitalEl = document.getElementById('status-capital');
 
-        doorEl.classList.add("door--open");
-        doorGlowEl.classList.add("door-glow--active");
-        doorSignEl.textContent = "OFFEN";
-        doorSignEl.classList.remove("door-sign--closed");
-        doorSignEl.classList.add("door-sign--open");
+            this.checkSortBtn    = document.getElementById('check-sort-btn');
+            this.checkQuizBtn    = document.getElementById('check-quiz-btn');
+            this.checkCapitalBtn = document.getElementById('check-capital-btn');
 
-        if (statStatusEl) {
-            statStatusEl.textContent = "Tür geöffnet!";
-            statStatusEl.style.color = "var(--success)";
+            this.sortPoolEl      = document.getElementById('sort-pool');
+            this.dropzones       = Array.from(document.querySelectorAll('.escape-dropzone'));
+            this.capitalSelects  = Array.from(document.querySelectorAll('.capital-table select'));
+
+            this.quizFeedbackEl  = document.getElementById('quiz-feedback');
+
+            this._applyConfig(config);
+            this._wireEvents();
+            this.resetGame();
         }
 
-        checkSortBtn.disabled = true;
-        checkQuizBtn.disabled = true;
-        checkCapitalBtn.disabled = true;
-    }
+        _applyConfig(config) {
+            const sections = Array.isArray(config.sections) ? config.sections : [];
 
-    // Sortieraufgabe – Drag & Drop
-    let draggingCardId = null;
+            const sortSection    = sections.find(s => s.type === 'sort');
+            const quizSection    = sections.find(s => s.type === 'quiz');
+            const capitalSection = sections.find(s => s.type === 'capital');
 
-    function createSortCard(cardData) {
-        const el = document.createElement("div");
-        el.className = "drag-card";
-        el.draggable = true;
-        el.dataset.cardId = cardData.id;
-        el.dataset.correctZone = cardData.correctZone;
+            // Sortierkarten
+            if (sortSection && Array.isArray(sortSection.sortCards)) {
+                this.sortCardsData = sortSection.sortCards;
+            } else {
+                this.sortCardsData = [];
+            }
 
-        const textSpan = document.createElement("span");
-        textSpan.className = "drag-card-text";
-        textSpan.textContent = cardData.text;
-        el.appendChild(textSpan);
+            // Quiz
+            if (quizSection && Array.isArray(quizSection.questions)) {
+                this.quizSolutions = {};
+                quizSection.questions.forEach(q => {
+                    this.quizSolutions[q.id] = q.correct;
 
-        el.addEventListener("dragstart", (e) => {
-            if (gameLocked) {
-                e.preventDefault();
+                    const qRoot = document.querySelector(`.quiz-question[data-quiz-id="${q.id}"]`);
+                    if (!qRoot) return;
+
+                    const textEl = qRoot.querySelector('.quiz-text');
+                    if (textEl) textEl.textContent = q.text;
+
+                    const listEl = qRoot.querySelector('.quiz-options');
+                    if (listEl && Array.isArray(q.options)) {
+                        listEl.innerHTML = '';
+                        q.options.forEach(o => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `<label><input type="radio" name="${q.id}" value="${o.value}"> ${o.text}</label>`;
+                            listEl.appendChild(li);
+                        });
+                    }
+                });
+            } else {
+                this.quizSolutions = {};
+            }
+
+            // Mindestkapital
+            if (capitalSection && Array.isArray(capitalSection.rows)) {
+                this.capitalSolutions = {};
+                capitalSection.rows.forEach(row => {
+                    this.capitalSolutions[row.label] = row.correct;
+
+                    const sel = document.querySelector(`select[data-form="${row.label}"]`);
+                    if (sel && Array.isArray(row.options)) {
+                        sel.innerHTML = '';
+                        row.options.forEach(o => {
+                            const opt = document.createElement('option');
+                            opt.value = o.value;
+                            opt.textContent = o.text;
+                            sel.appendChild(opt);
+                        });
+                    }
+                });
+            } else {
+                this.capitalSolutions = {};
+            }
+
+            this._resetSortBoard();
+        }
+
+        _wireEvents() {
+            if (this.checkSortBtn) {
+                this.checkSortBtn.addEventListener('click', () => this.checkSort());
+            }
+            if (this.checkQuizBtn) {
+                this.checkQuizBtn.addEventListener('click', () => this.checkQuiz());
+            }
+            if (this.checkCapitalBtn) {
+                this.checkCapitalBtn.addEventListener('click', () => this.checkCapital());
+            }
+            if (this.restartBtn) {
+                this.restartBtn.addEventListener('click', () => this.resetGame());
+            }
+
+            this.dropzones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => this._handleDragOverZone(e));
+                zone.addEventListener('dragleave', (e) => this._handleDragLeaveZone(e));
+                zone.addEventListener('drop', (e) => this._handleDropZone(e));
+            });
+        }
+
+        // ===================== Timer =====================
+        _formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            const mm = m < 10 ? '0' + m : String(m);
+            const ss = s < 10 ? '0' + s : String(s);
+            return mm + ':' + ss;
+        }
+
+        _updateTimerDisplay() {
+            if (!this.statTimerEl) return;
+            this.statTimerEl.textContent = this._formatTime(this.remainingSeconds);
+            this.statTimerEl.style.color = this.remainingSeconds <= 10 ? 'var(--error)' : 'var(--text)';
+        }
+
+        _tickTimer() {
+            if (this.gameLocked) return;
+            this.remainingSeconds -= 1;
+            if (this.remainingSeconds <= 0) {
+                this.remainingSeconds = 0;
+                this._updateTimerDisplay();
+                this._handleTimeUp();
                 return;
             }
-            draggingCardId = cardData.id;
-            el.classList.add("dragging");
-            e.dataTransfer.effectAllowed = "move";
-            e.dataTransfer.setData("text/plain", cardData.id);
-        });
+            this._updateTimerDisplay();
+        }
 
-        el.addEventListener("dragend", () => {
-            draggingCardId = null;
-            el.classList.remove("dragging");
-        });
+        _startTimer() {
+            if (this.timerId) clearInterval(this.timerId);
+            this.timerId = setInterval(() => this._tickTimer(), 1000);
+        }
 
-        return el;
-    }
+        _handleTimeUp() {
+            if (this.timerId) {
+                clearInterval(this.timerId);
+                this.timerId = null;
+            }
+            this.gameLocked = true;
 
-    function resetSortBoard() {
-        sortPoolEl.innerHTML = "";
-        sortCardsData.forEach(card => {
-            const el = createSortCard(card);
-            sortPoolEl.appendChild(el);
-        });
-        dropzones.forEach(zone => {
-            zone.classList.remove("is-over");
-            const children = Array.from(zone.children)
-                .filter(c => !c.classList.contains("escape-dropzone-label"));
-            children.forEach(c => c.remove());
-        });
-    }
+            if (this.statStatusEl) {
+                this.statStatusEl.textContent = 'Ladenschluss!';
+                this.statStatusEl.style.color = 'var(--error)';
+            }
 
-    function handleDragOverZone(e) {
-        if (gameLocked) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        e.currentTarget.classList.add("is-over");
-    }
+            if (this.doorSignEl) {
+                this.doorSignEl.textContent = 'ZU SPÄT';
+                this.doorSignEl.classList.remove('door-sign--open');
+                this.doorSignEl.classList.add('door-sign--closed');
+            }
+            if (this.doorEl) {
+                this.doorEl.classList.remove('door--open');
+            }
+            if (this.doorGlowEl) {
+                this.doorGlowEl.classList.remove('door-glow--active');
+            }
 
-    function handleDragLeaveZone(e) {
-        e.currentTarget.classList.remove("is-over");
-    }
+            if (this.checkSortBtn) this.checkSortBtn.disabled = true;
+            if (this.checkQuizBtn) this.checkQuizBtn.disabled = true;
+            if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = true;
+        }
 
-    function handleDropZone(e) {
-        if (gameLocked) return;
-        e.preventDefault();
-        const zone = e.currentTarget;
-        zone.classList.remove("is-over");
+        _updateSolvedStatus() {
+            const solvedCount = Object.values(this.sectionSolved).filter(Boolean).length;
+            if (this.statSolvedEl) {
+                this.statSolvedEl.textContent = solvedCount + ' / 3';
+            }
 
-        const cardId = e.dataTransfer.getData("text/plain") || draggingCardId;
-        if (!cardId) return;
+            if (solvedCount === 3 && !this.gameLocked && this.remainingSeconds > 0) {
+                this._openDoor();
+            }
+        }
 
-        const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
-        if (!cardEl) return;
+        _openDoor() {
+            this.gameLocked = true;
+            if (this.timerId) {
+                clearInterval(this.timerId);
+                this.timerId = null;
+            }
 
-        cardEl.classList.remove("correct", "wrong");
-        zone.appendChild(cardEl);
-    }
+            if (this.doorEl) {
+                this.doorEl.classList.add('door--open');
+            }
+            if (this.doorGlowEl) {
+                this.doorGlowEl.classList.add('door-glow--active');
+            }
+            if (this.doorSignEl) {
+                this.doorSignEl.textContent = 'OFFEN';
+                this.doorSignEl.classList.remove('door-sign--closed');
+                this.doorSignEl.classList.add('door-sign--open');
+            }
 
-    dropzones.forEach(zone => {
-        zone.addEventListener("dragover", handleDragOverZone);
-        zone.addEventListener("dragleave", handleDragLeaveZone);
-        zone.addEventListener("drop", handleDropZone);
-    });
+            if (this.statStatusEl) {
+                this.statStatusEl.textContent = 'Tür geöffnet!';
+                this.statStatusEl.style.color = 'var(--success)';
+            }
 
-    function checkSort() {
-        if (gameLocked) return;
+            if (this.checkSortBtn) this.checkSortBtn.disabled = true;
+            if (this.checkQuizBtn) this.checkQuizBtn.disabled = true;
+            if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = true;
+        }
 
-        let correct = 0;
-        const total = sortCardsData.length;
+        // ===================== Sortieraufgabe =====================
+        _createSortCard(cardData) {
+            const el = document.createElement('div');
+            el.className = 'drag-card';
+            el.draggable = true;
+            el.dataset.cardId = cardData.id;
+            el.dataset.correctZone = cardData.correctZone;
 
-        document.querySelectorAll(".drag-card").forEach(card => {
-            card.classList.remove("correct", "wrong");
-        });
+            const textSpan = document.createElement('span');
+            textSpan.className = 'drag-card-text';
+            textSpan.textContent = cardData.text;
+            el.appendChild(textSpan);
 
-        sortCardsData.forEach(cardData => {
-            const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
+            el.addEventListener('dragstart', (e) => {
+                if (this.gameLocked) {
+                    e.preventDefault();
+                    return;
+                }
+                this.draggingCardId = cardData.id;
+                el.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', cardData.id);
+            });
+
+            el.addEventListener('dragend', () => {
+                this.draggingCardId = null;
+                el.classList.remove('dragging');
+            });
+
+            return el;
+        }
+
+        _resetSortBoard() {
+            if (!this.sortPoolEl) return;
+            this.sortPoolEl.innerHTML = '';
+
+            this.sortCardsData.forEach(card => {
+                const el = this._createSortCard(card);
+                this.sortPoolEl.appendChild(el);
+            });
+
+            this.dropzones.forEach(zone => {
+                zone.classList.remove('is-over');
+                const children = Array.from(zone.children)
+                    .filter(c => !c.classList.contains('escape-dropzone-label'));
+                children.forEach(c => c.remove());
+            });
+        }
+
+        _handleDragOverZone(e) {
+            if (this.gameLocked) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('is-over');
+        }
+
+        _handleDragLeaveZone(e) {
+            e.currentTarget.classList.remove('is-over');
+        }
+
+        _handleDropZone(e) {
+            if (this.gameLocked) return;
+            e.preventDefault();
+            const zone = e.currentTarget;
+            zone.classList.remove('is-over');
+
+            const cardId = e.dataTransfer.getData('text/plain') || this.draggingCardId;
+            if (!cardId) return;
+
+            const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
             if (!cardEl) return;
 
-            const parentZone = cardEl.closest(".escape-dropzone");
-            const zoneName = parentZone ? parentZone.dataset.zone : null;
+            cardEl.classList.remove('correct', 'wrong');
+            zone.appendChild(cardEl);
+        }
 
-            if (!zoneName) {
-                cardEl.classList.add("wrong");
+        checkSort() {
+            if (this.gameLocked) return;
+
+            let correct = 0;
+            const total = this.sortCardsData.length;
+
+            document.querySelectorAll('.drag-card').forEach(card => {
+                card.classList.remove('correct', 'wrong');
+            });
+
+            this.sortCardsData.forEach(cardData => {
+                const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
+                if (!cardEl) return;
+
+                const parentZone = cardEl.closest('.escape-dropzone');
+                const zoneName = parentZone ? parentZone.dataset.zone : null;
+
+                if (!zoneName) {
+                    cardEl.classList.add('wrong');
+                    return;
+                }
+
+                if (zoneName === cardData.correctZone) {
+                    cardEl.classList.add('correct');
+                    correct += 1;
+                } else {
+                    cardEl.classList.add('wrong');
+                }
+            });
+
+            if (correct === total) {
+                this.sectionSolved.sort = true;
+                if (this.statusSortEl) {
+                    this.statusSortEl.textContent = 'gelöst';
+                    this.statusSortEl.className = 'section-status section-status--done';
+                }
+            } else {
+                this.sectionSolved.sort = false;
+                if (this.statusSortEl) {
+                    this.statusSortEl.textContent = 'noch Fehler';
+                    this.statusSortEl.className = 'section-status section-status--fail';
+                }
+            }
+
+            this._updateSolvedStatus();
+        }
+
+        // ===================== Quiz =====================
+        checkQuiz() {
+            if (this.gameLocked) return;
+
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+
+            if (!q1 || !q2) {
+                if (this.quizFeedbackEl) {
+                    this.quizFeedbackEl.textContent = 'Bitte jede der beiden Fragen beantworten.';
+                }
+                this.sectionSolved.quiz = false;
+                if (this.statusQuizEl) {
+                    this.statusQuizEl.textContent = 'unvollständig';
+                    this.statusQuizEl.className = 'section-status section-status--fail';
+                }
+                this._updateSolvedStatus();
                 return;
             }
 
-            if (zoneName === cardData.correctZone) {
-                cardEl.classList.add("correct");
-                correct += 1;
+            const correctQ1 = this.quizSolutions.q1 ? q1.value === this.quizSolutions.q1 : false;
+            const correctQ2 = this.quizSolutions.q2 ? q2.value === this.quizSolutions.q2 : false;
+
+            if (correctQ1 && correctQ2) {
+                this.sectionSolved.quiz = true;
+                if (this.statusQuizEl) {
+                    this.statusQuizEl.textContent = 'gelöst';
+                    this.statusQuizEl.className = 'section-status section-status--done';
+                }
+                if (this.quizFeedbackEl) {
+                    this.quizFeedbackEl.textContent = 'Beide Antworten sind richtig.';
+                }
             } else {
-                cardEl.classList.add("wrong");
-            }
-        });
-
-        if (correct === total) {
-            sectionSolved.sort = true;
-            statusSortEl.textContent = "gelöst";
-            statusSortEl.className = "section-status section-status--done";
-        } else {
-            sectionSolved.sort = false;
-            statusSortEl.textContent = "noch Fehler";
-            statusSortEl.className = "section-status section-status--fail";
-        }
-
-        updateSolvedStatus();
-    }
-
-    // Quiz
-    function checkQuiz() {
-        if (gameLocked) return;
-
-        const q1 = document.querySelector('input[name="q1"]:checked');
-        const q2 = document.querySelector('input[name="q2"]:checked');
-
-        const quizFeedbackEl = document.getElementById("quiz-feedback");
-
-        if (!q1 || !q2) {
-            quizFeedbackEl.textContent = "Bitte jede der beiden Fragen beantworten.";
-            sectionSolved.quiz = false;
-            statusQuizEl.textContent = "unvollständig";
-            statusQuizEl.className = "section-status section-status--fail";
-            updateSolvedStatus();
-            return;
-        }
-
-        const correctQ1 = q1.value === quizSolutions.q1;
-        const correctQ2 = q2.value === quizSolutions.q2;
-
-        if (correctQ1 && correctQ2) {
-            sectionSolved.quiz = true;
-            statusQuizEl.textContent = "gelöst";
-            statusQuizEl.className = "section-status section-status--done";
-            quizFeedbackEl.textContent = "Beide Antworten sind richtig.";
-        } else {
-            sectionSolved.quiz = false;
-            statusQuizEl.textContent = "noch Fehler";
-            statusQuizEl.className = "section-status section-status--fail";
-            quizFeedbackEl.textContent = "Mindestens eine Antwort ist falsch.";
-        }
-
-        updateSolvedStatus();
-    }
-
-    // Mindestkapital
-    function checkCapital() {
-        if (gameLocked) return;
-
-        let correct = 0;
-        const total = Object.keys(capitalSolutions).length;
-
-        capitalSelects.forEach(sel => {
-            sel.classList.remove("correct", "wrong");
-        });
-
-        capitalSelects.forEach(sel => {
-            const form = sel.dataset.form;
-            const expected = capitalSolutions[form];
-            const chosen = sel.value;
-
-            if (!chosen) {
-                sel.classList.add("wrong");
-                return;
+                this.sectionSolved.quiz = false;
+                if (this.statusQuizEl) {
+                    this.statusQuizEl.textContent = 'noch Fehler';
+                    this.statusQuizEl.className = 'section-status section-status--fail';
+                }
+                if (this.quizFeedbackEl) {
+                    this.quizFeedbackEl.textContent = 'Mindestens eine Antwort ist falsch.';
+                }
             }
 
-            if (chosen === expected) {
-                sel.classList.add("correct");
-                correct += 1;
-            } else {
-                sel.classList.add("wrong");
-            }
-        });
-
-        if (correct === total) {
-            sectionSolved.capital = true;
-            statusCapitalEl.textContent = "gelöst";
-            statusCapitalEl.className = "section-status section-status--done";
-        } else {
-            sectionSolved.capital = false;
-            statusCapitalEl.textContent = "noch Fehler";
-            statusCapitalEl.className = "section-status section-status--fail";
+            this._updateSolvedStatus();
         }
 
-        updateSolvedStatus();
-    }
+        // ===================== Mindestkapital =====================
+        checkCapital() {
+            if (this.gameLocked) return;
 
-    // Restart
-    function resetGame() {
-        if (timerId) clearInterval(timerId);
+            let correct = 0;
+            const total = Object.keys(this.capitalSolutions).length;
 
-        remainingSeconds = START_SECONDS;
-        updateTimerDisplay();
-        gameLocked = false;
+            this.capitalSelects.forEach(sel => {
+                sel.classList.remove('correct', 'wrong');
+            });
 
-        sectionSolved.sort = false;
-        sectionSolved.quiz = false;
-        sectionSolved.capital = false;
+            this.capitalSelects.forEach(sel => {
+                const form = sel.dataset.form;
+                const expected = this.capitalSolutions[form];
+                const chosen = sel.value;
 
-        statusSortEl.textContent = "offen";
-        statusSortEl.className = "section-status";
-        statusQuizEl.textContent = "offen";
-        statusQuizEl.className = "section-status";
-        statusCapitalEl.textContent = "offen";
-        statusCapitalEl.className = "section-status";
+                if (!chosen) {
+                    sel.classList.add('wrong');
+                    return;
+                }
 
-        if (statStatusEl) {
-            statStatusEl.textContent = "Laden ist offen";
-            statStatusEl.style.color = "var(--text)";
-        }
-
-        statSolvedEl.textContent = "0 / 3";
-
-        doorEl.classList.remove("door--open");
-        doorGlowEl.classList.remove("door-glow--active");
-        doorSignEl.textContent = "GESCHLOSSEN";
-        doorSignEl.classList.add("door-sign--closed");
-        doorSignEl.classList.remove("door-sign--open");
-
-        sortPoolEl.innerHTML = "";
-        resetSortBoard();
-
-        document.querySelectorAll('input[name="q1"]').forEach(i => i.checked = false);
-        document.querySelectorAll('input[name="q2"]').forEach(i => i.checked = false);
-        document.getElementById("quiz-feedback").textContent = "Wähle je Frage eine Antwort.";
-
-        capitalSelects.forEach(sel => {
-            sel.value = "";
-            sel.classList.remove("correct", "wrong");
-        });
-
-        checkSortBtn.disabled = false;
-        checkQuizBtn.disabled = false;
-        checkCapitalBtn.disabled = false;
-
-        startTimer();
-    }
-
-    checkSortBtn.addEventListener("click", checkSort);
-    checkQuizBtn.addEventListener("click", checkQuiz);
-    checkCapitalBtn.addEventListener("click", checkCapital);
-    restartBtn.addEventListener("click", resetGame);
-
-    // JSON laden und Daten einspielen
-    async function loadConfig() {
-        const res = await fetch(CONFIG_URL);
-        const config = await res.json();
-
-        const sortSection = config.sections.find(s => s.type === "sort");
-        const quizSection = config.sections.find(s => s.type === "quiz");
-        const capitalSection = config.sections.find(s => s.type === "capital");
-
-        if (sortSection && Array.isArray(sortSection.sortCards)) {
-            sortCardsData = sortSection.sortCards;
-        }
-
-        if (quizSection && Array.isArray(quizSection.questions)) {
-            quizSolutions = {};
-            quizSection.questions.forEach(q => {
-                quizSolutions[q.id] = q.correct;
-
-                const qRoot = document.querySelector(`.quiz-question[data-quiz-id="${q.id}"]`);
-                if (!qRoot) return;
-
-                const textEl = qRoot.querySelector(".quiz-text");
-                if (textEl) textEl.textContent = q.text;
-
-                const listEl = qRoot.querySelector(".quiz-options");
-                if (listEl && Array.isArray(q.options)) {
-                    listEl.innerHTML = "";
-                    q.options.forEach(o => {
-                        const li = document.createElement("li");
-                        li.innerHTML = `<label><input type="radio" name="${q.id}" value="${o.value}"> ${o.text}</label>`;
-                        listEl.appendChild(li);
-                    });
+                if (chosen === expected) {
+                    sel.classList.add('correct');
+                    correct += 1;
+                } else {
+                    sel.classList.add('wrong');
                 }
             });
-        }
 
-        if (capitalSection && Array.isArray(capitalSection.rows)) {
-            capitalSolutions = {};
-            capitalSection.rows.forEach(row => {
-                // wir nutzen das Label als Schlüssel, also muss data-form im HTML gleich sein
-                capitalSolutions[row.label] = row.correct;
-
-                const sel = document.querySelector(`select[data-form="${row.label}"]`);
-                if (sel && Array.isArray(row.options)) {
-                    sel.innerHTML = "";
-                    row.options.forEach(o => {
-                        const opt = document.createElement("option");
-                        opt.value = o.value;
-                        opt.textContent = o.text;
-                        sel.appendChild(opt);
-                    });
+            if (correct === total) {
+                this.sectionSolved.capital = true;
+                if (this.statusCapitalEl) {
+                    this.statusCapitalEl.textContent = 'gelöst';
+                    this.statusCapitalEl.className = 'section-status section-status--done';
                 }
-            });
+            } else {
+                this.sectionSolved.capital = false;
+                if (this.statusCapitalEl) {
+                    this.statusCapitalEl.textContent = 'noch Fehler';
+                    this.statusCapitalEl.className = 'section-status section-status--fail';
+                }
+            }
+
+            this._updateSolvedStatus();
         }
 
-        resetSortBoard();
-        resetGame();
+        // ===================== Reset / Init =====================
+        resetGame() {
+            if (this.timerId) clearInterval(this.timerId);
+
+            this.remainingSeconds = this.START_SECONDS;
+            this._updateTimerDisplay();
+            this.gameLocked = false;
+
+            this.sectionSolved.sort = false;
+            this.sectionSolved.quiz = false;
+            this.sectionSolved.capital = false;
+
+            if (this.statusSortEl) {
+                this.statusSortEl.textContent = 'offen';
+                this.statusSortEl.className = 'section-status';
+            }
+            if (this.statusQuizEl) {
+                this.statusQuizEl.textContent = 'offen';
+                this.statusQuizEl.className = 'section-status';
+            }
+            if (this.statusCapitalEl) {
+                this.statusCapitalEl.textContent = 'offen';
+                this.statusCapitalEl.className = 'section-status';
+            }
+
+            if (this.statStatusEl) {
+                this.statStatusEl.textContent = 'Laden ist offen';
+                this.statStatusEl.style.color = 'var(--text)';
+            }
+
+            if (this.statSolvedEl) {
+                this.statSolvedEl.textContent = '0 / 3';
+            }
+
+            if (this.doorEl) {
+                this.doorEl.classList.remove('door--open');
+            }
+            if (this.doorGlowEl) {
+                this.doorGlowEl.classList.remove('door-glow--active');
+            }
+            if (this.doorSignEl) {
+                this.doorSignEl.textContent = 'GESCHLOSSEN';
+                this.doorSignEl.classList.add('door-sign--closed');
+                this.doorSignEl.classList.remove('door-sign--open');
+            }
+
+            this._resetSortBoard();
+
+            document.querySelectorAll('input[name="q1"]').forEach(i => i.checked = false);
+            document.querySelectorAll('input[name="q2"]').forEach(i => i.checked = false);
+            if (this.quizFeedbackEl) {
+                this.quizFeedbackEl.textContent = 'Wähle je Frage eine Antwort.';
+            }
+
+            this.capitalSelects.forEach(sel => {
+                sel.value = '';
+                sel.classList.remove('correct', 'wrong');
+            });
+
+            if (this.checkSortBtn) this.checkSortBtn.disabled = false;
+            if (this.checkQuizBtn) this.checkQuizBtn.disabled = false;
+            if (this.checkCapitalBtn) this.checkCapitalBtn.disabled = false;
+
+            this._startTimer();
+        }
     }
 
-    loadConfig().catch(err => {
-        console.error("Fehler beim Laden der JSON:", err);
-        // Fallback: Spiel trotzdem initialisieren
-        resetGame();
+    window.addEventListener('DOMContentLoaded', () => {
+        const game = new EscapeGame();
+        game.init();
     });
 </script>
 </body>
-
 </html>

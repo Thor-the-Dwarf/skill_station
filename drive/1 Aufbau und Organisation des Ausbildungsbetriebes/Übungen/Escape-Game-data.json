@@ -1,4 +1,9 @@
 {
+  "game_type": "escape_game",
+  "schema_version": "1.0",
+  "title": "Mini-Escape-Room – Rechtsformen",
+  "topic": "Unternehmensformen / Rechtsformen",
+  "estimated_minutes": 20,
   "sections": [
     {
       "id": "haftung-sort",
