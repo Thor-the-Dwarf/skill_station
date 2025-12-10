@@ -4,29 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <title>Drive-Tree – Kursstruktur</title>
+    <link rel="stylesheet" href="shared_theme.css">
     <style>
-        :root {
-            --bg: #020617;
-            --panel: #0f172a;
-            --panel-soft: rgba(15, 23, 42, 0.96);
-            --accent: #38bdf8;
-            --accent-soft: rgba(56, 189, 248, 0.15);
-            --text: #e5e7eb;
-            --text-muted: #9ca3af;
-            --border: #1f2937;
-        }
-
-        /* Light-Theme über Klasse auf <html> */
-        :root.theme-light {
-            --bg: #f9fafb;
-            --panel: #e5e7eb;
-            --panel-soft: rgba(243, 244, 246, 0.98);
-            --accent: #2563eb;
-            --accent-soft: rgba(37, 99, 235, 0.12);
-            --text: #111827;
-            --text-muted: #4b5563;
-            --border: #d1d5db;
-        }
+        /* :root Variables moved to shared_theme.css */
 
         * {
             box-sizing: border-box;
@@ -36,7 +16,7 @@
             margin: 0;
             min-height: 100vh;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: radial-gradient(circle at top, #0f172a, #020617);
+            background: radial-gradient(circle at top, var(--panel), var(--bg));
             color: var(--text);
         }
 
@@ -71,8 +51,8 @@
             width: 36px;
             height: 36px;
             border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
-            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
             color: var(--text-muted);
             display: inline-flex;
             align-items: center;
@@ -87,15 +67,15 @@
         }
 
         .menu-icon-btn:hover {
-            background: rgba(30, 64, 175, 0.95);
-            border-color: rgba(59, 130, 246, 0.95);
+            background: var(--accent);
+            border-color: var(--accent);
             color: #e5e7eb;
             transform: translateY(-1px);
         }
 
         .menu-icon-btn.active {
-            background: rgba(37, 99, 235, 0.95);
-            border-color: rgba(59, 130, 246, 1);
+            background: var(--accent);
+            border-color: var(--accent);
             color: #e5e7eb;
         }
 
@@ -109,11 +89,11 @@
             width: 50vw;
             max-width: 900px;
             min-width: 300px;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.97));
+            background: var(--panel-soft);
             border-right: 1px solid var(--border);
             box-shadow:
                 16px 0 40px rgba(0, 0, 0, 0.6),
-                0 0 0 1px rgba(15, 23, 42, 0.9);
+                0 0 0 1px var(--panel);
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
@@ -173,7 +153,7 @@
         }
 
         .tree-row:hover {
-            background: rgba(15, 23, 42, 0.9);
+            background: var(--panel);
         }
 
         .tree-toggle {
@@ -193,7 +173,7 @@
         }
 
         .tree-toggle:hover {
-            background: rgba(15, 23, 42, 0.9);
+            background: var(--panel);
             color: var(--text);
         }
 
@@ -267,7 +247,7 @@
         .drawer-footer {
             margin-top: auto;
             padding-top: 0.5rem;
-            border-top: 1px dashed rgba(55, 65, 81, 0.9);
+            border-top: 1px dashed var(--border);
             font-size: 0.78rem;
             color: var(--text-muted);
         }
@@ -282,7 +262,7 @@
 
         .state-pill {
             border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
+            border: 1px solid var(--border);
             padding: 0.18rem 0.5rem;
             font-size: 0.7rem;
             white-space: nowrap;
@@ -311,7 +291,7 @@
             justify-content: space-between;
             padding: 0.5rem 0 0.75rem;
             margin-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+            border-bottom: 1px solid var(--border);
         }
 
         .top-bar-title {
@@ -324,8 +304,8 @@
             width: 40px;
             height: 24px;
             border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
-            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
             color: var(--text-muted);
             display: inline-flex;
             align-items: center;
@@ -340,8 +320,8 @@
         }
 
         .theme-toggle-btn:hover {
-            background: rgba(30, 64, 175, 0.95);
-            border-color: rgba(59, 130, 246, 0.95);
+            background: var(--accent);
+            border-color: var(--accent);
             color: #e5e7eb;
             transform: translateY(-1px);
         }
@@ -365,11 +345,11 @@
         .card {
             background: var(--panel-soft);
             border-radius: 0.9rem;
-            border: 1px solid rgba(31, 41, 55, 0.95);
+            border: 1px solid var(--border);
             padding: 1rem 1.2rem;
             box-shadow:
                 0 24px 60px rgba(0, 0, 0, 0.5),
-                0 0 0 1px rgba(15, 23, 42, 0.9);
+                0 0 0 1px var(--panel);
             max-width: 900px;
         }
 
@@ -410,17 +390,17 @@
         .pill {
             padding: 0.24rem 0.55rem;
             border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
+            border: 1px solid var(--border);
             font-size: 0.75rem;
             color: var(--text-muted);
-            background: rgba(15, 23, 42, 0.96);
+            background: var(--panel-soft);
         }
 
         .iframe-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(31, 41, 55, 0.95);
+            border: 1px solid var(--border);
             border-radius: 0.9rem;
             overflow: hidden;
             background: var(--panel-soft);
@@ -626,6 +606,17 @@
                 const isLight = document.documentElement.classList.contains('theme-light');
                 const next = isLight ? 'dark' : 'light';
                 applyTheme(next);
+
+                // Sync to iframe if it exists
+                const iframe = document.querySelector('iframe.game-iframe');
+                if (iframe && iframe.contentDocument) {
+                    if (next === 'light') {
+                        iframe.contentDocument.documentElement.classList.add('theme-light');
+                    } else {
+                        iframe.contentDocument.documentElement.classList.remove('theme-light');
+                    }
+                }
+
                 try {
                     localStorage.setItem(THEME_KEY, next);
                 } catch (_) { }
@@ -944,6 +935,17 @@
                     const iframe = document.createElement('iframe');
                     iframe.src = targetUrl;
                     iframe.className = 'game-iframe';
+
+                    // Sync Theme on Load
+                    iframe.onload = () => {
+                        if (!iframe.contentDocument) return;
+                        const isLight = document.documentElement.classList.contains('theme-light');
+                        if (isLight) {
+                            iframe.contentDocument.documentElement.classList.add('theme-light');
+                        } else {
+                            iframe.contentDocument.documentElement.classList.remove('theme-light');
+                        }
+                    };
 
                     viewBodyEl.appendChild(iframe);
 
