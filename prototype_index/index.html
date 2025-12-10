@@ -28,24 +28,89 @@
         }
 
         .app {
-            display: grid;
-            grid-template-columns: 280px minmax(0, 1fr);
+            position: relative;
             min-height: 100vh;
-            transition: grid-template-columns 140ms ease-out;
+            display: flex;
         }
 
-        .app.drawer-collapsed {
-            grid-template-columns: 56px minmax(0, 1fr);
-        }
-
-        .drawer {
-            padding: 0.75rem 0.75rem 1rem;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.97));
+        /* Linke vertikale Menubar */
+        .menu-bar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 56px;
+            background: var(--panel);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 0.25rem;
+            gap: 0.5rem;
+            z-index: 30;
+        }
+
+        .menu-spacer {
+            flex: 1;
+        }
+
+        .menu-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition:
+                    background 120ms ease-out,
+                    border-color 120ms ease-out,
+                    transform 80ms ease-out,
+                    color 120ms ease-out;
+        }
+
+        .menu-icon-btn:hover {
+            background: rgba(30, 64, 175, 0.95);
+            border-color: rgba(59, 130, 246, 0.95);
+            color: #e5e7eb;
+            transform: translateY(-1px);
+        }
+
+        .menu-icon-btn.active {
+            background: rgba(37, 99, 235, 0.95);
+            border-color: rgba(59, 130, 246, 1);
+            color: #e5e7eb;
+        }
+
+        /* Overlay-Drawer für Tree */
+        .drawer {
+            position: fixed;
+            top: 0;
+            left: 56px; /* neben der Menubar */
+            height: 100vh;
+            width: 50vw;
+            max-width: 900px;
+            min-width: 300px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.97));
+            border-right: 1px solid var(--border);
+            box-shadow:
+                    16px 0 40px rgba(0, 0, 0, 0.6),
+                    0 0 0 1px rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
             gap: 0.75rem;
-            overflow: hidden;
+            padding: 0.75rem 0.75rem 1rem;
+            transform: translateX(-100%);
+            transition: transform 160ms ease-out;
+            z-index: 25;
+        }
+
+        .app.tree-open #tree-drawer {
+            transform: translateX(0);
         }
 
         .drawer-header {
@@ -56,44 +121,14 @@
         }
 
         .drawer-title {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
             color: var(--text-muted);
             white-space: nowrap;
-        }
-
-        .drawer-toggle-btn {
-            border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
-            background: rgba(15, 23, 42, 0.9);
-            color: var(--text-muted);
-            width: 28px;
-            height: 28px;
-            font-size: 0.85rem;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition:
-                    background 120ms ease-out,
-                    border-color 120ms ease-out,
-                    color 120ms ease-out,
-                    transform 80ms ease-out;
-        }
-
-        .drawer-toggle-btn:hover {
-            background: rgba(30, 64, 175, 0.9);
-            border-color: rgba(59, 130, 246, 0.9);
-            color: #e5e7eb;
-            transform: translateX(1px);
-        }
-
-        .app.drawer-collapsed .drawer-title {
-            display: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .tree-scroll {
@@ -244,7 +279,10 @@
             font-weight: 500;
         }
 
+        /* Content rechts – darf nicht gequetscht werden */
         .content {
+            flex: 1;
+            margin-left: 56px; /* Platz für Menubar */
             padding: 1.2rem 1.75rem;
             display: flex;
             flex-direction: column;
@@ -322,19 +360,9 @@
         }
 
         @media (max-width: 900px) {
-            .app {
-                grid-template-columns: minmax(0, 1fr);
-                grid-template-rows: auto 1fr;
-            }
-
-            .app.drawer-collapsed {
-                grid-template-columns: minmax(0, 1fr);
-            }
-
             .drawer {
-                position: sticky;
-                top: 0;
-                z-index: 10;
+                width: 80vw;
+                left: 56px;
             }
 
             .content {
@@ -345,17 +373,23 @@
 </head>
 <body>
 <div class="app" id="app-root">
-    <aside class="drawer">
-        <div class="drawer-header">
-            <button
-                    class="drawer-toggle-btn"
-                    type="button"
-                    id="drawer-toggle"
-                    aria-label="Tree-Drawer ein-/ausklappen">
-                ⟨
-            </button>
+    <!-- Linke Menubar -->
+    <nav class="menu-bar">
+        <button
+                id="menu-tree-btn"
+                class="menu-icon-btn"
+                type="button"
+                title="Ordnerstruktur ein-/ausblenden">
+            📁
+        </button>
+        <div class="menu-spacer"></div>
+    </nav>
+
+    <!-- Tree-Drawer (Overlay, 50% Breite) -->
+    <aside class="drawer" id="tree-drawer">
+        <header class="drawer-header">
             <div class="drawer-title" id="drawer-title">Drive-Ordner</div>
-        </div>
+        </header>
 
         <div class="tree-scroll">
             <nav class="tree" id="tree-root">
@@ -363,16 +397,17 @@
             </nav>
         </div>
 
-        <div class="drawer-footer">
+        <footer class="drawer-footer">
             <div class="drawer-footer-row">
                 <span class="drawer-footer-text">Ausgewählt</span>
                 <div class="state-pill">
                     <span id="state-selected-label">–</span>
                 </div>
             </div>
-        </div>
+        </footer>
     </aside>
 
+    <!-- Content rechts -->
     <main class="content">
         <header class="content-header">
             <div class="view-title" id="view-title">Drive-Struktur wird geladen …</div>
@@ -383,12 +418,12 @@
             <h2>Verbinde mit Google Drive …</h2>
             <p>
                 Die Ordnerstruktur wird aus deinem freigegebenen Google-Drive-Ordner geladen
-                und links als TreeView angezeigt.
+                und links als TreeView angezeigt. Sichtbar sind nur Ordner, PDF- und JSON-Dateien.
             </p>
             <div class="pill-row">
-                <span class="pill">Google Drive API</span>
-                <span class="pill">nur Ordner / PDF / JSON</span>
-                <span class="pill">alles initial zugeklappt</span>
+                <span class="pill">Overlay-Drawer (50 %)</span>
+                <span class="pill">Menü-Icon 📁 toggelt Tree</span>
+                <span class="pill">PDF 👁 · JSON 🏋</span>
             </div>
         </section>
     </main>
@@ -404,7 +439,7 @@
         const DRIVE_FILES_ENDPOINT = 'https://www.googleapis.com/drive/v3/files';
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
-        const STORAGE_KEY = 'driveTreeSpaState_v1';
+        const STORAGE_KEY = 'driveTreeSpaState_v2';
 
         // =====================================================================
         // STATE
@@ -412,16 +447,18 @@
         let state = {
             selectedId: null,
             closedIds: [],
-            drawerCollapsed: false
+            drawerOpen: false
         };
 
         let rootTree = [];
+        let rootName = 'Drive-Ordner';
 
         // =====================================================================
         // DOM
         // =====================================================================
         const appRootEl = document.getElementById('app-root');
-        const drawerToggleBtn = document.getElementById('drawer-toggle');
+        const treeDrawerEl = document.getElementById('tree-drawer');
+        const menuTreeBtn = document.getElementById('menu-tree-btn');
         const drawerTitleEl = document.getElementById('drawer-title');
         const treeRootEl = document.getElementById('tree-root');
         const selectedLabelEl = document.getElementById('state-selected-label');
@@ -444,8 +481,8 @@
                 if (Array.isArray(parsed.closedIds)) {
                     state.closedIds = parsed.closedIds.filter(id => typeof id === 'string');
                 }
-                if (typeof parsed.drawerCollapsed === 'boolean') {
-                    state.drawerCollapsed = parsed.drawerCollapsed;
+                if (typeof parsed.drawerOpen === 'boolean') {
+                    state.drawerOpen = parsed.drawerOpen;
                 }
             } catch (_) {}
         }
@@ -457,13 +494,13 @@
             } catch (_) {}
         }
 
-        function applyDrawerCollapsed() {
-            if (state.drawerCollapsed) {
-                appRootEl.classList.add('drawer-collapsed');
-                drawerToggleBtn.textContent = '⟩';
+        function applyDrawerOpen() {
+            if (state.drawerOpen) {
+                appRootEl.classList.add('tree-open');
+                menuTreeBtn.classList.add('active');
             } else {
-                appRootEl.classList.remove('drawer-collapsed');
-                drawerToggleBtn.textContent = '⟨';
+                appRootEl.classList.remove('tree-open');
+                menuTreeBtn.classList.remove('active');
             }
         }
 
@@ -537,7 +574,6 @@
             const folders = children.filter(c => c.mimeType === FOLDER_MIME);
             const filesRaw = children.filter(c => c.mimeType !== FOLDER_MIME);
 
-            // Nur PDF + JSON
             const files = filesRaw.filter(f => isPdf(f) || isJson(f));
 
             const folderNodes = [];
@@ -602,9 +638,9 @@
                     icon.classList.add('tree-icon-folder');
                     icon.textContent = state.closedIds.includes(node.id) ? '📁' : '📂';
                 } else if (node.kind === 'pdf') {
-                    icon.textContent = '👁'; // Auge
+                    icon.textContent = '👁';
                 } else if (node.kind === 'json') {
-                    icon.textContent = '🏋'; // Hantel
+                    icon.textContent = '🏋';
                 } else {
                     icon.textContent = '📄';
                 }
@@ -675,11 +711,12 @@
                 applySelectedCss();
             }
 
-            const path = findPathById(rootTree, node.id) || [node.name];
+            const localPath = findPathById(rootTree, node.id) || [node.name];
+            const fullPath = [rootName, ...localPath];
             const name = node.name || 'Unbekannt';
 
             viewTitleEl.textContent = name;
-            viewPathEl.textContent = 'Pfad: ' + path.join(' / ');
+            viewPathEl.textContent = 'Pfad: ' + fullPath.join(' / ');
 
             if (node.isFolder) {
                 const children = node.children || [];
@@ -715,10 +752,12 @@
         }
 
         function setupEvents() {
+            // Tree interactions
             treeRootEl.addEventListener('click', (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLElement)) return;
 
+                // Folder auf/zu
                 if (target.classList.contains('tree-toggle')) {
                     event.stopPropagation();
                     const nodeEl = target.closest('.tree-node');
@@ -744,6 +783,7 @@
                     return;
                 }
 
+                // Auswahl (Label oder Icon)
                 if (target.classList.contains('tree-label') || target.classList.contains('tree-icon')) {
                     const nodeEl = target.closest('.tree-node');
                     if (!nodeEl) return;
@@ -757,10 +797,11 @@
                 }
             });
 
-            drawerToggleBtn.addEventListener('click', () => {
-                const collapsed = !state.drawerCollapsed;
-                saveState({ drawerCollapsed: collapsed });
-                applyDrawerCollapsed();
+            // Menü-Icon toggelt Drawer
+            menuTreeBtn.addEventListener('click', () => {
+                const open = !state.drawerOpen;
+                saveState({ drawerOpen: open });
+                applyDrawerOpen();
             });
         }
 
@@ -793,29 +834,22 @@
         // =====================================================================
         (async function init() {
             loadState();
-            applyDrawerCollapsed();
+            applyDrawerOpen();
 
             try {
                 const meta = await fetchFolderMeta(ROOT_FOLDER_ID);
-                const rootName = meta && meta.name ? meta.name : 'Drive-Ordner';
+                rootName = meta && meta.name ? meta.name : 'Drive-Ordner';
 
                 document.title = rootName + ' – Drive-Tree';
                 drawerTitleEl.textContent = rootName;
                 viewTitleEl.textContent = rootName;
                 viewPathEl.textContent = 'Root-ID: ' + ROOT_FOLDER_ID;
 
+                // Achtung: rootFolder selbst NICHT als Node – nur seine Kinder
                 const children = await buildTreeData(ROOT_FOLDER_ID);
-                rootTree = [
-                    {
-                        id: ROOT_FOLDER_ID,
-                        name: rootName,
-                        isFolder: true,
-                        kind: 'folder',
-                        children
-                    }
-                ];
+                rootTree = children;
 
-                // Default: alles zu, aber Zustand merken
+                // alle Ordner-IDs sammeln, um initial alles zuzuklappen
                 const allFolderIds = [];
                 collectFolderIds(rootTree, allFolderIds);
                 if (!state.closedIds || state.closedIds.length === 0) {
@@ -826,13 +860,17 @@
                 treeRootEl.innerHTML = '';
                 buildTree(treeRootEl, rootTree, 0);
 
-                if (!state.selectedId) {
-                    state.selectedId = ROOT_FOLDER_ID;
-                    saveState({ selectedId: ROOT_FOLDER_ID });
+                // Standard-Auswahl: erster Eintrag, falls noch nichts gespeichert
+                if (!state.selectedId && rootTree.length > 0) {
+                    state.selectedId = rootTree[0].id;
+                    saveState({ selectedId: state.selectedId });
                 }
 
                 applySelectedCss();
-                renderViewForId(state.selectedId);
+                if (state.selectedId) {
+                    renderViewForId(state.selectedId);
+                }
+
                 setupEvents();
             } catch (err) {
                 console.error(err);
