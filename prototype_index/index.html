@@ -508,6 +508,14 @@
 
         const STORAGE_KEY = 'driveTreeSpaState_v2';
         const THEME_KEY   = 'globalTheme_v1';
+        const JSON_SESSION_PREFIX = 'game_payload_';
+
+        // Routing-Map: game_type → HTML-Seite
+        const GAME_ROUTE_MAP = {
+            what_and_why: 'what_and_why.html',
+            quick_quiz: 'quick_quiz.html'
+            // weitere Typen hier ergänzen
+        };
 
         // =====================================================================
         // STATE
@@ -860,15 +868,60 @@
             selectedLabelEl.textContent = name;
         }
 
-        // Statt interner pdf_view: direkt Drive-/view in neuem Tab
+        // PDFs: direkt Drive-/view in neuem Tab
         function openPdfView(node) {
             const url = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
             window.open(url, '_blank', 'noopener,noreferrer');
         }
 
+        // JSON: einmal laden, game_type lesen, in sessionStorage legen, richtige Game-Seite öffnen
+        async function openJsonGame(node) {
+            const fileId = node.id;
+            if (!fileId) return;
+
+            const storageKey = JSON_SESSION_PREFIX + fileId;
+
+            try {
+                const url = `${DRIVE_FILES_ENDPOINT}/${encodeURIComponent(fileId)}?alt=media&key=${API_KEY}`;
+                const data = await fetchJson(url);
+
+                if (!data || typeof data !== 'object') {
+                    showError('JSON-Datei konnte nicht interpretiert werden.');
+                    return;
+                }
+
+                const gameType = data.game_type || data.gameType;
+                if (!gameType) {
+                    showError('In der JSON fehlt das Feld "game_type".');
+                    return;
+                }
+
+                const targetPage = GAME_ROUTE_MAP[gameType];
+                if (!targetPage) {
+                    showError(`Für game_type "${gameType}" ist keine Zielseite konfiguriert.`);
+                    return;
+                }
+
+                try {
+                    sessionStorage.setItem(storageKey, JSON.stringify(data));
+                } catch (e) {
+                    console.error('Konnte JSON nicht im sessionStorage speichern:', e);
+                    // Fallback: Game-Seite kann selbst von Drive laden
+                }
+
+                const targetUrl =
+                    `${targetPage}?fileId=${encodeURIComponent(fileId)}&game_type=${encodeURIComponent(gameType)}`;
+
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            } catch (err) {
+                console.error(err);
+                showError(String(err && err.message ? err.message : err));
+            }
+        }
+
         function setupEvents() {
             // Tree interactions – Klick (Single-Klick reicht)
-            treeRootEl.addEventListener('click', (event) => {
+            treeRootEl.addEventListener('click', async (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLElement)) return;
 
@@ -898,7 +951,7 @@
                     return;
                 }
 
-                // Auswahl (Label oder Icon) + bei PDF direkt öffnen
+                // Auswahl (Label oder Icon) + bei PDF/JSON direkt öffnen
                 if (target.classList.contains('tree-label') || target.classList.contains('tree-icon')) {
                     const nodeEl = target.closest('.tree-node');
                     if (!nodeEl) return;
@@ -911,13 +964,15 @@
                     renderViewForId(id);
 
                     const node = findNodeById(rootTree, id);
-                    if (node && !node.isFolder && node.kind === 'pdf') {
-                        openPdfView(node);
+                    if (node && !node.isFolder) {
+                        if (node.kind === 'pdf') {
+                            openPdfView(node);
+                        } else if (node.kind === 'json') {
+                            await openJsonGame(node);
+                        }
                     }
                 }
             });
-
-            // KEIN dblclick mehr nötig – entfernt
 
             // Menü-Icon toggelt Drawer
             menuTreeBtn.addEventListener('click', () => {
