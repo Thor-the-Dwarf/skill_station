@@ -29,7 +29,8 @@
         ----------------------------- */
         .drawer {
             position: fixed;
-            top: 64px; /* unterhalb der oberen AppBar */
+            top: 64px;
+            /* unterhalb der oberen AppBar */
             left: 0;
             height: calc(100vh - 64px);
             width: 25vw;
@@ -141,7 +142,7 @@
             margin-left: 0;
         }
 
-        .tree-node--collapsed > .tree-children {
+        .tree-node--collapsed>.tree-children {
             display: none;
         }
 
@@ -196,7 +197,8 @@
             flex: 1;
             margin-left: 0;
             padding: 2rem;
-            padding-top: calc(2rem + 64px); /* Platz für obere AppBar */
+            padding-top: calc(2rem + 64px);
+            /* Platz für obere AppBar */
             max-width: 1600px;
             display: flex;
             flex-direction: column;
@@ -318,7 +320,7 @@
             color: hsl(var(--txt-muted));
         }
 
-        .content > .card:first-of-type {
+        .content>.card:first-of-type {
             border-top: none;
         }
 
@@ -352,6 +354,24 @@
             }
         }
 
+        /* Backdrop for Drawer */
+        .drawer-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 29;
+            /* Below drawer (30), above content */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .drawer-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         @media (max-width: 768px) {
             .content {
                 margin: 0;
@@ -370,565 +390,582 @@
 </head>
 
 <body>
-<div class="app" id="app-root">
-    <!-- Tree-Drawer (Overlay, 25 % Breite) -->
-    <aside class="drawer" id="tree-drawer">
-        <header class="drawer-header">
-            <div class="drawer-title" id="drawer-title">Drive-Ordner</div>
-        </header>
+    <div class="app" id="app-root">
+        <!-- Backdrop -->
+        <div id="drawer-backdrop" class="drawer-backdrop"></div>
 
-        <div class="tree-scroll">
-            <nav class="tree" id="tree-root">
-                <!-- Tree per JS -->
-            </nav>
-        </div>
+        <!-- Tree-Drawer (Overlay, 25 % Breite) -->
+        <aside class="drawer" id="tree-drawer">
+            <header class="drawer-header">
+                <div class="drawer-title" id="drawer-title">Drive-Ordner</div>
+            </header>
 
-        <footer class="drawer-footer">
-            <div class="drawer-footer-row">
-                <span class="drawer-footer-text">Ausgewählt</span>
-                <div class="state-pill">
-                    <span id="state-selected-label">–</span>
+            <div class="tree-scroll">
+                <nav class="tree" id="tree-root">
+                    <!-- Tree per JS -->
+                </nav>
+            </div>
+
+            <footer class="drawer-footer">
+                <div class="drawer-footer-row">
+                    <span class="drawer-footer-text">Ausgewählt</span>
+                    <div class="state-pill">
+                        <span id="state-selected-label">–</span>
+                    </div>
                 </div>
-            </div>
-        </footer>
-    </aside>
+            </footer>
+        </aside>
 
-    <!-- Content -->
-    <main class="content">
-        <header class="top-bar">
-            <button id="menu-tree-btn" class="menu-icon-btn" type="button" title="Ordnerstruktur ein-/ausblenden">
-                📁
-            </button>
-            <div class="top-bar-title">
-                Wiederholung ist die Mutter des Lernens
-            </div>
-            <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Theme wechseln">
-                🌙
-            </button>
-        </header>
+        <!-- Content -->
+        <main class="content">
+            <header class="top-bar">
+                <button id="menu-tree-btn" class="menu-icon-btn" type="button" title="Ordnerstruktur ein-/ausblenden">
+                    📁
+                </button>
+                <div class="top-bar-title">
+                    Wiederholung ist die Mutter des Lernens
+                </div>
+                <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Theme wechseln">
+                    🌙
+                </button>
+            </header>
 
-        <header class="content-header">
-            <div class="view-title" id="view-title">Drive-Struktur wird geladen …</div>
-            <div class="view-path" id="view-path"></div>
-        </header>
+            <header class="content-header">
+                <div class="view-title" id="view-title">Drive-Struktur wird geladen …</div>
+                <div class="view-path" id="view-path"></div>
+            </header>
 
-        <section class="card" id="view-body">
-            <h2>Verbinde mit Google Drive …</h2>
-            <p>
-                Die Ordnerstruktur wird aus deinem freigegebenen Google-Drive-Ordner geladen
-                und links als TreeView angezeigt. Sichtbar sind nur Ordner, PDF- und JSON-Dateien.
-            </p>
-            <div class="pill-row">
-                <span class="pill">Overlay-Drawer (25 %)</span>
-                <span class="pill">AppBar-Icon 📁 toggelt Tree</span>
-                <span class="pill">PDF 👁 · JSON 🏋</span>
-            </div>
-        </section>
-    </main>
-</div>
+            <section class="card" id="view-body">
+                <h2>Verbinde mit Google Drive …</h2>
+                <p>
+                    Die Ordnerstruktur wird aus deinem freigegebenen Google-Drive-Ordner geladen
+                    und links als TreeView angezeigt. Sichtbar sind nur Ordner, PDF- und JSON-Dateien.
+                </p>
+                <div class="pill-row">
+                    <span class="pill">Overlay-Drawer (25 %)</span>
+                    <span class="pill">AppBar-Icon 📁 toggelt Tree</span>
+                    <span class="pill">PDF 👁 · JSON 🏋</span>
+                </div>
+            </section>
+        </main>
+    </div>
 
-<script>
-    (() => {
-        const ROOT_FOLDER_ID = '1kpUMyk5WMoRE6KKM29tdoqYGcYjtn6PJ';
-        const API_KEY = 'AIzaSyCNNH3aVsoZ-bkT2i1vD4g72kKJeRYnb_8';
-        const DRIVE_FILES_ENDPOINT = 'https://www.googleapis.com/drive/v3/files';
-        const FOLDER_MIME = 'application/vnd.google-apps.folder';
+    <script>
+        (() => {
+            const ROOT_FOLDER_ID = '1kpUMyk5WMoRE6KKM29tdoqYGcYjtn6PJ';
+            const API_KEY = 'AIzaSyCNNH3aVsoZ-bkT2i1vD4g72kKJeRYnb_8';
+            const DRIVE_FILES_ENDPOINT = 'https://www.googleapis.com/drive/v3/files';
+            const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
-        const STORAGE_KEY = 'driveTreeSpaState_v2';
-        const THEME_KEY = 'globalTheme_v1';
-        const JSON_SESSION_PREFIX = 'game_payload_';
+            const STORAGE_KEY = 'driveTreeSpaState_v2';
+            const THEME_KEY = 'globalTheme_v1';
+            const JSON_SESSION_PREFIX = 'game_payload_';
 
-        const GAME_ROUTE_MAP = {
-            escape_game: 'games/Escape-Game.html',
-            what_and_why: 'games/what_and_why.html',
-            quick_quiz: 'games/quick_quiz.html'
-        };
+            const GAME_ROUTE_MAP = {
+                escape_game: 'games/Escape-Game.html',
+                what_and_why: 'games/what_and_why.html',
+                quick_quiz: 'games/quick_quiz.html'
+            };
 
-        let state = {
-            selectedId: null,
-            closedIds: [],
-            drawerOpen: false
-        };
+            let state = {
+                selectedId: null,
+                closedIds: [],
+                drawerOpen: false
+            };
 
-        let rootTree = [];
-        let rootName = 'Drive-Ordner';
+            let rootTree = [];
+            let rootName = 'Drive-Ordner';
 
-        const appRootEl = document.getElementById('app-root');
-        const treeDrawerEl = document.getElementById('tree-drawer');
-        const menuTreeBtn = document.getElementById('menu-tree-btn');
-        const drawerTitleEl = document.getElementById('drawer-title');
-        const treeRootEl = document.getElementById('tree-root');
-        const selectedLabelEl = document.getElementById('state-selected-label');
-        const viewTitleEl = document.getElementById('view-title');
-        const viewPathEl = document.getElementById('view-path');
-        const viewBodyEl = document.getElementById('view-body');
-        const themeToggleBtn = document.getElementById('theme-toggle');
+            const appRootEl = document.getElementById('app-root');
+            const treeDrawerEl = document.getElementById('tree-drawer');
+            const drawerBackdropEl = document.getElementById('drawer-backdrop');
+            const menuTreeBtn = document.getElementById('menu-tree-btn');
+            const drawerTitleEl = document.getElementById('drawer-title');
+            const treeRootEl = document.getElementById('tree-root');
+            const selectedLabelEl = document.getElementById('state-selected-label');
+            const viewTitleEl = document.getElementById('view-title');
+            const viewPathEl = document.getElementById('view-path');
+            const viewBodyEl = document.getElementById('view-body');
+            const themeToggleBtn = document.getElementById('theme-toggle');
 
-        function loadState() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-                const parsed = JSON.parse(raw);
-                if (!parsed || typeof parsed !== 'object') return;
-                if (typeof parsed.selectedId === 'string' || parsed.selectedId === null) {
-                    state.selectedId = parsed.selectedId;
-                }
-                if (Array.isArray(parsed.closedIds)) {
-                    state.closedIds = parsed.closedIds.filter(id => typeof id === 'string');
-                }
-                if (typeof parsed.drawerOpen === 'boolean') {
-                    state.drawerOpen = parsed.drawerOpen;
-                }
-            } catch (_) { }
-        }
-
-        function saveState(partial) {
-            state = { ...state, ...partial };
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-            } catch (_) { }
-        }
-
-        function applyDrawerOpen() {
-            if (state.drawerOpen) {
-                appRootEl.classList.add('tree-open');
-                menuTreeBtn.classList.add('active');
-            } else {
-                appRootEl.classList.remove('tree-open');
-                menuTreeBtn.classList.remove('active');
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return;
+                    const parsed = JSON.parse(raw);
+                    if (!parsed || typeof parsed !== 'object') return;
+                    if (typeof parsed.selectedId === 'string' || parsed.selectedId === null) {
+                        state.selectedId = parsed.selectedId;
+                    }
+                    if (Array.isArray(parsed.closedIds)) {
+                        state.closedIds = parsed.closedIds.filter(id => typeof id === 'string');
+                    }
+                    if (typeof parsed.drawerOpen === 'boolean') {
+                        state.drawerOpen = parsed.drawerOpen;
+                    }
+                } catch (_) { }
             }
-        }
 
-        function applyTheme(theme) {
-            const rootEl = document.documentElement;
-            if (theme === 'light') {
-                rootEl.classList.add('theme-light');
-            } else {
-                rootEl.classList.remove('theme-light');
+            function saveState(partial) {
+                state = { ...state, ...partial };
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                } catch (_) { }
             }
-            if (themeToggleBtn) {
-                themeToggleBtn.textContent = theme === 'light' ? '☀️' : '🌙';
-            }
-        }
 
-        function initTheme() {
-            let stored = null;
-            try {
-                stored = localStorage.getItem(THEME_KEY);
-            } catch (_) { }
-            const initial = stored === 'light' || stored === 'dark' ? stored : 'dark';
-            applyTheme(initial);
-        }
-
-        function toggleTheme() {
-            const isLight = document.documentElement.classList.contains('theme-light');
-            const next = isLight ? 'dark' : 'light';
-            applyTheme(next);
-
-            const iframe = document.querySelector('iframe.game-iframe');
-            if (iframe && iframe.contentDocument) {
-                if (next === 'light') {
-                    iframe.contentDocument.documentElement.classList.add('theme-light');
+            function applyDrawerOpen() {
+                if (state.drawerOpen) {
+                    appRootEl.classList.add('tree-open');
+                    menuTreeBtn.classList.add('active');
+                    drawerBackdropEl.classList.add('active');
                 } else {
-                    iframe.contentDocument.documentElement.classList.remove('theme-light');
+                    appRootEl.classList.remove('tree-open');
+                    menuTreeBtn.classList.remove('active');
+                    drawerBackdropEl.classList.remove('active');
                 }
             }
 
-            try {
-                localStorage.setItem(THEME_KEY, next);
-            } catch (_) { }
-        }
-
-        async function fetchJson(url) {
-            const res = await fetch(url);
-            if (!res.ok) {
-                const text = await res.text().catch(() => '');
-                throw new Error(`Drive-API-Fehler (${res.status}): ${text || res.statusText}`);
+            function applyTheme(theme) {
+                const rootEl = document.documentElement;
+                if (theme === 'light') {
+                    rootEl.classList.add('theme-light');
+                } else {
+                    rootEl.classList.remove('theme-light');
+                }
+                if (themeToggleBtn) {
+                    themeToggleBtn.textContent = theme === 'light' ? '☀️' : '🌙';
+                }
             }
-            return res.json();
-        }
 
-        async function fetchFolderMeta(folderId) {
-            const params = new URLSearchParams({
-                key: API_KEY,
-                fields: 'id,name,mimeType',
-                supportsAllDrives: 'true'
-            });
-            const url = `${DRIVE_FILES_ENDPOINT}/${encodeURIComponent(folderId)}?${params.toString()}`;
-            return fetchJson(url);
-        }
+            function initTheme() {
+                let stored = null;
+                try {
+                    stored = localStorage.getItem(THEME_KEY);
+                } catch (_) { }
+                const initial = stored === 'light' || stored === 'dark' ? stored : 'dark';
+                applyTheme(initial);
+            }
 
-        async function fetchChildren(folderId) {
-            const allFiles = [];
-            let pageToken = '';
+            function toggleTheme() {
+                const isLight = document.documentElement.classList.contains('theme-light');
+                const next = isLight ? 'dark' : 'light';
+                applyTheme(next);
 
-            while (true) {
+                const iframe = document.querySelector('iframe.game-iframe');
+                if (iframe && iframe.contentDocument) {
+                    if (next === 'light') {
+                        iframe.contentDocument.documentElement.classList.add('theme-light');
+                    } else {
+                        iframe.contentDocument.documentElement.classList.remove('theme-light');
+                    }
+                }
+
+                try {
+                    localStorage.setItem(THEME_KEY, next);
+                } catch (_) { }
+            }
+
+            async function fetchJson(url) {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    const text = await res.text().catch(() => '');
+                    throw new Error(`Drive-API-Fehler (${res.status}): ${text || res.statusText}`);
+                }
+                return res.json();
+            }
+
+            async function fetchFolderMeta(folderId) {
                 const params = new URLSearchParams({
                     key: API_KEY,
-                    q: `'${folderId}' in parents and trashed=false`,
-                    fields: 'nextPageToken,files(id,name,mimeType)',
-                    pageSize: '1000',
-                    orderBy: 'name',
-                    includeItemsFromAllDrives: 'true',
+                    fields: 'id,name,mimeType',
                     supportsAllDrives: 'true'
                 });
-                if (pageToken) params.set('pageToken', pageToken);
-
-                const url = `${DRIVE_FILES_ENDPOINT}?${params.toString()}`;
-                const data = await fetchJson(url);
-
-                if (Array.isArray(data.files)) {
-                    allFiles.push(...data.files);
-                }
-                if (data.nextPageToken) {
-                    pageToken = data.nextPageToken;
-                } else {
-                    break;
-                }
+                const url = `${DRIVE_FILES_ENDPOINT}/${encodeURIComponent(folderId)}?${params.toString()}`;
+                return fetchJson(url);
             }
 
-            return allFiles;
-        }
+            async function fetchChildren(folderId) {
+                const allFiles = [];
+                let pageToken = '';
 
-        function isPdf(file) {
-            if (file.mimeType === 'application/pdf') return true;
-            return /\.pdf$/i.test(file.name || '');
-        }
+                while (true) {
+                    const params = new URLSearchParams({
+                        key: API_KEY,
+                        q: `'${folderId}' in parents and trashed=false`,
+                        fields: 'nextPageToken,files(id,name,mimeType)',
+                        pageSize: '1000',
+                        orderBy: 'name',
+                        includeItemsFromAllDrives: 'true',
+                        supportsAllDrives: 'true'
+                    });
+                    if (pageToken) params.set('pageToken', pageToken);
 
-        function isJson(file) {
-            if (file.mimeType === 'application/json') return true;
-            return /\.json$/i.test(file.name || '');
-        }
+                    const url = `${DRIVE_FILES_ENDPOINT}?${params.toString()}`;
+                    const data = await fetchJson(url);
 
-        async function buildTreeData(folderId) {
-            const children = await fetchChildren(folderId);
+                    if (Array.isArray(data.files)) {
+                        allFiles.push(...data.files);
+                    }
+                    if (data.nextPageToken) {
+                        pageToken = data.nextPageToken;
+                    } else {
+                        break;
+                    }
+                }
 
-            const folders = children.filter(c => c.mimeType === FOLDER_MIME);
-            const filesRaw = children.filter(c => c.mimeType !== FOLDER_MIME);
+                return allFiles;
+            }
 
-            const files = filesRaw.filter(f => isPdf(f) || isJson(f));
+            function isPdf(file) {
+                if (file.mimeType === 'application/pdf') return true;
+                return /\.pdf$/i.test(file.name || '');
+            }
 
-            const folderNodes = [];
-            for (const f of folders) {
-                const subChildren = await buildTreeData(f.id);
-                folderNodes.push({
+            function isJson(file) {
+                if (file.mimeType === 'application/json') return true;
+                return /\.json$/i.test(file.name || '');
+            }
+
+            async function buildTreeData(folderId) {
+                const children = await fetchChildren(folderId);
+
+                const folders = children.filter(c => c.mimeType === FOLDER_MIME);
+                const filesRaw = children.filter(c => c.mimeType !== FOLDER_MIME);
+
+                const files = filesRaw.filter(f => isPdf(f) || isJson(f));
+
+                const folderNodes = [];
+                for (const f of folders) {
+                    const subChildren = await buildTreeData(f.id);
+                    folderNodes.push({
+                        id: f.id,
+                        name: f.name,
+                        isFolder: true,
+                        kind: 'folder',
+                        children: subChildren
+                    });
+                }
+
+                const fileNodes = files.map(f => ({
                     id: f.id,
                     name: f.name,
-                    isFolder: true,
-                    kind: 'folder',
-                    children: subChildren
+                    isFolder: false,
+                    kind: isPdf(f) ? 'pdf' : 'json',
+                    children: []
+                }));
+
+                return [...folderNodes, ...fileNodes];
+            }
+
+            function buildTree(container, nodes, level = 0) {
+                nodes.forEach(node => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'tree-node';
+                    wrapper.dataset.id = node.id;
+                    wrapper.style.setProperty('--level', String(level));
+
+                    const isFolder = !!node.isFolder;
+
+                    if (state.closedIds.includes(node.id) && isFolder) {
+                        wrapper.classList.add('tree-node--collapsed');
+                    }
+
+                    const row = document.createElement('div');
+                    row.className = 'tree-row';
+
+                    if (isFolder) {
+                        const toggle = document.createElement('button');
+                        toggle.type = 'button';
+                        toggle.className = 'tree-toggle';
+                        toggle.setAttribute('aria-label', 'Ordner auf-/zuklappen');
+                        toggle.textContent = state.closedIds.includes(node.id) ? '▸' : '▾';
+                        row.appendChild(toggle);
+                    } else {
+                        const spacer = document.createElement('span');
+                        spacer.className = 'tree-spacer';
+                        spacer.textContent = '';
+                        row.appendChild(spacer);
+                    }
+
+                    const icon = document.createElement('span');
+                    icon.className = 'tree-icon';
+                    if (isFolder) {
+                        icon.classList.add('tree-icon-folder');
+                        icon.textContent = state.closedIds.includes(node.id) ? '📁' : '📂';
+                    } else if (node.kind === 'pdf') {
+                        icon.textContent = '👁';
+                    } else if (node.kind === 'json') {
+                        icon.textContent = '🏋';
+                    } else {
+                        icon.textContent = '📄';
+                    }
+                    row.appendChild(icon);
+
+                    const label = document.createElement('button');
+                    label.type = 'button';
+                    label.className = 'tree-label';
+
+                    const baseName = node.isFolder
+                        ? (node.name || '')
+                        : (node.name || '').replace(/\.[^.]+$/, '');
+                    label.textContent = baseName;
+
+                    row.appendChild(label);
+
+                    wrapper.appendChild(row);
+
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'tree-children';
+
+                    if (isFolder && node.children && node.children.length > 0) {
+                        buildTree(childrenContainer, node.children, level + 1);
+                    }
+
+                    wrapper.appendChild(childrenContainer);
+                    container.appendChild(wrapper);
                 });
             }
 
-            const fileNodes = files.map(f => ({
-                id: f.id,
-                name: f.name,
-                isFolder: false,
-                kind: isPdf(f) ? 'pdf' : 'json',
-                children: []
-            }));
-
-            return [...folderNodes, ...fileNodes];
-        }
-
-        function buildTree(container, nodes, level = 0) {
-            nodes.forEach(node => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'tree-node';
-                wrapper.dataset.id = node.id;
-                wrapper.style.setProperty('--level', String(level));
-
-                const isFolder = !!node.isFolder;
-
-                if (state.closedIds.includes(node.id) && isFolder) {
-                    wrapper.classList.add('tree-node--collapsed');
+            function findPathById(nodes, targetId, path = []) {
+                for (const node of nodes) {
+                    const currentPath = path.concat(node.name);
+                    if (node.id === targetId) return currentPath;
+                    if (node.children && node.children.length > 0) {
+                        const res = findPathById(node.children, targetId, currentPath);
+                        if (res) return res;
+                    }
                 }
-
-                const row = document.createElement('div');
-                row.className = 'tree-row';
-
-                if (isFolder) {
-                    const toggle = document.createElement('button');
-                    toggle.type = 'button';
-                    toggle.className = 'tree-toggle';
-                    toggle.setAttribute('aria-label', 'Ordner auf-/zuklappen');
-                    toggle.textContent = state.closedIds.includes(node.id) ? '▸' : '▾';
-                    row.appendChild(toggle);
-                } else {
-                    const spacer = document.createElement('span');
-                    spacer.className = 'tree-spacer';
-                    spacer.textContent = '';
-                    row.appendChild(spacer);
-                }
-
-                const icon = document.createElement('span');
-                icon.className = 'tree-icon';
-                if (isFolder) {
-                    icon.classList.add('tree-icon-folder');
-                    icon.textContent = state.closedIds.includes(node.id) ? '📁' : '📂';
-                } else if (node.kind === 'pdf') {
-                    icon.textContent = '👁';
-                } else if (node.kind === 'json') {
-                    icon.textContent = '🏋';
-                } else {
-                    icon.textContent = '📄';
-                }
-                row.appendChild(icon);
-
-                const label = document.createElement('button');
-                label.type = 'button';
-                label.className = 'tree-label';
-
-                const baseName = node.isFolder
-                    ? (node.name || '')
-                    : (node.name || '').replace(/\.[^.]+$/, '');
-                label.textContent = baseName;
-
-                row.appendChild(label);
-
-                wrapper.appendChild(row);
-
-                const childrenContainer = document.createElement('div');
-                childrenContainer.className = 'tree-children';
-
-                if (isFolder && node.children && node.children.length > 0) {
-                    buildTree(childrenContainer, node.children, level + 1);
-                }
-
-                wrapper.appendChild(childrenContainer);
-                container.appendChild(wrapper);
-            });
-        }
-
-        function findPathById(nodes, targetId, path = []) {
-            for (const node of nodes) {
-                const currentPath = path.concat(node.name);
-                if (node.id === targetId) return currentPath;
-                if (node.children && node.children.length > 0) {
-                    const res = findPathById(node.children, targetId, currentPath);
-                    if (res) return res;
-                }
-            }
-            return null;
-        }
-
-        function findNodeById(nodes, targetId) {
-            for (const node of nodes) {
-                if (node.id === targetId) return node;
-                if (node.children && node.children.length > 0) {
-                    const res = findNodeById(node.children, targetId);
-                    if (res) return res;
-                }
-            }
-            return null;
-        }
-
-        function applySelectedCss() {
-            const nodes = treeRootEl.querySelectorAll('.tree-node');
-            nodes.forEach(nodeEl => {
-                if (nodeEl.dataset.id === state.selectedId) {
-                    nodeEl.classList.add('tree-node--selected');
-                } else {
-                    nodeEl.classList.remove('tree-node--selected');
-                }
-            });
-        }
-
-        function renderViewForId(id) {
-            if (!rootTree || rootTree.length === 0) return;
-
-            let node = findNodeById(rootTree, id);
-            if (!node) {
-                if (rootTree.length === 0) return;
-                node = rootTree[0];
-                state.selectedId = node.id;
-                saveState({ selectedId: node.id });
-                applySelectedCss();
+                return null;
             }
 
-            viewBodyEl.innerHTML = '';
-            viewBodyEl.classList.add('card');
-            viewBodyEl.classList.remove('iframe-container');
+            function findNodeById(nodes, targetId) {
+                for (const node of nodes) {
+                    if (node.id === targetId) return node;
+                    if (node.children && node.children.length > 0) {
+                        const res = findNodeById(node.children, targetId);
+                        if (res) return res;
+                    }
+                }
+                return null;
+            }
 
-            const localPath = findPathById(rootTree, node.id) || [node.name];
-            const fullPath = [rootName, ...localPath];
-            const name = node.name || 'Unbekannt';
+            function applySelectedCss() {
+                const nodes = treeRootEl.querySelectorAll('.tree-node');
+                nodes.forEach(nodeEl => {
+                    if (nodeEl.dataset.id === state.selectedId) {
+                        nodeEl.classList.add('tree-node--selected');
+                    } else {
+                        nodeEl.classList.remove('tree-node--selected');
+                    }
+                });
+            }
 
-            viewTitleEl.textContent = name;
-            viewPathEl.textContent = 'Pfad: ' + fullPath.join(' / ');
+            function renderViewForId(id) {
+                if (!rootTree || rootTree.length === 0) return;
 
-            if (node.isFolder) {
-                const children = node.children || [];
-                const listItems = children.length
-                    ? children.map(c => {
-                        let icon = '📄';
-                        if (c.isFolder) icon = '📁';
-                        else if (c.kind === 'pdf') icon = '👁';
-                        else if (c.kind === 'json') icon = '🏋';
-                        return `<li>${icon} ${c.name}</li>`;
-                    }).join('')
-                    : '<li><em>Ordner ist leer (oder enthält keine PDF/JSON-Dateien).</em></li>';
+                let node = findNodeById(rootTree, id);
+                if (!node) {
+                    if (rootTree.length === 0) return;
+                    node = rootTree[0];
+                    state.selectedId = node.id;
+                    saveState({ selectedId: node.id });
+                    applySelectedCss();
+                }
 
-                viewBodyEl.innerHTML = `
+                viewBodyEl.innerHTML = '';
+                viewBodyEl.classList.add('card');
+                viewBodyEl.classList.remove('iframe-container');
+
+                const localPath = findPathById(rootTree, node.id) || [node.name];
+                const fullPath = [rootName, ...localPath];
+                const name = node.name || 'Unbekannt';
+
+                viewTitleEl.textContent = name;
+                viewPathEl.textContent = 'Pfad: ' + fullPath.join(' / ');
+
+                if (node.isFolder) {
+                    const children = node.children || [];
+                    const listItems = children.length
+                        ? children.map(c => {
+                            let icon = '📄';
+                            if (c.isFolder) icon = '📁';
+                            else if (c.kind === 'pdf') icon = '👁';
+                            else if (c.kind === 'json') icon = '🏋';
+                            return `<li>${icon} ${c.name}</li>`;
+                        }).join('')
+                        : '<li><em>Ordner ist leer (oder enthält keine PDF/JSON-Dateien).</em></li>';
+
+                    viewBodyEl.innerHTML = `
         <section class="card">
           <h2>Ordner: ${name}</h2>
           <p>Enthält ${children.length} Element(e) (nur Ordner, PDF & JSON).</p>
           <ul>${listItems}</ul>
         </section>
       `;
-            } else {
-                const driveUrl = `https://drive.google.com/open?id=${encodeURIComponent(node.id)}`;
-                viewBodyEl.innerHTML = `
+                } else {
+                    const driveUrl = `https://drive.google.com/open?id=${encodeURIComponent(node.id)}`;
+                    viewBodyEl.innerHTML = `
         <section class="card">
           <h2>Datei: ${name}</h2>
           <p>Dies ist eine ${node.kind === 'pdf' ? 'PDF-Datei (👁)' : 'JSON-Datei (🏋)'} aus deinem freigegebenen Drive-Ordner.</p>
           <p><a href="${driveUrl}" target="_blank" rel="noopener noreferrer">In Google Drive öffnen</a></p>
         </section>
       `;
+                }
+
+                selectedLabelEl.textContent = name;
             }
 
-            selectedLabelEl.textContent = name;
-        }
+            function openPdfView(node) {
+                const url = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
 
-        function openPdfView(node) {
-            const url = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
-            window.open(url, '_blank', 'noopener,noreferrer');
-        }
+            async function openJsonGame(node) {
+                const fileId = node.id;
+                if (!fileId) return;
 
-        async function openJsonGame(node) {
-            const fileId = node.id;
-            if (!fileId) return;
-
-            const storageKey = JSON_SESSION_PREFIX + fileId;
-
-            try {
-                const url = `${DRIVE_FILES_ENDPOINT}/${encodeURIComponent(fileId)}?alt=media&key=${API_KEY}`;
-                const data = await fetchJson(url);
-
-                if (!data || typeof data !== 'object') {
-                    showError('JSON-Datei konnte nicht interpretiert werden.');
-                    return;
-                }
-
-                const gameType = data.game_type || data.gameType;
-                if (!gameType) {
-                    showError('In der JSON fehlt das Feld "game_type".');
-                    return;
-                }
-
-                const targetPage = GAME_ROUTE_MAP[gameType];
-                if (!targetPage) {
-                    showError(`Für game_type "${gameType}" ist keine Zielseite konfiguriert.`);
-                    return;
-                }
+                const storageKey = JSON_SESSION_PREFIX + fileId;
 
                 try {
-                    sessionStorage.setItem(storageKey, JSON.stringify(data));
-                } catch (e) {
-                    console.error('Konnte JSON nicht im sessionStorage speichern:', e);
-                }
+                    const url = `${DRIVE_FILES_ENDPOINT}/${encodeURIComponent(fileId)}?alt=media&key=${API_KEY}`;
+                    const data = await fetchJson(url);
 
-                const targetUrl =
-                    `${targetPage}?fileId=${encodeURIComponent(fileId)}&game_type=${encodeURIComponent(gameType)}`;
-
-                viewBodyEl.innerHTML = '';
-                viewBodyEl.classList.remove('card');
-                viewBodyEl.classList.add('iframe-container');
-
-                const iframe = document.createElement('iframe');
-                iframe.src = targetUrl;
-                iframe.className = 'game-iframe';
-
-                iframe.onload = () => {
-                    if (!iframe.contentDocument) return;
-                    const isLight = document.documentElement.classList.contains('theme-light');
-                    if (isLight) {
-                        iframe.contentDocument.documentElement.classList.add('theme-light');
-                    } else {
-                        iframe.contentDocument.documentElement.classList.remove('theme-light');
+                    if (!data || typeof data !== 'object') {
+                        showError('JSON-Datei konnte nicht interpretiert werden.');
+                        return;
                     }
-                };
 
-                viewBodyEl.appendChild(iframe);
+                    const gameType = data.game_type || data.gameType;
+                    if (!gameType) {
+                        showError('In der JSON fehlt das Feld "game_type".');
+                        return;
+                    }
 
-                const title = data.title || 'Spiel';
-                viewTitleEl.textContent = title;
+                    const targetPage = GAME_ROUTE_MAP[gameType];
+                    if (!targetPage) {
+                        showError(`Für game_type "${gameType}" ist keine Zielseite konfiguriert.`);
+                        return;
+                    }
 
-            } catch (err) {
-                console.error(err);
-                showError(String(err && err.message ? err.message : err));
+                    try {
+                        sessionStorage.setItem(storageKey, JSON.stringify(data));
+                    } catch (e) {
+                        console.error('Konnte JSON nicht im sessionStorage speichern:', e);
+                    }
+
+                    const targetUrl =
+                        `${targetPage}?fileId=${encodeURIComponent(fileId)}&game_type=${encodeURIComponent(gameType)}`;
+
+                    viewBodyEl.innerHTML = '';
+                    viewBodyEl.classList.remove('card');
+                    viewBodyEl.classList.add('iframe-container');
+
+                    const iframe = document.createElement('iframe');
+                    iframe.src = targetUrl;
+                    iframe.className = 'game-iframe';
+
+                    iframe.onload = () => {
+                        if (!iframe.contentDocument) return;
+                        const isLight = document.documentElement.classList.contains('theme-light');
+                        if (isLight) {
+                            iframe.contentDocument.documentElement.classList.add('theme-light');
+                        } else {
+                            iframe.contentDocument.documentElement.classList.remove('theme-light');
+                        }
+                    };
+
+                    viewBodyEl.appendChild(iframe);
+
+                    const title = data.title || 'Spiel';
+                    viewTitleEl.textContent = title;
+
+                } catch (err) {
+                    console.error(err);
+                    showError(String(err && err.message ? err.message : err));
+                }
             }
-        }
 
-        function setupEvents() {
-            treeRootEl.addEventListener('click', async (event) => {
-                const target = event.target;
-                if (!(target instanceof HTMLElement)) return;
+            function setupEvents() {
+                treeRootEl.addEventListener('click', async (event) => {
+                    const target = event.target;
+                    if (!(target instanceof HTMLElement)) return;
 
-                if (target.classList.contains('tree-toggle')) {
-                    event.stopPropagation();
-                    const nodeEl = target.closest('.tree-node');
-                    if (!nodeEl) return;
-                    const id = nodeEl.dataset.id;
-                    if (!id) return;
+                    if (target.classList.contains('tree-toggle')) {
+                        event.stopPropagation();
+                        const nodeEl = target.closest('.tree-node');
+                        if (!nodeEl) return;
+                        const id = nodeEl.dataset.id;
+                        if (!id) return;
 
-                    const collapsed = nodeEl.classList.toggle('tree-node--collapsed');
-                    target.textContent = collapsed ? '▸' : '▾';
+                        const collapsed = nodeEl.classList.toggle('tree-node--collapsed');
+                        target.textContent = collapsed ? '▸' : '▾';
 
-                    const icon = nodeEl.querySelector('.tree-icon-folder');
-                    if (icon) {
-                        icon.textContent = collapsed ? '📁' : '📂';
+                        const icon = nodeEl.querySelector('.tree-icon-folder');
+                        if (icon) {
+                            icon.textContent = collapsed ? '📁' : '📂';
+                        }
+
+                        const idx = state.closedIds.indexOf(id);
+                        if (collapsed && idx === -1) {
+                            state.closedIds.push(id);
+                        } else if (!collapsed && idx !== -1) {
+                            state.closedIds.splice(idx, 1);
+                        }
+                        saveState({ closedIds: state.closedIds });
+                        return;
                     }
 
-                    const idx = state.closedIds.indexOf(id);
-                    if (collapsed && idx === -1) {
-                        state.closedIds.push(id);
-                    } else if (!collapsed && idx !== -1) {
-                        state.closedIds.splice(idx, 1);
-                    }
-                    saveState({ closedIds: state.closedIds });
-                    return;
-                }
+                    if (target.classList.contains('tree-label') || target.classList.contains('tree-icon')) {
+                        const nodeEl = target.closest('.tree-node');
+                        if (!nodeEl) return;
+                        const id = nodeEl.dataset.id;
+                        if (!id) return;
 
-                if (target.classList.contains('tree-label') || target.classList.contains('tree-icon')) {
-                    const nodeEl = target.closest('.tree-node');
-                    if (!nodeEl) return;
-                    const id = nodeEl.dataset.id;
-                    if (!id) return;
+                        state.selectedId = id;
+                        saveState({ selectedId: id });
+                        applySelectedCss();
+                        renderViewForId(id);
 
-                    state.selectedId = id;
-                    saveState({ selectedId: id });
-                    applySelectedCss();
-                    renderViewForId(id);
-
-                    const node = findNodeById(rootTree, id);
-                    if (node && !node.isFolder) {
-                        if (node.kind === 'pdf') {
-                            openPdfView(node);
-                        } else if (node.kind === 'json') {
-                            await openJsonGame(node);
+                        const node = findNodeById(rootTree, id);
+                        if (node && !node.isFolder) {
+                            if (node.kind === 'pdf') {
+                                openPdfView(node);
+                            } else if (node.kind === 'json') {
+                                await openJsonGame(node);
+                            }
                         }
                     }
-                }
-            });
-
-            menuTreeBtn.addEventListener('click', () => {
-                const open = !state.drawerOpen;
-                saveState({ drawerOpen: open });
-                applyDrawerOpen();
-            });
-
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', () => {
-                    toggleTheme();
                 });
-            }
-        }
 
-        function showError(message) {
-            viewTitleEl.textContent = 'Fehler beim Laden der Drive-Struktur';
-            viewPathEl.textContent = '';
-            viewBodyEl.innerHTML = `
+                menuTreeBtn.addEventListener('click', () => {
+                    const open = !state.drawerOpen;
+                    saveState({ drawerOpen: open });
+                    applyDrawerOpen();
+                });
+
+                if (themeToggleBtn) {
+                    themeToggleBtn.addEventListener('click', () => {
+                        toggleTheme();
+                    });
+                }
+
+                // Close drawer when clicking backdrop
+                if (drawerBackdropEl) {
+                    drawerBackdropEl.addEventListener('click', () => {
+                        if (state.drawerOpen) {
+                            state.drawerOpen = false;
+                            saveState({ drawerOpen: false });
+                            applyDrawerOpen();
+                        }
+                    });
+                }
+            }
+
+            function showError(message) {
+                viewTitleEl.textContent = 'Fehler beim Laden der Drive-Struktur';
+                viewPathEl.textContent = '';
+                viewBodyEl.innerHTML = `
       <section class="card">
         <h2>Drive-Fehler</h2>
         <p style="color:#fca5a5;white-space:pre-wrap;font-size:0.86rem;">
@@ -936,64 +973,64 @@
         </p>
       </section>
     `;
-        }
+            }
 
-        function collectFolderIds(nodes, acc) {
-            for (const node of nodes) {
-                if (node.isFolder) {
-                    acc.push(node.id);
-                    if (node.children && node.children.length > 0) {
-                        collectFolderIds(node.children, acc);
+            function collectFolderIds(nodes, acc) {
+                for (const node of nodes) {
+                    if (node.isFolder) {
+                        acc.push(node.id);
+                        if (node.children && node.children.length > 0) {
+                            collectFolderIds(node.children, acc);
+                        }
                     }
                 }
             }
-        }
 
-        (async function init() {
-            initTheme();
-            loadState();
-            applyDrawerOpen();
+            (async function init() {
+                initTheme();
+                loadState();
+                applyDrawerOpen();
 
-            try {
-                const meta = await fetchFolderMeta(ROOT_FOLDER_ID);
-                rootName = meta && meta.name ? meta.name : 'Drive-Ordner';
+                try {
+                    const meta = await fetchFolderMeta(ROOT_FOLDER_ID);
+                    rootName = meta && meta.name ? meta.name : 'Drive-Ordner';
 
-                document.title = rootName + ' – Drive-Tree';
-                drawerTitleEl.textContent = rootName;
-                viewTitleEl.textContent = rootName;
-                viewPathEl.textContent = 'Root-ID: ' + ROOT_FOLDER_ID;
+                    document.title = rootName + ' – Drive-Tree';
+                    drawerTitleEl.textContent = rootName;
+                    viewTitleEl.textContent = rootName;
+                    viewPathEl.textContent = 'Root-ID: ' + ROOT_FOLDER_ID;
 
-                const children = await buildTreeData(ROOT_FOLDER_ID);
-                rootTree = children;
+                    const children = await buildTreeData(ROOT_FOLDER_ID);
+                    rootTree = children;
 
-                const allFolderIds = [];
-                collectFolderIds(rootTree, allFolderIds);
-                if (!state.closedIds || state.closedIds.length === 0) {
-                    state.closedIds = [...allFolderIds];
-                    saveState({ closedIds: state.closedIds });
+                    const allFolderIds = [];
+                    collectFolderIds(rootTree, allFolderIds);
+                    if (!state.closedIds || state.closedIds.length === 0) {
+                        state.closedIds = [...allFolderIds];
+                        saveState({ closedIds: state.closedIds });
+                    }
+
+                    treeRootEl.innerHTML = '';
+                    buildTree(treeRootEl, rootTree, 0);
+
+                    if (!state.selectedId && rootTree.length > 0) {
+                        state.selectedId = rootTree[0].id;
+                        saveState({ selectedId: state.selectedId });
+                    }
+
+                    applySelectedCss();
+                    if (state.selectedId) {
+                        renderViewForId(state.selectedId);
+                    }
+
+                    setupEvents();
+                } catch (err) {
+                    console.error(err);
+                    showError(String(err && err.message ? err.message : err));
                 }
-
-                treeRootEl.innerHTML = '';
-                buildTree(treeRootEl, rootTree, 0);
-
-                if (!state.selectedId && rootTree.length > 0) {
-                    state.selectedId = rootTree[0].id;
-                    saveState({ selectedId: state.selectedId });
-                }
-
-                applySelectedCss();
-                if (state.selectedId) {
-                    renderViewForId(state.selectedId);
-                }
-
-                setupEvents();
-            } catch (err) {
-                console.error(err);
-                showError(String(err && err.message ? err.message : err));
-            }
+            })();
         })();
-    })();
-</script>
+    </script>
 </body>
 
 </html>
