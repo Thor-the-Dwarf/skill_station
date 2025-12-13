@@ -33,6 +33,26 @@
             --radius-sm: 999px;
         }
 
+        /* Light Theme Overrides */
+        :root.theme-light {
+            --bg: #f8fafc;
+            --panel: rgba(255, 255, 255, 0.92);
+            --panel-soft: rgba(255, 255, 255, 0.85);
+            --panel-elevated: rgba(255, 255, 255, 0.98);
+            --border-soft: rgba(51, 65, 85, 0.2);
+            --border-strong: rgba(51, 65, 85, 0.4);
+            --accent: #0ea5e9;
+            --accent-soft: rgba(14, 165, 233, 0.15);
+            --accent-strong: #0284c7;
+            --text: #0f172a;
+            --muted: #64748b;
+            --shadow-soft: 0 10px 30px rgba(51, 65, 85, 0.15);
+
+            /* Specific overrides for gradients */
+            --bg-gradient-top: rgba(14, 165, 233, 0.1);
+            --bg-gradient-bottom: rgba(99, 102, 241, 0.08);
+        }
+
         /* Grundlayout */
 
         *,
@@ -694,6 +714,9 @@
             </header>
 
             <div class="toolbar">
+                <button class="btn img-btn" id="theme-toggle" type="button" title="Design wechseln">
+                    ☀️
+                </button>
                 <button class="btn-secondary btn" id="restart-btn" type="button">
                     <span>↻</span> Neu starten
                 </button>
@@ -865,388 +888,8 @@
         </main>
     </div>
 
-    <script type="module">
-        const CONFIG_URL = 'Escape-Game-data.json';
-
-        const START_SECONDS = 180;
-        let remainingSeconds = START_SECONDS;
-        let timerId = null;
-        let gameLocked = false;
-
-        const statTimerEl = document.getElementById("stat-timer");
-        const statSolvedEl = document.getElementById("stat-solved");
-        const statStatusEl = document.getElementById("stat-status");
-
-        const restartBtn = document.getElementById("restart-btn");
-
-        const doorEl = document.getElementById("door");
-        const doorSignEl = document.getElementById("door-sign");
-        const doorGlowEl = document.getElementById("door-glow");
-
-        const statusSortEl = document.getElementById("status-sort");
-        const statusQuizEl = document.getElementById("status-quiz");
-        const statusCapitalEl = document.getElementById("status-capital");
-
-        const checkSortBtn = document.getElementById("check-sort-btn");
-        const checkQuizBtn = document.getElementById("check-quiz-btn");
-        const checkCapitalBtn = document.getElementById("check-capital-btn");
-
-        const sortPoolEl = document.getElementById("sort-pool");
-        const dropzones = document.querySelectorAll(".escape-dropzone");
-
-        let sortCardsData = [];
-        let quizSolutions = {};
-        let capitalSolutions = {};
-
-        const capitalSelects = document.querySelectorAll(".capital-table select");
-
-        const sectionSolved = {
-            sort: false,
-            quiz: false,
-            capital: false
-        };
-
-        function formatTime(seconds) {
-            const m = Math.floor(seconds / 60);
-            const s = seconds % 60;
-            const mm = m < 10 ? "0" + m : String(m);
-            const ss = s < 10 ? "0" + s : String(s);
-            return mm + ":" + ss;
-        }
-
-        function updateTimerDisplay() {
-            statTimerEl.textContent = formatTime(remainingSeconds);
-            statTimerEl.style.color = remainingSeconds <= 10
-                ? 'hsl(var(--error))'
-                : 'hsl(var(--txt))';
-        }
-
-        function tickTimer() {
-            if (gameLocked) return;
-            remainingSeconds -= 1;
-            if (remainingSeconds <= 0) {
-                remainingSeconds = 0;
-                updateTimerDisplay();
-                handleTimeUp();
-                return;
-            }
-            updateTimerDisplay();
-        }
-
-        function startTimer() {
-            if (timerId) clearInterval(timerId);
-            timerId = setInterval(tickTimer, 1000);
-        }
-
-        function handleTimeUp() {
-            if (timerId) {
-                clearInterval(timerId);
-                timerId = null;
-            }
-            gameLocked = true;
-
-            if (statStatusEl) {
-                statStatusEl.textContent = "Ladenschluss!";
-                statStatusEl.style.color = 'hsl(var(--error))';
-            }
-
-            doorSignEl.textContent = "ZU SPÄT";
-            doorSignEl.classList.remove("door-sign--open");
-            doorSignEl.classList.add("door-sign--closed");
-            doorEl.classList.remove("door--open");
-            doorGlowEl.classList.remove("door-glow--active");
-
-            checkSortBtn.disabled = true;
-            checkQuizBtn.disabled = true;
-            checkCapitalBtn.disabled = true;
-        }
-
-        function updateSolvedStatus() {
-            const solvedCount = Object.values(sectionSolved).filter(Boolean).length;
-            statSolvedEl.textContent = solvedCount + " / 3";
-
-            if (solvedCount === 3 && !gameLocked && remainingSeconds > 0) {
-                openDoor();
-            }
-        }
-
-        function openDoor() {
-            gameLocked = true;
-            if (timerId) {
-                clearInterval(timerId);
-                timerId = null;
-            }
-
-            doorEl.classList.add("door--open");
-            doorGlowEl.classList.add("door-glow--active");
-            doorSignEl.textContent = "OFFEN";
-            doorSignEl.classList.remove("door-sign--closed");
-            doorSignEl.classList.add("door-sign--open");
-
-            if (statStatusEl) {
-                statStatusEl.textContent = "Tür geöffnet!";
-                statStatusEl.style.color = 'hsl(var(--success))';
-            }
-
-            checkSortBtn.disabled = true;
-            checkQuizBtn.disabled = true;
-            checkCapitalBtn.disabled = true;
-        }
-
-        let draggingCardId = null;
-
-        function createSortCard(cardData) {
-            const el = document.createElement("div");
-            el.className = "drag-card";
-            el.draggable = true;
-            el.dataset.cardId = cardData.id;
-            el.dataset.correctZone = cardData.correctZone;
-
-            const textSpan = document.createElement("span");
-            textSpan.className = "drag-card-text";
-            textSpan.textContent = cardData.text;
-            el.appendChild(textSpan);
-
-            el.addEventListener("dragstart", (e) => {
-                if (gameLocked) {
-                    e.preventDefault();
-                    return;
-                }
-                draggingCardId = cardData.id;
-                el.classList.add("dragging");
-                e.dataTransfer.effectAllowed = "move";
-                e.dataTransfer.setData("text/plain", cardData.id);
-            });
-
-            el.addEventListener("dragend", () => {
-                draggingCardId = null;
-                el.classList.remove("dragging");
-            });
-
-            return el;
-        }
-
-        function resetSortBoard() {
-            sortPoolEl.innerHTML = "";
-            sortCardsData.forEach(card => {
-                const el = createSortCard(card);
-                sortPoolEl.appendChild(el);
-            });
-            dropzones.forEach(zone => {
-                zone.classList.remove("is-over");
-                const children = Array.from(zone.children)
-                    .filter(c => !c.classList.contains("escape-dropzone-label"));
-                children.forEach(c => c.remove());
-            });
-        }
-
-        function handleDragOverZone(e) {
-            if (gameLocked) return;
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
-            e.currentTarget.classList.add("is-over");
-        }
-
-        function handleDragLeaveZone(e) {
-            e.currentTarget.classList.remove("is-over");
-        }
-
-        function handleDropZone(e) {
-            if (gameLocked) return;
-            e.preventDefault();
-            const zone = e.currentTarget;
-            zone.classList.remove("is-over");
-
-            const cardId = e.dataTransfer.getData("text/plain") || draggingCardId;
-            if (!cardId) return;
-
-            const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
-            if (!cardEl) return;
-
-            cardEl.classList.remove("correct", "wrong");
-            zone.appendChild(cardEl);
-        }
-
-        dropzones.forEach(zone => {
-            zone.addEventListener("dragover", handleDragOverZone);
-            zone.addEventListener("dragleave", handleDragLeaveZone);
-            zone.addEventListener("drop", handleDropZone);
-        });
-
-        function checkSort() {
-            if (gameLocked) return;
-
-            let correct = 0;
-            const total = sortCardsData.length;
-
-            document.querySelectorAll(".drag-card").forEach(card => {
-                card.classList.remove("correct", "wrong");
-            });
-
-            sortCardsData.forEach(cardData => {
-                const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
-                if (!cardEl) return;
-
-                const parentZone = cardEl.closest(".escape-dropzone");
-                const zoneName = parentZone ? parentZone.dataset.zone : null;
-
-                if (!zoneName) {
-                    cardEl.classList.add("wrong");
-                    return;
-                }
-
-                if (zoneName === cardData.correctZone) {
-                    cardEl.classList.add("correct");
-                    correct += 1;
-                } else {
-                    cardEl.classList.add("wrong");
-                }
-            });
-
-            if (correct === total) {
-                sectionSolved.sort = true;
-                statusSortEl.textContent = "gelöst";
-                statusSortEl.className = "section-status section-status--done";
-            } else {
-                sectionSolved.sort = false;
-                statusSortEl.textContent = "noch Fehler";
-                statusSortEl.className = "section-status section-status--fail";
-            }
-
-            updateSolvedStatus();
-        }
-
-        function checkQuiz() {
-            if (gameLocked) return;
-
-            const q1 = document.querySelector('input[name="q1"]:checked');
-            const q2 = document.querySelector('input[name="q2"]:checked');
-
-            const quizFeedbackEl = document.getElementById("quiz-feedback");
-
-            if (!q1 || !q2) {
-                quizFeedbackEl.textContent = "Bitte jede der beiden Fragen beantworten.";
-                sectionSolved.quiz = false;
-                statusQuizEl.textContent = "unvollständig";
-                statusQuizEl.className = "section-status section-status--fail";
-                updateSolvedStatus();
-                return;
-            }
-
-            const correctQ1 = q1.value === quizSolutions.q1;
-            const correctQ2 = q2.value === quizSolutions.q2;
-
-            if (correctQ1 && correctQ2) {
-                sectionSolved.quiz = true;
-                statusQuizEl.textContent = "gelöst";
-                statusQuizEl.className = "section-status section-status--done";
-                quizFeedbackEl.textContent = "Beide Antworten sind richtig.";
-            } else {
-                sectionSolved.quiz = false;
-                statusQuizEl.textContent = "noch Fehler";
-                statusQuizEl.className = "section-status section-status--fail";
-                quizFeedbackEl.textContent = "Mindestens eine Antwort ist falsch.";
-            }
-
-            updateSolvedStatus();
-        }
-
-        function checkCapital() {
-            if (gameLocked) return;
-
-            let correct = 0;
-            const total = Object.keys(capitalSolutions).length;
-
-            capitalSelects.forEach(sel => {
-                sel.classList.remove("correct", "wrong");
-            });
-
-            capitalSelects.forEach(sel => {
-                const form = sel.dataset.form;
-                const expected = capitalSolutions[form];
-                const chosen = sel.value;
-
-                if (!chosen) {
-                    sel.classList.add("wrong");
-                    return;
-                }
-
-                if (chosen === expected) {
-                    sel.classList.add("correct");
-                    correct += 1;
-                } else {
-                    sel.classList.add("wrong");
-                }
-            });
-
-            if (correct === total) {
-                sectionSolved.capital = true;
-                statusCapitalEl.textContent = "gelöst";
-                statusCapitalEl.className = "section-status section-status--done";
-            } else {
-                sectionSolved.capital = false;
-                statusCapitalEl.textContent = "noch Fehler";
-                statusCapitalEl.className = "section-status section-status--fail";
-            }
-
-            updateSolvedStatus();
-        }
-
-        function resetGame() {
-            if (timerId) clearInterval(timerId);
-
-            remainingSeconds = START_SECONDS;
-            updateTimerDisplay();
-            gameLocked = false;
-
-            sectionSolved.sort = false;
-            sectionSolved.quiz = false;
-            sectionSolved.capital = false;
-
-            statusSortEl.textContent = "offen";
-            statusSortEl.className = "section-status";
-            statusQuizEl.textContent = "offen";
-            statusQuizEl.className = "section-status";
-            statusCapitalEl.textContent = "offen";
-            statusCapitalEl.className = "section-status";
-
-            if (statStatusEl) {
-                statStatusEl.textContent = "Laden ist offen";
-                statStatusEl.style.color = 'hsl(var(--txt))';
-            }
-
-            statSolvedEl.textContent = "0 / 3";
-
-            doorEl.classList.remove("door--open");
-            doorGlowEl.classList.remove("door-glow--active");
-            doorSignEl.textContent = "GESCHLOSSEN";
-            doorSignEl.classList.add("door-sign--closed");
-            doorSignEl.classList.remove("door-sign--open");
-
-            sortPoolEl.innerHTML = "";
-            resetSortBoard();
-
-            document.querySelectorAll('input[name="q1"]').forEach(i => i.checked = false);
-            document.querySelectorAll('input[name="q2"]').forEach(i => i.checked = false);
-            quizFeedbackEl.textContent = "Wähle je Frage eine Antwort.";
-
-            capitalSelects.forEach(sel => {
-                sel.value = "";
-                sel.classList.remove("correct", "wrong");
-            });
-
-            checkSortBtn.disabled = false;
-            checkQuizBtn.disabled = false;
-            checkCapitalBtn.disabled = false;
-
-            startTimer();
-        }
-
-        checkSortBtn.addEventListener("click", checkSort);
-        checkQuizBtn.addEventListener("click", checkQuiz);
-        checkCapitalBtn.addEventListener("click", checkCapital);
-        restartBtn.addEventListener("click", resetGame);
-
+    <script src="game_base.js"></script>
+    <script>
         // NEU: Daten direkt im Code, damit es ohne Webserver lokal (file://) läuft
         const GAME_CONFIG = {
             "game_type": "escape_game",
@@ -1391,69 +1034,479 @@
             ]
         };
 
-        function loadConfig() {
-            // Statt fetch nun direkt das Objekt nutzen
-            const config = GAME_CONFIG;
+        // --- Escape Game Logic refactored into GameBase Subclass ---
 
-            const sortSection = config.sections.find(s => s.type === "sort");
-            const quizSection = config.sections.find(s => s.type === "quiz");
-            const capitalSection = config.sections.find(s => s.type === "capital");
+        class EscapeGame extends window.GameBase {
+            constructor() {
+                super({
+                    expectedGameType: 'escape_game',
+                    rootElementId: 'game-root' // Not strictly used as we manipulate various IDs directly
+                });
 
-            if (sortSection && Array.isArray(sortSection.sortCards)) {
-                sortCardsData = sortSection.sortCards;
+                // Game State
+                this.START_SECONDS = 180;
+                this.remainingSeconds = this.START_SECONDS;
+                this.timerId = null;
+                this.gameLocked = false;
+
+                this.sectionSolved = {
+                    sort: false,
+                    quiz: false,
+                    capital: false
+                };
+
+                this.sortCardsData = [];
+                this.quizSolutions = {};
+                this.capitalSolutions = {};
+                this.draggingCardId = null;
+
+                // DOM Elements (assigned in onDataLoaded)
+                this.statTimerEl = null;
+                this.statSolvedEl = null;
+                this.statStatusEl = null;
+                this.doorEl = null;
+                this.doorSignEl = null;
+                this.doorGlowEl = null;
+                this.sortPoolEl = null;
+                this.quizFeedbackEl = null;
             }
 
-            if (quizSection && Array.isArray(quizSection.questions)) {
-                quizSolutions = {};
-                quizSection.questions.forEach(q => {
-                    quizSolutions[q.id] = q.correct;
+            /**
+             * OVERRIDE: Payload direkt aus GAME_CONFIG holen (lokal, kein Server nötig)
+             */
+            async _loadPayload() {
+                // Wir ignorieren SessionStorage/Drive und nehmen direkt die Konstante
+                return GAME_CONFIG;
+            }
 
-                    const qRoot = document.querySelector(`.quiz-question[data-quiz-id="${q.id}"]`);
-                    if (!qRoot) return;
+            onDataLoaded(data) {
+                // 1. Config parsen & Datenstrukturen füllen
+                this._parseConfig(data);
 
-                    const textEl = qRoot.querySelector(".quiz-text");
-                    if (textEl) textEl.textContent = q.text;
+                // 2. DOM-Elemente binden
+                this.statTimerEl = document.getElementById("stat-timer");
+                this.statSolvedEl = document.getElementById("stat-solved");
+                this.statStatusEl = document.getElementById("stat-status"); // Falls vorhanden
 
-                    const listEl = qRoot.querySelector(".quiz-options");
-                    if (listEl && Array.isArray(q.options)) {
-                        listEl.innerHTML = "";
-                        q.options.forEach(o => {
-                            const li = document.createElement("li");
-                            li.innerHTML =
-                                `<label><input type="radio" name="${q.id}" value="${o.value}"> ${o.text}</label>`;
-                            listEl.appendChild(li);
-                        });
-                    }
+                this.doorEl = document.getElementById("door");
+                this.doorSignEl = document.getElementById("door-sign");
+                this.doorGlowEl = document.getElementById("door-glow");
+
+                this.sortPoolEl = document.getElementById("sort-pool");
+                this.quizFeedbackEl = document.getElementById("quiz-feedback");
+
+                // Buttons
+                document.getElementById("restart-btn").addEventListener("click", () => this.resetGame());
+                document.getElementById("check-sort-btn").addEventListener("click", () => this.checkSort());
+                document.getElementById("check-quiz-btn").addEventListener("click", () => this.checkQuiz());
+                document.getElementById("check-capital-btn").addEventListener("click", () => this.checkCapital());
+
+                // Drag Drop Zones
+                const dropzones = document.querySelectorAll(".escape-dropzone");
+                dropzones.forEach(zone => {
+                    zone.addEventListener("dragover", (e) => this.handleDragOverZone(e));
+                    zone.addEventListener("dragleave", (e) => this.handleDragLeaveZone(e));
+                    zone.addEventListener("drop", (e) => this.handleDropZone(e));
+                });
+
+                // Start
+                this.resetGame();
+            }
+
+            _parseConfig(config) {
+                const sortSection = config.sections.find(s => s.type === "sort");
+                const quizSection = config.sections.find(s => s.type === "quiz");
+                const capitalSection = config.sections.find(s => s.type === "capital");
+
+                if (sortSection && Array.isArray(sortSection.sortCards)) {
+                    this.sortCardsData = sortSection.sortCards;
+                }
+
+                if (quizSection && Array.isArray(quizSection.questions)) {
+                    this.quizSolutions = {};
+                    quizSection.questions.forEach(q => {
+                        this.quizSolutions[q.id] = q.correct;
+                        // Render HTML immediately
+                        const qRoot = document.querySelector(`.quiz-question[data-quiz-id="${String(q.id)}"]`);
+                        if (!qRoot) return;
+
+                        const textEl = qRoot.querySelector(".quiz-text");
+                        if (textEl) textEl.textContent = q.text;
+
+                        const listEl = qRoot.querySelector(".quiz-options");
+                        if (listEl && Array.isArray(q.options)) {
+                            listEl.innerHTML = "";
+                            q.options.forEach(o => {
+                                const li = document.createElement("li");
+                                li.innerHTML = `<label><input type="radio" name="${q.id}" value="${o.value}"> ${o.text}</label>`;
+                                listEl.appendChild(li);
+                            });
+                        }
+                    });
+                }
+
+                if (capitalSection && Array.isArray(capitalSection.rows)) {
+                    this.capitalSolutions = {};
+                    capitalSection.rows.forEach(row => {
+                        this.capitalSolutions[row.label] = row.correct;
+
+                        const sel = document.querySelector(`select[data-form="${row.label}"]`);
+                        if (sel && Array.isArray(row.options)) {
+                            sel.innerHTML = "";
+                            row.options.forEach(o => {
+                                const opt = document.createElement("option");
+                                opt.value = o.value;
+                                opt.textContent = o.text;
+                                sel.appendChild(opt);
+                            });
+                        }
+                    });
+                }
+            }
+
+            // --- Timer Logic ---
+
+            startTimer() {
+                if (this.timerId) clearInterval(this.timerId);
+                this.timerId = setInterval(() => this.tickTimer(), 1000);
+            }
+
+            tickTimer() {
+                if (this.gameLocked) return;
+                this.remainingSeconds -= 1;
+                if (this.remainingSeconds <= 0) {
+                    this.remainingSeconds = 0;
+                    this.updateTimerDisplay();
+                    this.handleTimeUp();
+                    return;
+                }
+                this.updateTimerDisplay();
+            }
+
+            updateTimerDisplay() {
+                if (!this.statTimerEl) return;
+                this.statTimerEl.textContent = this.formatTime(this.remainingSeconds);
+                this.statTimerEl.style.color = this.remainingSeconds <= 10
+                    ? 'hsl(var(--error))'
+                    : 'var(--text)'; // FIXED: use var(--text) instead of undefined hsl var 
+            }
+
+            formatTime(seconds) {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                const mm = m < 10 ? "0" + m : String(m);
+                const ss = s < 10 ? "0" + s : String(s);
+                return mm + ":" + ss;
+            }
+
+            handleTimeUp() {
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.timerId = null;
+                }
+                this.gameLocked = true;
+
+                this.doorSignEl.textContent = "ZU SPÄT";
+                this.doorSignEl.classList.remove("door-sign--open");
+                this.doorSignEl.classList.add("door-sign--closed");
+                this.doorEl.classList.remove("door--open");
+                this.doorGlowEl.classList.remove("door-glow--active");
+
+                this._disableAllButtons();
+            }
+
+            _disableAllButtons() {
+                const btns = document.querySelectorAll("#check-sort-btn, #check-quiz-btn, #check-capital-btn");
+                btns.forEach(b => b.disabled = true);
+            }
+            _enableAllButtons() {
+                const btns = document.querySelectorAll("#check-sort-btn, #check-quiz-btn, #check-capital-btn");
+                btns.forEach(b => b.disabled = false);
+            }
+
+            // --- Game Logic ---
+
+            updateSolvedStatus() {
+                const solvedCount = Object.values(this.sectionSolved).filter(Boolean).length;
+                this.statSolvedEl.textContent = solvedCount + " / 3";
+
+                if (solvedCount === 3 && !this.gameLocked && this.remainingSeconds > 0) {
+                    this.openDoor();
+                }
+            }
+
+            openDoor() {
+                this.gameLocked = true;
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.timerId = null;
+                }
+
+                this.doorEl.classList.add("door--open");
+                this.doorGlowEl.classList.add("door-glow--active");
+                this.doorSignEl.textContent = "OFFEN";
+                this.doorSignEl.classList.remove("door-sign--closed");
+                this.doorSignEl.classList.add("door-sign--open");
+
+                this._disableAllButtons();
+            }
+
+            resetGame() {
+                if (this.timerId) clearInterval(this.timerId);
+
+                this.remainingSeconds = this.START_SECONDS;
+                this.gameLocked = false;
+                this.sectionSolved = { sort: false, quiz: false, capital: false };
+
+                // UI Reset
+                this.updateTimerDisplay();
+                this.statSolvedEl.textContent = "0 / 3";
+
+                document.getElementById("status-sort").textContent = "offen";
+                document.getElementById("status-sort").className = "section-status";
+                document.getElementById("status-quiz").textContent = "offen";
+                document.getElementById("status-quiz").className = "section-status";
+                document.getElementById("status-capital").textContent = "offen";
+                document.getElementById("status-capital").className = "section-status";
+
+                this.doorEl.classList.remove("door--open");
+                this.doorGlowEl.classList.remove("door-glow--active");
+                this.doorSignEl.textContent = "GESCHLOSSEN";
+                this.doorSignEl.classList.add("door-sign--closed");
+                this.doorSignEl.classList.remove("door-sign--open");
+
+                this.resetSortBoard();
+
+                // Quiz Reset
+                document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
+                this.quizFeedbackEl.textContent = "Wähle je Frage eine Antwort.";
+
+                // Capital Reset
+                document.querySelectorAll(".capital-table select").forEach(sel => {
+                    sel.value = "";
+                    sel.classList.remove("correct", "wrong");
+                });
+
+                this._enableAllButtons();
+                this.startTimer();
+            }
+
+            // --- Drag & Drop ---
+
+            resetSortBoard() {
+                this.sortPoolEl.innerHTML = "";
+                this.sortCardsData.forEach(card => {
+                    const el = this.createSortCard(card);
+                    this.sortPoolEl.appendChild(el);
+                });
+                const dropzones = document.querySelectorAll(".escape-dropzone");
+                dropzones.forEach(zone => {
+                    zone.classList.remove("is-over");
+                    const children = Array.from(zone.children).filter(c => !c.classList.contains("escape-dropzone-label"));
+                    children.forEach(c => c.remove());
                 });
             }
 
-            if (capitalSection && Array.isArray(capitalSection.rows)) {
-                capitalSolutions = {};
-                capitalSection.rows.forEach(row => {
-                    capitalSolutions[row.label] = row.correct;
+            createSortCard(cardData) {
+                const el = document.createElement("div");
+                el.className = "drag-card";
+                el.draggable = true;
+                el.dataset.cardId = cardData.id;
+                el.dataset.correctZone = cardData.correctZone;
 
-                    const sel = document.querySelector(`select[data-form="${row.label}"]`);
-                    if (sel && Array.isArray(row.options)) {
-                        sel.innerHTML = "";
-                        row.options.forEach(o => {
-                            const opt = document.createElement("option");
-                            opt.value = o.value;
-                            opt.textContent = o.text;
-                            sel.appendChild(opt);
-                        });
+                const textSpan = document.createElement("span");
+                textSpan.className = "drag-card-text";
+                textSpan.textContent = cardData.text;
+                el.appendChild(textSpan);
+
+                el.addEventListener("dragstart", (e) => {
+                    if (this.gameLocked) {
+                        e.preventDefault();
+                        return;
                     }
+                    this.draggingCardId = cardData.id;
+                    el.classList.add("dragging");
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", cardData.id);
                 });
+
+                el.addEventListener("dragend", () => {
+                    this.draggingCardId = null;
+                    el.classList.remove("dragging");
+                });
+
+                return el;
             }
 
-            resetSortBoard();
-            resetGame();
+            handleDragOverZone(e) {
+                if (this.gameLocked) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                e.currentTarget.classList.add("is-over");
+            }
+
+            handleDragLeaveZone(e) {
+                e.currentTarget.classList.remove("is-over");
+            }
+
+            handleDropZone(e) {
+                if (this.gameLocked) return;
+                e.preventDefault();
+                const zone = e.currentTarget;
+                zone.classList.remove("is-over");
+
+                const cardId = e.dataTransfer.getData("text/plain") || this.draggingCardId;
+                if (!cardId) return;
+
+                const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
+                if (!cardEl) return;
+
+                cardEl.classList.remove("correct", "wrong");
+                zone.appendChild(cardEl);
+            }
+
+            checkSort() {
+                if (this.gameLocked) return;
+
+                let correct = 0;
+                const total = this.sortCardsData.length;
+
+                document.querySelectorAll(".drag-card").forEach(card => card.classList.remove("correct", "wrong"));
+
+                this.sortCardsData.forEach(cardData => {
+                    const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
+                    if (!cardEl) return;
+
+                    const parentZone = cardEl.closest(".escape-dropzone");
+                    const zoneName = parentZone ? parentZone.dataset.zone : null;
+
+                    if (!zoneName) {
+                        cardEl.classList.add("wrong");
+                        return;
+                    }
+
+                    if (zoneName === cardData.correctZone) {
+                        cardEl.classList.add("correct");
+                        correct += 1;
+                    } else {
+                        cardEl.classList.add("wrong");
+                    }
+                });
+
+                const statusEl = document.getElementById("status-sort");
+                if (correct === total) {
+                    this.sectionSolved.sort = true;
+                    statusEl.textContent = "gelöst";
+                    statusEl.className = "section-status section-status--done";
+                } else {
+                    this.sectionSolved.sort = false;
+                    statusEl.textContent = "noch Fehler";
+                    statusEl.className = "section-status section-status--fail";
+                }
+
+                this.updateSolvedStatus();
+            }
+
+            // --- Quiz Logic ---
+
+            checkQuiz() {
+                if (this.gameLocked) return;
+
+                // NOTE: Hardcoded q1, q2 check for specific logic, can be made generic but keeping simple reuse
+                const q1 = document.querySelector('input[name="q1"]:checked');
+                const q2 = document.querySelector('input[name="q2"]:checked');
+
+                const statusEl = document.getElementById("status-quiz");
+
+                if (!q1 || !q2) {
+                    this.quizFeedbackEl.textContent = "Bitte jede der beiden Fragen beantworten.";
+                    this.sectionSolved.quiz = false;
+                    statusEl.textContent = "unvollständig";
+                    statusEl.className = "section-status section-status--fail";
+                    this.updateSolvedStatus();
+                    return;
+                }
+
+                const correctQ1 = q1.value === this.quizSolutions.q1;
+                const correctQ2 = q2.value === this.quizSolutions.q2;
+
+                if (correctQ1 && correctQ2) {
+                    this.sectionSolved.quiz = true;
+                    statusEl.textContent = "gelöst";
+                    statusEl.className = "section-status section-status--done";
+                    this.quizFeedbackEl.textContent = "Beide Antworten sind richtig.";
+                } else {
+                    this.sectionSolved.quiz = false;
+                    statusEl.textContent = "noch Fehler";
+                    statusEl.className = "section-status section-status--fail";
+                    this.quizFeedbackEl.textContent = "Mindestens eine Antwort ist falsch.";
+                }
+                this.updateSolvedStatus();
+            }
+
+            // --- Capital Logic ---
+
+            checkCapital() {
+                if (this.gameLocked) return;
+
+                let correct = 0;
+                const total = Object.keys(this.capitalSolutions).length;
+                const selects = document.querySelectorAll(".capital-table select");
+
+                selects.forEach(sel => sel.classList.remove("correct", "wrong"));
+
+                selects.forEach(sel => {
+                    const form = sel.dataset.form;
+                    const expected = this.capitalSolutions[form];
+                    const chosen = sel.value;
+
+                    if (!chosen) {
+                        sel.classList.add("wrong");
+                        return;
+                    }
+
+                    if (chosen === expected) {
+                        sel.classList.add("correct");
+                        correct += 1;
+                    } else {
+                        sel.classList.add("wrong");
+                    }
+                });
+
+                const statusEl = document.getElementById("status-capital");
+                if (correct === total) {
+                    this.sectionSolved.capital = true;
+                    statusEl.textContent = "gelöst";
+                    statusEl.className = "section-status section-status--done";
+                } else {
+                    this.sectionSolved.capital = false;
+                    statusEl.textContent = "noch Fehler";
+                    statusEl.className = "section-status section-status--fail";
+                }
+                this.updateSolvedStatus();
+            }
         }
 
-        const quizFeedbackEl = document.getElementById("quiz-feedback");
+        // --- Init ---
+        // Start game without fileId check for local demo mode if we want,
+        // but GameBase normally checks for fileId.
 
-        // Direkt initialisieren ohne fetch-Promise
-        loadConfig();
+        // Workaround: We override init() OR we just append ?fileId=... if missing before calling super.init?
+        // No, init is async.
+
+        // Let's modify the instance after creation.
+        const game = new EscapeGame();
+
+        if (!new URLSearchParams(window.location.search).has('fileId')) {
+            // Fake the parameter so GameBase doesn't complain
+            const url = new URL(window.location);
+            url.searchParams.set('fileId', 'LOCAL_DEMO');
+            window.history.replaceState({}, '', url);
+        }
+
+        game.init();
     </script>
 </body>
 
 </html>
+```
