@@ -14,7 +14,9 @@
 (function () {
     'use strict';
 
-    const DEFAULT_API_KEY = 'AIzaSyCNNH3aVsoZ-bkT2i1vD4g72kKJeRYnb_8';
+    // Fallback auf globales AppConfig, falls vorhanden
+    const GLOBAL_CONFIG = window.AppConfig || {};
+    const DEFAULT_API_KEY = GLOBAL_CONFIG.apiKey || '';
     const DRIVE_FILES_ENDPOINT = 'https://www.googleapis.com/drive/v3/files';
     const THEME_KEY = 'globalTheme_v1';
     const JSON_SESSION_PREFIX = 'game_payload_';
@@ -102,7 +104,7 @@
             let stored = null;
             try {
                 stored = localStorage.getItem(THEME_KEY);
-            } catch (_) {}
+            } catch (_) { }
 
             const initial = stored === 'light' || stored === 'dark' ? stored : 'dark';
 
@@ -128,7 +130,7 @@
             this._applyTheme(next);
             try {
                 localStorage.setItem(THEME_KEY, next);
-            } catch (_) {}
+            } catch (_) { }
         }
 
         _wireThemeToggle() {
