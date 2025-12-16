@@ -2,1034 +2,185 @@
 <html lang="de">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>Drive-Tree – Kursstruktur</title>
+    <meta charset="UTF-8">
+    <title>Drive-Tree – Start</title>
     <link rel="stylesheet" href="shared_theme.css">
     <style>
-        /* :root Variablen stehen in shared_theme.css */
-
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             background: radial-gradient(circle at top, hsl(var(--bg-surface)), hsl(var(--bg)));
             margin: 0;
             min-height: 100vh;
-        }
-
-        .app {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-        }
-
-        /* -----------------------------
-           Tree-Drawer (Overlay)
-        ----------------------------- */
-        .drawer {
-            position: fixed;
-            top: 64px;
-            /* unterhalb der oberen AppBar */
-            left: 0;
-            height: calc(100vh - 64px);
-            width: 25vw;
-            min-width: 320px;
-            background: hsl(var(--bg-surface) / 0.32);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-right: 1px solid hsl(var(--glass-border));
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1.5rem;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 30;
-        }
-
-        .app.tree-open .drawer {
-            transform: translateX(0);
-        }
-
-        .drawer-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid hsl(var(--glass-border));
-        }
-
-        .drawer-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: hsl(var(--txt-muted));
-        }
-
-        .drawer-footer {
-            margin-top: 0.5rem;
-            border-top: 1px solid hsl(var(--glass-border));
-            padding-top: 0.75rem;
-        }
-
-        .drawer-footer-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .drawer-footer-text {
-            font-size: 0.8rem;
-            color: hsl(var(--txt-muted));
-        }
-
-        .state-pill {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.7rem;
-            border-radius: 999px;
-            background: hsl(var(--bg-surface) / var(--bg-surface-alpha));
-            border: 1px solid hsl(var(--glass-border));
-            color: hsl(var(--txt));
-            white-space: nowrap;
-        }
-
-        .tree-scroll {
-            flex: 1;
-            overflow-y: auto;
-            margin-right: -0.5rem;
-            padding-right: 0.5rem;
-        }
-
-        /* -----------------------------
-           Tree-Ansicht
-        ----------------------------- */
-        .tree {
-            display: block;
-            font-size: 0.9rem;
-        }
-
-        .tree-node {
-            position: relative;
-        }
-
-        .tree-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 0.5rem;
-            padding-left: calc(0.5rem + (var(--level, 0) * 1.2rem));
-            border-radius: var(--radius-sm);
-            color: hsl(var(--txt-muted));
-            transition: background 0.15s, color 0.15s;
-        }
-
-        .tree-row:hover {
-            background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
-            color: hsl(var(--txt));
-        }
-
-        .tree-node--selected .tree-row {
-            background: hsl(var(--primary) / 0.15);
-            color: hsl(var(--primary));
-            font-weight: 600;
-        }
-
-        .tree-children {
-            margin-left: 0;
-        }
-
-        .tree-node--collapsed>.tree-children {
-            display: none;
-        }
-
-        .tree-toggle {
-            background: none;
-            border: none;
-            color: inherit;
-            cursor: pointer;
-            font-size: 0.75rem;
-            width: 1rem;
-            height: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0.7;
-            padding: 0;
         }
 
-        .tree-toggle:hover {
-            opacity: 1;
+        .start-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 1rem;
         }
 
-        .tree-icon {
-            font-size: 0.9rem;
-            width: 1.3rem;
+        .hero-title {
             text-align: center;
-        }
-
-        .tree-label {
-            background: none;
-            border: none;
-            color: inherit;
-            cursor: pointer;
-            text-align: left;
-            flex: 1;
-            font-size: 0.9rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding: 0;
-        }
-
-        .tree-spacer {
-            display: inline-block;
-            width: 1rem;
-        }
-
-        /* -----------------------------
-           Haupt-Content
-        ----------------------------- */
-        .content {
-            flex: 1;
-            margin-left: 0;
-            padding: 2rem;
-            padding-top: calc(2rem + 64px);
-            /* Platz für obere AppBar */
-            max-width: 1600px;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            position: relative;
-        }
-
-        /* Obere AppBar mit Folder links, Titel mittig, Theme rechts */
-        .top-bar {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            padding: 0.75rem 1.5rem;
-            background: hsl(var(--glass-bg) / var(--glass-opacity));
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid hsl(var(--glass-border));
-            border-right: 1px solid hsl(var(--glass-border));
-            border-left: 1px solid hsl(var(--glass-border));
-            border-radius: 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 60;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
-        }
-
-        .menu-icon-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            border: 1px solid transparent;
-            background: transparent;
-            color: hsl(var(--txt-muted));
-            font-size: 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .menu-icon-btn:hover {
-            background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
-            color: hsl(var(--txt));
-            transform: scale(1.05);
-        }
-
-        .menu-icon-btn.active {
-            background: hsl(var(--primary) / 0.15);
-            color: hsl(var(--primary));
-            border-color: hsl(var(--primary) / 0.3);
-        }
-
-        .top-bar-title {
-            font-weight: 600;
-            font-size: 1rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
             background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--txt)));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-align: center;
-            justify-self: center;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .theme-toggle-btn {
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .error-msg {
+            color: hsl(var(--error));
+            font-size: 0.9rem;
+            text-align: center;
+            height: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .error-msg.visible {
+            opacity: 1;
+        }
+
+        .theme-toggle-fixed {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
             background: none;
             border: none;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             transition: background 0.2s;
             color: hsl(var(--txt));
         }
 
-        .theme-toggle-btn:hover {
+        .theme-toggle-fixed:hover {
             background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
-        }
-
-        .content-header {
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        .view-title {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.5rem;
-            line-height: 1.1;
-        }
-
-        .view-path {
-            font-family: monospace;
-            color: hsl(var(--txt-muted));
-            font-size: 0.85rem;
-            background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
-            padding: 0.25rem 0.6rem;
-            border-radius: var(--radius-sm);
-            display: inline-block;
-        }
-
-        .pill-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-top: 1rem;
-        }
-
-        .pill {
-            font-size: 0.8rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 999px;
-            background: hsl(var(--bg-surface) / var(--bg-surface-alpha));
-            border: 1px solid hsl(var(--glass-border));
-            color: hsl(var(--txt-muted));
-        }
-
-        .content>.card:first-of-type {
-            border-top: none;
-        }
-
-        .iframe-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid hsl(var(--glass-border));
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            background: hsl(var(--bg-surface));
-            box-shadow: 0 20px 58px rgba(0, 0, 0, 0.65);
-            min-height: 700px;
-        }
-
-        .game-iframe {
-            border: none;
-            width: 100%;
-            height: 100%;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Backdrop for Drawer */
-        .drawer-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(2px);
-            z-index: 29;
-            /* Below drawer (30), above content */
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .drawer-backdrop.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                margin: 0;
-                padding: 1rem;
-                padding-top: calc(64px + 16px);
-            }
-
-            .drawer {
-                top: 64px;
-                left: 0;
-                width: 100vw;
-                height: calc(100vh - 64px);
-            }
         }
     </style>
 </head>
 
 <body>
-    <div class="app" id="app-root">
-        <!-- Backdrop -->
-        <div id="drawer-backdrop" class="drawer-backdrop"></div>
 
-        <!-- Tree-Drawer (Overlay, 25 % Breite) -->
-        <aside class="drawer" id="tree-drawer">
-            <header class="drawer-header">
-                <div class="drawer-title" id="drawer-title">Drive-Ordner</div>
-            </header>
+    <button id="theme-toggle" class="theme-toggle-fixed" aria-label="Theme wechseln">🌙</button>
 
-            <div class="tree-scroll">
-                <nav class="tree" id="tree-root">
-                    <!-- Tree per JS -->
-                </nav>
+    <div class="start-container">
+        <h1 class="hero-title">Drive-Tree</h1>
+
+        <div class="card">
+            <h2>Willkommen</h2>
+            <p class="section-sub">Bitte gib den Link zu deinem freigegebenen Google Drive Ordner ein, um zu starten.
+            </p>
+
+            <div class="input-group">
+                <input type="text" id="drive-link" placeholder="https://drive.google.com/drive/folders/..."
+                    autocomplete="off">
+                <button id="start-btn" class="btn primary" style="justify-content: center;">Ordner laden</button>
             </div>
-
-            <footer class="drawer-footer">
-                <div class="drawer-footer-row">
-                    <span class="drawer-footer-text">Ausgewählt</span>
-                    <div class="state-pill">
-                        <span id="state-selected-label">–</span>
-                    </div>
-                </div>
-            </footer>
-        </aside>
-
-        <!-- Content -->
-        <main class="content">
-            <header class="top-bar">
-                <button id="menu-tree-btn" class="menu-icon-btn" type="button" title="Ordnerstruktur ein-/ausblenden">
-                    📁
-                </button>
-                <div class="top-bar-title">
-                    Wiederholung ist die Mutter des Lernens
-                </div>
-                <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Theme wechseln">
-                    🌙
-                </button>
-            </header>
-
-            <header class="content-header">
-                <div class="view-title" id="view-title">Drive-Struktur wird geladen …</div>
-                <div class="view-path" id="view-path"></div>
-            </header>
-
-            <section class="card" id="view-body">
-                <h2>Verbinde mit Google Drive …</h2>
-                <p>
-                    Die Ordnerstruktur wird aus deinem freigegebenen Google-Drive-Ordner geladen
-                    und links als TreeView angezeigt. Sichtbar sind nur Ordner, PDF- und JSON-Dateien.
-                </p>
-                <div class="pill-row">
-                    <span class="pill">Overlay-Drawer (25 %)</span>
-                    <span class="pill">AppBar-Icon 📁 toggelt Tree</span>
-                    <span class="pill">PDF 👁 · JSON 🏋</span>
-                </div>
-            </section>
-        </main>
+            <div id="error-msg" class="error-msg">Ungültiger Link oder ID nicht gefunden.</div>
+        </div>
     </div>
 
     <script>
-        (() => {
-            const ROOT_FOLDER_ID = '1kpUMyk5WMoRE6KKM29tdoqYGcYjtn6PJ';
-            const API_KEY = 'AIzaSyCNNH3aVsoZ-bkT2i1vD4g72kKJeRYnb_8';
-            const DRIVE_FILES_ENDPOINT = 'https://www.googleapis.com/drive/v3/files';
-            const FOLDER_MIME = 'application/vnd.google-apps.folder';
+        const THEME_KEY = 'globalTheme_v1';
+        const STORAGE_KEY_FOLDER = 'drive_root_folder_id';
 
-            const STORAGE_KEY = 'driveTreeSpaState_v2';
-            const THEME_KEY = 'globalTheme_v1';
-            const JSON_SESSION_PREFIX = 'game_payload_';
-
-            const GAME_ROUTE_MAP = {
-                escape_game: 'games/Escape-Game.html',
-                what_and_why: 'games/what_and_why.html',
-                quick_quiz: 'games/quick_quiz.html'
-            };
-
-            let state = {
-                selectedId: null,
-                closedIds: [],
-                drawerOpen: false
-            };
-
-            let rootTree = [];
-            let rootName = 'Drive-Ordner';
-
-            const appRootEl = document.getElementById('app-root');
-            const treeDrawerEl = document.getElementById('tree-drawer');
-            const drawerBackdropEl = document.getElementById('drawer-backdrop');
-            const menuTreeBtn = document.getElementById('menu-tree-btn');
-            const drawerTitleEl = document.getElementById('drawer-title');
-            const treeRootEl = document.getElementById('tree-root');
-            const selectedLabelEl = document.getElementById('state-selected-label');
-            const viewTitleEl = document.getElementById('view-title');
-            const viewPathEl = document.getElementById('view-path');
-            const viewBodyEl = document.getElementById('view-body');
-            const themeToggleBtn = document.getElementById('theme-toggle');
-
-            function loadState() {
-                try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    if (!raw) return;
-                    const parsed = JSON.parse(raw);
-                    if (!parsed || typeof parsed !== 'object') return;
-                    if (typeof parsed.selectedId === 'string' || parsed.selectedId === null) {
-                        state.selectedId = parsed.selectedId;
-                    }
-                    if (Array.isArray(parsed.closedIds)) {
-                        state.closedIds = parsed.closedIds.filter(id => typeof id === 'string');
-                    }
-                    if (typeof parsed.drawerOpen === 'boolean') {
-                        state.drawerOpen = parsed.drawerOpen;
-                    }
-                } catch (_) { }
+        // --- Theme Logic ---
+        function applyTheme(theme) {
+            const rootEl = document.documentElement;
+            const btn = document.getElementById('theme-toggle');
+            if (theme === 'light') {
+                rootEl.classList.add('theme-light');
+                btn.textContent = '☀️';
+            } else {
+                rootEl.classList.remove('theme-light');
+                btn.textContent = '🌙';
             }
+        }
 
-            function saveState(partial) {
-                state = { ...state, ...partial };
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-                } catch (_) { }
-            }
+        function initTheme() {
+            let stored = localStorage.getItem(THEME_KEY);
+            const initial = (stored === 'light' || stored === 'dark') ? stored : 'dark';
+            applyTheme(initial);
+        }
 
-            function applyDrawerOpen() {
-                if (state.drawerOpen) {
-                    appRootEl.classList.add('tree-open');
-                    menuTreeBtn.classList.add('active');
-                    drawerBackdropEl.classList.add('active');
-                } else {
-                    appRootEl.classList.remove('tree-open');
-                    menuTreeBtn.classList.remove('active');
-                    drawerBackdropEl.classList.remove('active');
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.contains('theme-light');
+            const next = isLight ? 'dark' : 'light';
+            applyTheme(next);
+            localStorage.setItem(THEME_KEY, next);
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        initTheme();
+
+        // --- Drive Logic ---
+        function extractFolderId(url) {
+            // Patterns:
+            // 1. https://drive.google.com/drive/folders/1kpUMyk5WMoRE6KKM29tdoqYGcYjtn6PJ?usp=sharing
+            // 2. https://drive.google.com/drive/u/0/folders/1kpUMyk5WMoRE6KKM29tdoqYGcYjtn6PJ
+            // 3. Just the ID? Maybe allow that too.
+
+            // Regex for ID (alphanumeric, -, _)
+            const idRegex = /[-\w]{25,}/;
+
+            // If it looks like a URL
+            if (url.includes('drive.google.com')) {
+                const parts = url.split('/');
+                // usually 'folders' is before the ID
+                const folderIndex = parts.indexOf('folders');
+                if (folderIndex !== -1 && parts[folderIndex + 1]) {
+                    // Remove potential query params
+                    const candidate = parts[folderIndex + 1].split('?')[0];
+                    if (idRegex.test(candidate)) return candidate;
                 }
             }
 
-            function applyTheme(theme) {
-                const rootEl = document.documentElement;
-                if (theme === 'light') {
-                    rootEl.classList.add('theme-light');
-                } else {
-                    rootEl.classList.remove('theme-light');
-                }
-                if (themeToggleBtn) {
-                    themeToggleBtn.textContent = theme === 'light' ? '☀️' : '🌙';
-                }
+            // If user just pasted the ID
+            if (idRegex.test(url) && !url.includes('/')) {
+                return url;
             }
 
-            function initTheme() {
-                let stored = null;
-                try {
-                    stored = localStorage.getItem(THEME_KEY);
-                } catch (_) { }
-                const initial = stored === 'light' || stored === 'dark' ? stored : 'dark';
-                applyTheme(initial);
+            return null;
+        }
+
+        const startBtn = document.getElementById('start-btn');
+        const inputEl = document.getElementById('drive-link');
+        const errorEl = document.getElementById('error-msg');
+
+        function handleStart() {
+            const val = inputEl.value.trim();
+            if (!val) return;
+
+            const id = extractFolderId(val);
+            if (id) {
+                localStorage.setItem(STORAGE_KEY_FOLDER, id);
+                window.location.href = 'index.html';
+            } else {
+                errorEl.classList.add('visible');
+                setTimeout(() => errorEl.classList.remove('visible'), 3000);
             }
-
-            function toggleTheme() {
-                const isLight = document.documentElement.classList.contains('theme-light');
-                const next = isLight ? 'dark' : 'light';
-                applyTheme(next);
-
-                const iframe = document.querySelector('iframe.game-iframe');
-                if (iframe && iframe.contentDocument) {
-                    if (next === 'light') {
-                        iframe.contentDocument.documentElement.classList.add('theme-light');
-                    } else {
-                        iframe.contentDocument.documentElement.classList.remove('theme-light');
-                    }
-                }
-
-                try {
-                    localStorage.setItem(THEME_KEY, next);
-                } catch (_) { }
-            }
-
-            async function fetchJson(url) {
-                const res = await fetch(url);
-                if (!res.ok) {
-                    const text = await res.text().catch(() => '');
-                    throw new Error(`Drive-API-Fehler (${res.status}): ${text || res.statusText}`);
-                }
-                return res.json();
-            }
-
-            async function fetchFolderMeta(folderId) {
-                const params = new URLSearchParams({
-                    key: API_KEY,
-                    fields: 'id,name,mimeType',
-                    supportsAllDrives: 'true'
-                });
-                const url = `${DRIVE_FILES_ENDPOINT}/${encodeURIComponent(folderId)}?${params.toString()}`;
-                return fetchJson(url);
-            }
-
-            async function fetchChildren(folderId) {
-                const allFiles = [];
-                let pageToken = '';
-
-                while (true) {
-                    const params = new URLSearchParams({
-                        key: API_KEY,
-                        q: `'${folderId}' in parents and trashed=false`,
-                        fields: 'nextPageToken,files(id,name,mimeType)',
-                        pageSize: '1000',
-                        orderBy: 'name',
-                        includeItemsFromAllDrives: 'true',
-                        supportsAllDrives: 'true'
-                    });
-                    if (pageToken) params.set('pageToken', pageToken);
-
-                    const url = `${DRIVE_FILES_ENDPOINT}?${params.toString()}`;
-                    const data = await fetchJson(url);
-
-                    if (Array.isArray(data.files)) {
-                        allFiles.push(...data.files);
-                    }
-                    if (data.nextPageToken) {
-                        pageToken = data.nextPageToken;
-                    } else {
-                        break;
-                    }
-                }
-
-                return allFiles;
-            }
-
-            function isPdf(file) {
-                if (file.mimeType === 'application/pdf') return true;
-                return /\.pdf$/i.test(file.name || '');
-            }
-
-            function isJson(file) {
-                if (file.mimeType === 'application/json') return true;
-                return /\.json$/i.test(file.name || '');
-            }
-
-            async function buildTreeData(folderId) {
-                const children = await fetchChildren(folderId);
-
-                const folders = children.filter(c => c.mimeType === FOLDER_MIME);
-                const filesRaw = children.filter(c => c.mimeType !== FOLDER_MIME);
-
-                const files = filesRaw.filter(f => isPdf(f) || isJson(f));
-
-                const folderNodes = [];
-                for (const f of folders) {
-                    const subChildren = await buildTreeData(f.id);
-                    folderNodes.push({
-                        id: f.id,
-                        name: f.name,
-                        isFolder: true,
-                        kind: 'folder',
-                        children: subChildren
-                    });
-                }
-
-                const fileNodes = files.map(f => ({
-                    id: f.id,
-                    name: f.name,
-                    isFolder: false,
-                    kind: isPdf(f) ? 'pdf' : 'json',
-                    children: []
-                }));
-
-                return [...folderNodes, ...fileNodes];
-            }
-
-            function buildTree(container, nodes, level = 0) {
-                nodes.forEach(node => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'tree-node';
-                    wrapper.dataset.id = node.id;
-                    wrapper.style.setProperty('--level', String(level));
-
-                    const isFolder = !!node.isFolder;
-
-                    if (state.closedIds.includes(node.id) && isFolder) {
-                        wrapper.classList.add('tree-node--collapsed');
-                    }
-
-                    const row = document.createElement('div');
-                    row.className = 'tree-row';
-
-                    if (isFolder) {
-                        const toggle = document.createElement('button');
-                        toggle.type = 'button';
-                        toggle.className = 'tree-toggle';
-                        toggle.setAttribute('aria-label', 'Ordner auf-/zuklappen');
-                        toggle.textContent = state.closedIds.includes(node.id) ? '▸' : '▾';
-                        row.appendChild(toggle);
-                    } else {
-                        const spacer = document.createElement('span');
-                        spacer.className = 'tree-spacer';
-                        spacer.textContent = '';
-                        row.appendChild(spacer);
-                    }
-
-                    const icon = document.createElement('span');
-                    icon.className = 'tree-icon';
-                    if (isFolder) {
-                        icon.classList.add('tree-icon-folder');
-                        icon.textContent = state.closedIds.includes(node.id) ? '📁' : '📂';
-                    } else if (node.kind === 'pdf') {
-                        icon.textContent = '👁';
-                    } else if (node.kind === 'json') {
-                        icon.textContent = '🏋';
-                    } else {
-                        icon.textContent = '📄';
-                    }
-                    row.appendChild(icon);
-
-                    const label = document.createElement('button');
-                    label.type = 'button';
-                    label.className = 'tree-label';
-
-                    const baseName = node.isFolder
-                        ? (node.name || '')
-                        : (node.name || '').replace(/\.[^.]+$/, '');
-                    label.textContent = baseName;
-
-                    row.appendChild(label);
-
-                    wrapper.appendChild(row);
-
-                    const childrenContainer = document.createElement('div');
-                    childrenContainer.className = 'tree-children';
-
-                    if (isFolder && node.children && node.children.length > 0) {
-                        buildTree(childrenContainer, node.children, level + 1);
-                    }
-
-                    wrapper.appendChild(childrenContainer);
-                    container.appendChild(wrapper);
-                });
-            }
-
-            function findPathById(nodes, targetId, path = []) {
-                for (const node of nodes) {
-                    const currentPath = path.concat(node.name);
-                    if (node.id === targetId) return currentPath;
-                    if (node.children && node.children.length > 0) {
-                        const res = findPathById(node.children, targetId, currentPath);
-                        if (res) return res;
-                    }
-                }
-                return null;
-            }
-
-            function findNodeById(nodes, targetId) {
-                for (const node of nodes) {
-                    if (node.id === targetId) return node;
-                    if (node.children && node.children.length > 0) {
-                        const res = findNodeById(node.children, targetId);
-                        if (res) return res;
-                    }
-                }
-                return null;
-            }
-
-            function applySelectedCss() {
-                const nodes = treeRootEl.querySelectorAll('.tree-node');
-                nodes.forEach(nodeEl => {
-                    if (nodeEl.dataset.id === state.selectedId) {
-                        nodeEl.classList.add('tree-node--selected');
-                    } else {
-                        nodeEl.classList.remove('tree-node--selected');
-                    }
-                });
-            }
-
-            function renderViewForId(id) {
-                if (!rootTree || rootTree.length === 0) return;
-
-                let node = findNodeById(rootTree, id);
-                if (!node) {
-                    if (rootTree.length === 0) return;
-                    node = rootTree[0];
-                    state.selectedId = node.id;
-                    saveState({ selectedId: node.id });
-                    applySelectedCss();
-                }
-
-                viewBodyEl.innerHTML = '';
-                viewBodyEl.classList.add('card');
-                viewBodyEl.classList.remove('iframe-container');
-
-                const localPath = findPathById(rootTree, node.id) || [node.name];
-                const fullPath = [rootName, ...localPath];
-                const name = node.name || 'Unbekannt';
-
-                viewTitleEl.textContent = name;
-                viewPathEl.textContent = 'Pfad: ' + fullPath.join(' / ');
-
-                if (node.isFolder) {
-                    const children = node.children || [];
-                    const listItems = children.length
-                        ? children.map(c => {
-                            let icon = '📄';
-                            if (c.isFolder) icon = '📁';
-                            else if (c.kind === 'pdf') icon = '👁';
-                            else if (c.kind === 'json') icon = '🏋';
-                            return `<li>${icon} ${c.name}</li>`;
-                        }).join('')
-                        : '<li><em>Ordner ist leer (oder enthält keine PDF/JSON-Dateien).</em></li>';
-
-                    viewBodyEl.innerHTML = `
-        <section class="card">
-          <h2>Ordner: ${name}</h2>
-          <p>Enthält ${children.length} Element(e) (nur Ordner, PDF & JSON).</p>
-          <ul>${listItems}</ul>
-        </section>
-      `;
-                } else {
-                    const driveUrl = `https://drive.google.com/open?id=${encodeURIComponent(node.id)}`;
-                    viewBodyEl.innerHTML = `
-        <section class="card">
-          <h2>Datei: ${name}</h2>
-          <p>Dies ist eine ${node.kind === 'pdf' ? 'PDF-Datei (👁)' : 'JSON-Datei (🏋)'} aus deinem freigegebenen Drive-Ordner.</p>
-          <p><a href="${driveUrl}" target="_blank" rel="noopener noreferrer">In Google Drive öffnen</a></p>
-        </section>
-      `;
-                }
-
-                selectedLabelEl.textContent = name;
-            }
-
-            function openPdfView(node) {
-                const url = `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
-                window.open(url, '_blank', 'noopener,noreferrer');
-            }
-
-            async function openJsonGame(node) {
-                const fileId = node.id;
-                if (!fileId) return;
-
-                const storageKey = JSON_SESSION_PREFIX + fileId;
-
-                try {
-                    const url = `${DRIVE_FILES_ENDPOINT}/${encodeURIComponent(fileId)}?alt=media&key=${API_KEY}`;
-                    const data = await fetchJson(url);
-
-                    if (!data || typeof data !== 'object') {
-                        showError('JSON-Datei konnte nicht interpretiert werden.');
-                        return;
-                    }
-
-                    const gameType = data.game_type || data.gameType;
-                    if (!gameType) {
-                        showError('In der JSON fehlt das Feld "game_type".');
-                        return;
-                    }
-
-                    const targetPage = GAME_ROUTE_MAP[gameType];
-                    if (!targetPage) {
-                        showError(`Für game_type "${gameType}" ist keine Zielseite konfiguriert.`);
-                        return;
-                    }
-
-                    try {
-                        sessionStorage.setItem(storageKey, JSON.stringify(data));
-                    } catch (e) {
-                        console.error('Konnte JSON nicht im sessionStorage speichern:', e);
-                    }
-
-                    const targetUrl =
-                        `${targetPage}?fileId=${encodeURIComponent(fileId)}&game_type=${encodeURIComponent(gameType)}`;
-
-                    viewBodyEl.innerHTML = '';
-                    viewBodyEl.classList.remove('card');
-                    viewBodyEl.classList.add('iframe-container');
-
-                    const iframe = document.createElement('iframe');
-                    iframe.src = targetUrl;
-                    iframe.className = 'game-iframe';
-
-                    iframe.onload = () => {
-                        if (!iframe.contentDocument) return;
-                        const isLight = document.documentElement.classList.contains('theme-light');
-                        if (isLight) {
-                            iframe.contentDocument.documentElement.classList.add('theme-light');
-                        } else {
-                            iframe.contentDocument.documentElement.classList.remove('theme-light');
-                        }
-                    };
-
-                    viewBodyEl.appendChild(iframe);
-
-                    const title = data.title || 'Spiel';
-                    viewTitleEl.textContent = title;
-
-                } catch (err) {
-                    console.error(err);
-                    showError(String(err && err.message ? err.message : err));
-                }
-            }
-
-            function setupEvents() {
-                treeRootEl.addEventListener('click', async (event) => {
-                    const target = event.target;
-                    if (!(target instanceof HTMLElement)) return;
-
-                    if (target.classList.contains('tree-toggle')) {
-                        event.stopPropagation();
-                        const nodeEl = target.closest('.tree-node');
-                        if (!nodeEl) return;
-                        const id = nodeEl.dataset.id;
-                        if (!id) return;
-
-                        const collapsed = nodeEl.classList.toggle('tree-node--collapsed');
-                        target.textContent = collapsed ? '▸' : '▾';
-
-                        const icon = nodeEl.querySelector('.tree-icon-folder');
-                        if (icon) {
-                            icon.textContent = collapsed ? '📁' : '📂';
-                        }
-
-                        const idx = state.closedIds.indexOf(id);
-                        if (collapsed && idx === -1) {
-                            state.closedIds.push(id);
-                        } else if (!collapsed && idx !== -1) {
-                            state.closedIds.splice(idx, 1);
-                        }
-                        saveState({ closedIds: state.closedIds });
-                        return;
-                    }
-
-                    if (target.classList.contains('tree-label') || target.classList.contains('tree-icon')) {
-                        const nodeEl = target.closest('.tree-node');
-                        if (!nodeEl) return;
-                        const id = nodeEl.dataset.id;
-                        if (!id) return;
-
-                        state.selectedId = id;
-                        saveState({ selectedId: id });
-                        applySelectedCss();
-                        renderViewForId(id);
-
-                        const node = findNodeById(rootTree, id);
-                        if (node && !node.isFolder) {
-                            if (node.kind === 'pdf') {
-                                openPdfView(node);
-                            } else if (node.kind === 'json') {
-                                await openJsonGame(node);
-                            }
-                        }
-                    }
-                });
-
-                menuTreeBtn.addEventListener('click', () => {
-                    const open = !state.drawerOpen;
-                    saveState({ drawerOpen: open });
-                    applyDrawerOpen();
-                });
-
-                if (themeToggleBtn) {
-                    themeToggleBtn.addEventListener('click', () => {
-                        toggleTheme();
-                    });
-                }
-
-                // Close drawer when clicking backdrop
-                if (drawerBackdropEl) {
-                    drawerBackdropEl.addEventListener('click', () => {
-                        if (state.drawerOpen) {
-                            state.drawerOpen = false;
-                            saveState({ drawerOpen: false });
-                            applyDrawerOpen();
-                        }
-                    });
-                }
-            }
-
-            function showError(message) {
-                viewTitleEl.textContent = 'Fehler beim Laden der Drive-Struktur';
-                viewPathEl.textContent = '';
-                viewBodyEl.innerHTML = `
-      <section class="card">
-        <h2>Drive-Fehler</h2>
-        <p style="color:#fca5a5;white-space:pre-wrap;font-size:0.86rem;">
-          ${message}
-        </p>
-      </section>
-    `;
-            }
-
-            function collectFolderIds(nodes, acc) {
-                for (const node of nodes) {
-                    if (node.isFolder) {
-                        acc.push(node.id);
-                        if (node.children && node.children.length > 0) {
-                            collectFolderIds(node.children, acc);
-                        }
-                    }
-                }
-            }
-
-            (async function init() {
-                initTheme();
-                loadState();
-                applyDrawerOpen();
-
-                try {
-                    const meta = await fetchFolderMeta(ROOT_FOLDER_ID);
-                    rootName = meta && meta.name ? meta.name : 'Drive-Ordner';
-
-                    document.title = rootName + ' – Drive-Tree';
-                    drawerTitleEl.textContent = rootName;
-                    viewTitleEl.textContent = rootName;
-                    viewPathEl.textContent = 'Root-ID: ' + ROOT_FOLDER_ID;
-
-                    const children = await buildTreeData(ROOT_FOLDER_ID);
-                    rootTree = children;
-
-                    const allFolderIds = [];
-                    collectFolderIds(rootTree, allFolderIds);
-                    if (!state.closedIds || state.closedIds.length === 0) {
-                        state.closedIds = [...allFolderIds];
-                        saveState({ closedIds: state.closedIds });
-                    }
-
-                    treeRootEl.innerHTML = '';
-                    buildTree(treeRootEl, rootTree, 0);
-
-                    if (!state.selectedId && rootTree.length > 0) {
-                        state.selectedId = rootTree[0].id;
-                        saveState({ selectedId: state.selectedId });
-                    }
-
-                    applySelectedCss();
-                    if (state.selectedId) {
-                        renderViewForId(state.selectedId);
-                    }
-
-                    setupEvents();
-                } catch (err) {
-                    console.error(err);
-                    showError(String(err && err.message ? err.message : err));
-                }
-            })();
-        })();
+        }
+
+        startBtn.addEventListener('click', handleStart);
+        inputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleStart();
+        });
+
+        // Check if we already have an ID, maybe redirect back? 
+        // No, if user renders index.html explicitly they might want to change it.
+        // But usually debugg.html redirects here.
     </script>
 </body>
 

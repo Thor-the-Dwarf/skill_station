@@ -1,7 +1,7 @@
 /* game_base.js
  *
  * Gemeinsame Basisklasse für alle Spiel-Seiten.
- * Erwartung: index.html legt JSON einmalig in sessionStorage ab:
+ * Erwartung: debugg.html legt JSON einmalig in sessionStorage ab:
  *   key = 'game_payload_' + fileId
  *   value = JSON.stringify(payload)
  *
