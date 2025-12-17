@@ -192,6 +192,16 @@
             align-items: flex-start;
         }
 
+        .title-block {
+            display: none;
+        }
+
+        .header {
+            justify-content: flex-end;
+            /* Move stats to the right, or keep apart if title was there */
+        }
+
+        /*
         .title-block h1 {
             margin: 0;
             font-size: 2.2rem;
@@ -203,6 +213,7 @@
             color: var(--muted);
             font-size: 0.95rem;
         }
+        */
 
         .stats {
             display: flex;
@@ -889,8 +900,8 @@
         const GAME_CONFIG = {
             "game_type": "escape_game",
             "schema_version": "1.0",
-            "title": "Mini-Escape-Room – Rechtsformen",
-            "topic": "Unternehmensformen / Rechtsformen",
+            // "title": "Mini-Escape-Room – Rechtsformen",
+            // "topic": "Unternehmensformen / Rechtsformen",
             "estimated_minutes": 20,
             "sections": [
                 {
