@@ -262,6 +262,15 @@
             position: relative;
         }
 
+        .content.full-screen {
+            padding: 0;
+            padding-top: 64px;
+            /* Keep space for top bar */
+            height: 100vh;
+            overflow: hidden;
+            /* Disable host scrolling */
+        }
+
         .top-bar {
             display: grid;
             grid-template-columns: auto 1fr auto;
@@ -380,12 +389,13 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            border: 1px solid hsl(var(--glass-border));
-            border-radius: var(--radius-lg);
+            border: none;
+            border-radius: 0;
             overflow: hidden;
-            background: hsl(var(--bg-surface));
-            box-shadow: 0 20px 58px rgba(0, 0, 0, 0.65);
-            min-height: 700px;
+            background: transparent;
+            box-shadow: none;
+            min-height: 100%;
+            /* Make it fill logic simplified */
         }
 
         .game-iframe {
@@ -916,18 +926,26 @@
             const viewTitle = document.getElementById('view-title');
             const viewPath = document.getElementById('view-path');
             const viewBody = document.getElementById('view-body');
+            const contentEl = document.querySelector('.content');
 
             viewTitle.textContent = node.name;
             const p = findPath(rootTree, id) || [node.name];
             viewPath.textContent = p.join(' / ');
 
             if (node.isFolder) {
+                // Show Header
+                document.querySelector('.content-header').classList.remove('hidden');
+                contentEl.classList.remove('full-screen');
+
                 viewBody.classList.remove('iframe-container');
                 viewBody.classList.add('card');
                 const list = (node.children || []).map(c => `<li>${c.name}</li>`).join('');
                 viewBody.innerHTML = `<h3>Inhalt:</h3><ul>${list || '<li>Leer</li>'}</ul>`;
             } else {
-                // Is File
+                // Is File -> Hide Header for full immersion
+                document.querySelector('.content-header').classList.add('hidden');
+                contentEl.classList.add('full-screen');
+
                 viewBody.innerHTML = '';
                 viewBody.classList.remove('card');
                 viewBody.classList.add('iframe-container');
