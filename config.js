@@ -4,6 +4,6 @@
  * Diese Datei enthält sensible Daten (API-Keys) und wird NICHT in git eingecheckt.
  */
 window.AppConfig = {
-    apiKey: 'AIzaSyDut0YzAuIBTWov1q_Wr3edruzKIAB-PAY',
+    apiKey: 'AIzaSyAEywwkO3vwjIEvxUc1Ewe6E0_-Y5V5rm0',
     // clientId: '...', // Falls benötigt
 };
