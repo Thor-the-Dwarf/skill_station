@@ -148,32 +148,39 @@
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--text);
-            background: var(--body-bg-gradient);
-            display: flex;
-            align-items: stretch;
-            justify-content: center;
-            padding: 2rem;
-            transition: background 0.3s ease, color 0.3s ease;
+            background: var(--bg);
+            /* Fallback or matches panel bg if needed, but panel will cover it */
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
 
         /* Außenrahmen / Board */
 
         .page {
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
+            min-height: 100vh;
         }
 
         .panel {
             background: var(--panel-bg);
             background-blend-mode: soft-light;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-soft);
-            box-shadow: var(--shadow-soft);
-            padding: 2.25rem 2.5rem 2.5rem;
-            backdrop-filter: blur(20px) saturate(140%);
-            -webkit-backdrop-filter: blur(20px) saturate(140%);
-            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            min-height: 100vh;
+            width: 100%;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center the content wrapper */
+        }
+
+        .game-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         /* Header oben */
@@ -676,192 +683,200 @@
 <body>
     <div class="page">
         <main class="panel">
-            <header class="header">
-                <div class="title-block">
-                    <h1>Mini-Escape-Room</h1>
-                    <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
-                </div>
-                <div class="stats">
-                    <div class="stat-chip stat-chip--timer">
-                        <span>Zeit</span>
-                        <span id="stat-timer">03:00</span>
+            <div class="game-content">
+                <header class="header">
+                    <div class="title-block">
+                        <h1>Mini-Escape-Room</h1>
+                        <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
                     </div>
-                    <div class="stat-chip">
-                        <span>Rätsel gelöst</span>
-                        <span id="stat-solved">0 / 3</span>
-                    </div>
-                </div>
-            </header>
-
-            <div class="toolbar">
-
-                <button class="btn-secondary btn" id="restart-btn" type="button">
-                    <span>↻</span> Neu starten
-                </button>
-            </div>
-
-            <div class="door-wrapper">
-                <div class="door-scene">
-                    <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
-                    <div class="door" id="door"></div>
-                    <div class="door-floor"></div>
-                    <div class="door-glow" id="door-glow"></div>
-                </div>
-            </div>
-
-            <div class="layout-grid">
-                <!-- Rätsel 1: Sortieraufgabe Haftung -->
-                <section class="section-card" id="section-sort">
-                    <div class="section-header">
-                        <div>
-                            <div class="section-title">Rätsel 1: Haftung einsortieren</div>
-                            <div class="section-sub">Ziehe die Haftungseigenschaften in die passende Kategorie.</div>
+                    <div class="stats">
+                        <div class="stat-chip stat-chip--timer">
+                            <span>Zeit</span>
+                            <span id="stat-timer">03:00</span>
                         </div>
-                        <div class="section-status" id="status-sort">offen</div>
+                        <div class="stat-chip">
+                            <span>Rätsel gelöst</span>
+                            <span id="stat-solved">0 / 3</span>
+                        </div>
                     </div>
-                    <div class="section-body">
-                        <div class="sort-pool" id="sort-pool"></div>
-                        <div class="sort-board">
-                            <div class="escape-dropzone" data-zone="person">
-                                <div class="escape-dropzone-label">
-                                    Personengesellschaften<br>
-                                    <span style="font-size:10px;color:hsl(var(--txt-muted));">
-                                        (Einzelunternehmen, GbR, OHG, KG)
-                                    </span>
+                </header>
+
+                <div class="toolbar">
+
+                    <button class="btn-secondary btn" id="restart-btn" type="button">
+                        <span>↻</span> Neu starten
+                    </button>
+                </div>
+
+                <div class="door-wrapper">
+                    <div class="door-scene">
+                        <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
+                        <div class="door" id="door"></div>
+                        <div class="door-floor"></div>
+                        <div class="door-glow" id="door-glow"></div>
+                    </div>
+                </div>
+
+                <div class="layout-grid">
+                    <!-- Rätsel 1: Sortieraufgabe Haftung -->
+                    <section class="section-card" id="section-sort">
+                        <div class="section-header">
+                            <div>
+                                <div class="section-title">Rätsel 1: Haftung einsortieren</div>
+                                <div class="section-sub">Ziehe die Haftungseigenschaften in die passende Kategorie.
                                 </div>
                             </div>
-                            <div class="escape-dropzone" data-zone="kapital">
-                                <div class="escape-dropzone-label">
-                                    Kapitalgesellschaften<br>
-                                    <span style="font-size:10px;color:hsl(var(--txt-muted));">
-                                        (GmbH, UG)
-                                    </span>
+                            <div class="section-status" id="status-sort">offen</div>
+                        </div>
+                        <div class="section-body">
+                            <div class="sort-pool" id="sort-pool"></div>
+                            <div class="sort-board">
+                                <div class="escape-dropzone" data-zone="person">
+                                    <div class="escape-dropzone-label">
+                                        Personengesellschaften<br>
+                                        <span style="font-size:10px;color:hsl(var(--txt-muted));">
+                                            (Einzelunternehmen, GbR, OHG, KG)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="escape-dropzone" data-zone="kapital">
+                                    <div class="escape-dropzone-label">
+                                        Kapitalgesellschaften<br>
+                                        <span style="font-size:10px;color:hsl(var(--txt-muted));">
+                                            (GmbH, UG)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="escape-dropzone" data-zone="beide">
+                                    <div class="escape-dropzone-label">Kann zu beiden passen</div>
                                 </div>
                             </div>
-                            <div class="escape-dropzone" data-zone="beide">
-                                <div class="escape-dropzone-label">Kann zu beiden passen</div>
+                        </div>
+                        <div class="section-footer">
+                            <button class="btn" id="check-sort-btn" type="button">
+                                <span>✔</span> Rätsel prüfen
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Rätsel 2: Quiz -->
+                    <section class="section-card" id="section-quiz">
+                        <div class="section-header">
+                            <div>
+                                <div class="section-title">Rätsel 2: Kurz-Quiz Rechtsformen</div>
+                                <div class="section-sub">Beantworte zwei Fragen – jede mit einer richtigen Antwort.
+                                </div>
                             </div>
+                            <div class="section-status" id="status-quiz">offen</div>
                         </div>
-                    </div>
-                    <div class="section-footer">
-                        <button class="btn" id="check-sort-btn" type="button">
-                            <span>✔</span> Rätsel prüfen
-                        </button>
-                    </div>
-                </section>
+                        <div class="section-body">
+                            <div class="quiz-question" data-quiz-id="q1">
+                                <div class="quiz-text">1. Welche Aussage zur GmbH stimmt?</div>
+                                <ul class="quiz-options">
+                                    <li><label><input type="radio" name="q1" value="a"> Die Gesellschafter haften immer
+                                            mit
+                                            ihrem gesamten Privatvermögen.</label></li>
+                                    <li><label><input type="radio" name="q1" value="b"> Es gibt kein gesetzliches
+                                            Mindestkapital.</label></li>
+                                    <li><label><input type="radio" name="q1" value="c"> Es ist ein Stammkapital von
+                                            25.000 €
+                                            vorgeschrieben.</label></li>
+                                </ul>
+                            </div>
+                            <div class="quiz-question" data-quiz-id="q2">
+                                <div class="quiz-text">2. Was ist typisch für eine GbR?</div>
+                                <ul class="quiz-options">
+                                    <li><label><input type="radio" name="q2" value="a"> Es muss mindestens eine Million
+                                            Euro
+                                            Kapital eingebracht werden.</label></li>
+                                    <li><label><input type="radio" name="q2" value="b"> Mindestens zwei Personen
+                                            schließen
+                                            sich zusammen und haften persönlich.</label></li>
+                                    <li><label><input type="radio" name="q2" value="c"> Sie ist immer an der Börse
+                                            notiert.</label></li>
+                                </ul>
+                            </div>
+                            <div class="quiz-feedback" id="quiz-feedback">Wähle je Frage eine Antwort.</div>
+                        </div>
+                        <div class="section-footer">
+                            <button class="btn" id="check-quiz-btn" type="button">
+                                <span>✔</span> Quiz prüfen
+                            </button>
+                        </div>
+                    </section>
 
-                <!-- Rätsel 2: Quiz -->
-                <section class="section-card" id="section-quiz">
-                    <div class="section-header">
-                        <div>
-                            <div class="section-title">Rätsel 2: Kurz-Quiz Rechtsformen</div>
-                            <div class="section-sub">Beantworte zwei Fragen – jede mit einer richtigen Antwort.</div>
+                    <!-- Rätsel 3: Mindestkapital -->
+                    <section class="section-card" id="section-capital">
+                        <div class="section-header">
+                            <div>
+                                <div class="section-title">Rätsel 3: Form → Mindestkapital</div>
+                                <div class="section-sub">Ordne das typische Mindestkapital zu den Rechtsformen zu.</div>
+                            </div>
+                            <div class="section-status" id="status-capital">offen</div>
                         </div>
-                        <div class="section-status" id="status-quiz">offen</div>
-                    </div>
-                    <div class="section-body">
-                        <div class="quiz-question" data-quiz-id="q1">
-                            <div class="quiz-text">1. Welche Aussage zur GmbH stimmt?</div>
-                            <ul class="quiz-options">
-                                <li><label><input type="radio" name="q1" value="a"> Die Gesellschafter haften immer mit
-                                        ihrem gesamten Privatvermögen.</label></li>
-                                <li><label><input type="radio" name="q1" value="b"> Es gibt kein gesetzliches
-                                        Mindestkapital.</label></li>
-                                <li><label><input type="radio" name="q1" value="c"> Es ist ein Stammkapital von 25.000 €
-                                        vorgeschrieben.</label></li>
-                            </ul>
+                        <div class="section-body">
+                            <table class="capital-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rechtsform</th>
+                                        <th>Mindestkapital</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Einzelunternehmen</td>
+                                        <td>
+                                            <select data-form="Einzelunternehmen">
+                                                <option value="">– bitte wählen –</option>
+                                                <option value="kein">kein gesetzliches Mindestkapital</option>
+                                                <option value="1euro">ab 1 € Stammkapital</option>
+                                                <option value="25000">25.000 € Stammkapital</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>GbR</td>
+                                        <td>
+                                            <select data-form="GbR">
+                                                <option value="">– bitte wählen –</option>
+                                                <option value="kein">kein gesetzliches Mindestkapital</option>
+                                                <option value="1euro">ab 1 € Stammkapital</option>
+                                                <option value="25000">25.000 € Stammkapital</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>UG (haftungsbeschränkt)</td>
+                                        <td>
+                                            <select data-form="UG (haftungsbeschränkt)">
+                                                <option value="">– bitte wählen –</option>
+                                                <option value="kein">kein gesetzliches Mindestkapital</option>
+                                                <option value="1euro">ab 1 € Stammkapital</option>
+                                                <option value="25000">25.000 € Stammkapital</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>GmbH</td>
+                                        <td>
+                                            <select data-form="GmbH">
+                                                <option value="">– bitte wählen –</option>
+                                                <option value="kein">kein gesetzliches Mindestkapital</option>
+                                                <option value="1euro">ab 1 € Stammkapital</option>
+                                                <option value="25000">25.000 € Stammkapital</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="quiz-question" data-quiz-id="q2">
-                            <div class="quiz-text">2. Was ist typisch für eine GbR?</div>
-                            <ul class="quiz-options">
-                                <li><label><input type="radio" name="q2" value="a"> Es muss mindestens eine Million Euro
-                                        Kapital eingebracht werden.</label></li>
-                                <li><label><input type="radio" name="q2" value="b"> Mindestens zwei Personen schließen
-                                        sich zusammen und haften persönlich.</label></li>
-                                <li><label><input type="radio" name="q2" value="c"> Sie ist immer an der Börse
-                                        notiert.</label></li>
-                            </ul>
+                        <div class="section-footer">
+                            <button class="btn" id="check-capital-btn" type="button">
+                                <span>✔</span> Zuordnung prüfen
+                            </button>
                         </div>
-                        <div class="quiz-feedback" id="quiz-feedback">Wähle je Frage eine Antwort.</div>
-                    </div>
-                    <div class="section-footer">
-                        <button class="btn" id="check-quiz-btn" type="button">
-                            <span>✔</span> Quiz prüfen
-                        </button>
-                    </div>
-                </section>
-
-                <!-- Rätsel 3: Mindestkapital -->
-                <section class="section-card" id="section-capital">
-                    <div class="section-header">
-                        <div>
-                            <div class="section-title">Rätsel 3: Form → Mindestkapital</div>
-                            <div class="section-sub">Ordne das typische Mindestkapital zu den Rechtsformen zu.</div>
-                        </div>
-                        <div class="section-status" id="status-capital">offen</div>
-                    </div>
-                    <div class="section-body">
-                        <table class="capital-table">
-                            <thead>
-                                <tr>
-                                    <th>Rechtsform</th>
-                                    <th>Mindestkapital</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Einzelunternehmen</td>
-                                    <td>
-                                        <select data-form="Einzelunternehmen">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>GbR</td>
-                                    <td>
-                                        <select data-form="GbR">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>UG (haftungsbeschränkt)</td>
-                                    <td>
-                                        <select data-form="UG (haftungsbeschränkt)">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>GmbH</td>
-                                    <td>
-                                        <select data-form="GmbH">
-                                            <option value="">– bitte wählen –</option>
-                                            <option value="kein">kein gesetzliches Mindestkapital</option>
-                                            <option value="1euro">ab 1 € Stammkapital</option>
-                                            <option value="25000">25.000 € Stammkapital</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="section-footer">
-                        <button class="btn" id="check-capital-btn" type="button">
-                            <span>✔</span> Zuordnung prüfen
-                        </button>
-                    </div>
-                </section>
+                    </section>
+                </div>
             </div>
         </main>
     </div>
