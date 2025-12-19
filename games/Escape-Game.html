@@ -4,1515 +4,214 @@
 <head>
     <meta charset="UTF-8">
     <title>Mini-Escape-Game</title>
+
     <!-- Glas-Look aus deinem globalen Theme -->
     <link rel="stylesheet" href="../shared_theme.css">
-
-
-    <style>
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 14px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background-color: var(--border-strong);
-            border: 4px solid var(--bg);
-            border-radius: 99px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: var(--muted);
-        }
-
-        /* Escape-Game.css - Refactored for Theme Toggle Support */
-
-        :root {
-            /* --- Core Palette (Dark / Default) --- */
-            --bg: #020617;
-            --panel: rgba(15, 23, 42, 0.96);
-            --panel-soft: rgba(15, 23, 42, 0.85);
-            --border-soft: rgba(148, 163, 184, 0.35);
-            --border-strong: rgba(148, 163, 184, 0.65);
-            --accent: #38bdf8;
-            --accent-soft: rgba(56, 189, 248, 0.18);
-            --accent-strong: #0ea5e9;
-            --text: #e5e7eb;
-            --muted: #9ca3af;
-            --error: #f97373;
-            --success: #22c55e;
-            --shadow-soft: 0 18px 60px rgba(15, 23, 42, 0.9);
-
-            --radius-lg: 24px;
-            --radius-md: 18px;
-            --radius-sm: 999px;
-
-            /* --- Component Variables --- */
-
-            /* Backgrounds */
-            --body-bg-gradient:
-                radial-gradient(circle at top, rgba(148, 163, 184, 0.15), transparent 55%),
-                radial-gradient(circle at bottom, rgba(56, 189, 248, 0.12), transparent 60%),
-                var(--bg);
-
-            /* Panels & Cards */
-            --panel-bg: radial-gradient(circle at top left, rgba(148, 163, 184, 0.18), transparent 55%) var(--panel);
-            --card-glass-bg: radial-gradient(circle at top left, rgba(148, 163, 184, 0.12), transparent 60%) rgba(15, 23, 42, 0.90);
-
-            /* Chips & Buttons */
-            --stat-chip-bg: radial-gradient(circle at top, rgba(148, 163, 184, 0.18), transparent 55%), rgba(15, 23, 42, 0.75);
-
-            --btn-secondary-bg: radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 55%) rgba(15, 23, 42, 0.9);
-            --btn-secondary-hover-bg: radial-gradient(circle at top left, rgba(56, 189, 248, 0.35), transparent 60%) rgba(15, 23, 42, 0.98);
-            --btn-footer-bg: radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 55%) rgba(37, 99, 235, 0.05);
-
-            /* Door Scene */
-            --door-scene-bg: radial-gradient(circle at top, rgba(248, 250, 252, 0.10), transparent 60%) rgba(15, 23, 42, 0.9);
-            --door-sign-bg: rgba(15, 23, 42, 0.9);
-            --door-bg: linear-gradient(145deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.4));
-            --door-floor-bg: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), transparent 70%);
-            --door-shadow-color: rgba(56, 189, 248, 0.7);
-
-            /* Sort & Play Area */
-            --sort-pool-bg: radial-gradient(circle at top, rgba(148, 163, 184, 0.09), transparent 60%);
-            --dropzone-bg: rgba(15, 23, 42, 0.82);
-            --dropzone-over-bg: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 65%) rgba(15, 23, 42, 0.96);
-            --drag-card-bg: radial-gradient(circle at top, rgba(148, 163, 184, 0.18), transparent 70%) rgba(15, 23, 42, 0.95);
-
-            /* Inputs */
-            --input-bg: rgba(15, 23, 42, 0.95);
-            --input-gradient-image: linear-gradient(45deg, transparent 50%, var(--muted) 52%), linear-gradient(135deg, var(--muted) 48%, transparent 50%);
-        }
-
-        /* Light Theme Overrides */
-        :root.theme-light {
-            --bg: #f8fafc;
-            --panel: rgba(255, 255, 255, 0.92);
-            --panel-soft: rgba(255, 255, 255, 0.85);
-            --border-soft: rgba(51, 65, 85, 0.2);
-            --border-strong: rgba(51, 65, 85, 0.4);
-            --accent: #0ea5e9;
-            --accent-soft: rgba(14, 165, 233, 0.15);
-            --accent-strong: #0284c7;
-            --text: #0f172a;
-            --muted: #64748b;
-            --shadow-soft: 0 10px 30px rgba(51, 65, 85, 0.15);
-
-            /* Component Overrides (Light) */
-            --body-bg-gradient:
-                radial-gradient(circle at top, rgba(14, 165, 233, 0.1), transparent 55%),
-                radial-gradient(circle at bottom, rgba(99, 102, 241, 0.08), transparent 60%),
-                var(--bg);
-
-            --panel-bg: radial-gradient(circle at top left, rgba(148, 163, 184, 0.12), transparent 55%) var(--panel);
-            --card-glass-bg: radial-gradient(circle at top left, rgba(255, 255, 255, 0.8), transparent 60%) rgba(255, 255, 255, 0.90);
-
-            --stat-chip-bg: radial-gradient(circle at top, rgba(200, 200, 200, 0.2), transparent 55%), rgba(255, 255, 255, 0.85);
-
-            --btn-secondary-bg: radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 55%) rgba(255, 255, 255, 0.9);
-            --btn-secondary-hover-bg: radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 60%) rgba(255, 255, 255, 1.0);
-            --btn-footer-bg: radial-gradient(circle at top left, rgba(14, 165, 233, 0.15), transparent 55%) rgba(255, 255, 255, 0.8);
-
-            --door-scene-bg: radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 60%) rgba(255, 255, 255, 0.85);
-            --door-sign-bg: rgba(255, 255, 255, 0.95);
-            --door-bg: linear-gradient(145deg, rgba(241, 245, 249, 1), rgba(226, 232, 240, 1));
-            --door-floor-bg: radial-gradient(circle at top, rgba(51, 65, 85, 0.2), transparent 70%);
-            --door-shadow-color: rgba(14, 165, 233, 0.7);
-
-            --sort-pool-bg: radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 60%) rgba(255, 255, 255, 0.4);
-            --dropzone-bg: rgba(255, 255, 255, 0.8);
-            --dropzone-over-bg: radial-gradient(circle at top, rgba(14, 165, 233, 0.2), transparent 65%) rgba(255, 255, 255, 0.95);
-            --drag-card-bg: radial-gradient(circle at top, rgba(255, 255, 255, 0.9), transparent 70%) rgba(255, 255, 255, 0.95);
-
-            --input-bg: rgba(255, 255, 255, 0.95);
-            --input-gradient-image: linear-gradient(45deg, transparent 50%, var(--muted) 52%), linear-gradient(135deg, var(--muted) 48%, transparent 50%);
-        }
-
-        /* Grundlayout */
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
-
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            color: var(--text);
-            background: var(--bg);
-            /* Fallback or matches panel bg if needed, but panel will cover it */
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-
-        /* Außenrahmen / Board */
-
-        .page {
-            width: 100%;
-            min-height: 100vh;
-        }
-
-        .panel {
-            background: var(--panel-bg);
-            background-blend-mode: soft-light;
-            min-height: 100vh;
-            width: 100%;
-            border: none;
-            box-shadow: none;
-            border-radius: 0;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* Center the content wrapper */
-        }
-
-        .game-content {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Header oben */
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            gap: 2rem;
-            align-items: flex-start;
-        }
-
-        .title-block {
-            display: none;
-        }
-
-        .header {
-            justify-content: flex-end;
-            /* Move stats to the right, or keep apart if title was there */
-        }
-
-        /*
-        .title-block h1 {
-            margin: 0;
-            font-size: 2.2rem;
-            letter-spacing: 0.03em;
-        }
-
-        .title-block p {
-            margin: 0.4rem 0 0;
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-        */
-
-        .stats {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            align-items: flex-end;
-        }
-
-        /* Stats-Chips */
-
-        .stat-chip {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            padding: 0.4rem 1.1rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-soft);
-            background: var(--stat-chip-bg);
-            font-size: 0.9rem;
-            white-space: nowrap;
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-
-        .stat-chip span:first-child {
-            color: var(--muted);
-        }
-
-        .stat-chip--timer span:last-child {
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Toolbar / Restart-Button */
-
-        .toolbar {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.55rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid transparent;
-            padding: 0.55rem 1.4rem;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease, color 0.15s ease;
-            font-weight: 500;
-            color: var(--text);
-        }
-
-        .btn span:first-child {
-            font-size: 1.05em;
-        }
-
-        .btn-secondary {
-            background: var(--btn-secondary-bg);
-            border-color: var(--accent-soft);
-            color: var(--accent-strong);
-            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 14px 30px rgba(15, 23, 42, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: var(--btn-secondary-hover-bg);
-            transform: translateY(-1px);
-            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1);
-        }
-
-        /* Tür-Karte */
-
-        .door-wrapper {
-            margin-bottom: 1.75rem;
-        }
-
-        .door-scene {
-            width: 160px;
-            height: 210px;
-            border-radius: var(--radius-md);
-            background: var(--door-scene-bg);
-            border: 1px solid var(--border-soft);
-            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.3);
-            position: relative;
-            padding-top: 2.2rem;
-            margin-left: 0.25rem;
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-
-        .door-sign {
-            position: absolute;
-            top: 1.15rem;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 0.25rem 0.9rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            border: 1px solid rgba(248, 113, 113, 0.6);
-            color: rgba(248, 113, 113, 0.9);
-            background: var(--door-sign-bg);
-            z-index: 2;
-            transition: background 0.3s ease;
-        }
-
-        .door-sign--open {
-            border-color: rgba(34, 197, 94, 0.7);
-            color: rgba(134, 239, 172, 0.9);
-        }
-
-        .door {
-            width: 76px;
-            height: 120px;
-            border-radius: 18px;
-            border: 2px solid var(--border-strong);
-            margin: 0 auto;
-            position: relative;
-            background: var(--door-bg);
-            box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.1);
-            z-index: 1;
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-
-        .door::after {
-            content: "";
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 999px;
-            background: var(--accent);
-            right: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            box-shadow: 0 0 10px var(--door-shadow-color);
-        }
-
-        .door--open {
-            transform: perspective(600px) rotateY(-20deg) translateX(-6px);
-            transform-origin: left center;
-            transition: transform 0.35s ease-out;
-        }
-
-        .door-floor {
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 22px;
-            background: var(--door-floor-bg);
-            opacity: 0.85;
-            transition: background 0.3s ease;
-        }
-
-        .door-glow {
-            position: absolute;
-            inset: auto 8px 8px;
-            height: 26px;
-            border-radius: 999px;
-            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.0), transparent 70%);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .door-glow--active {
-            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.23), transparent 75%);
-            opacity: 1;
-        }
-
-        /* Grid */
-
-        .layout-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 1.4rem;
-        }
-
-        /* Section Cards */
-
-        .section-card {
-            background: var(--card-glass-bg);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-soft);
-            box-shadow: 0 14px 40px rgba(15, 23, 42, 0.2);
-            padding: 1.3rem 1.5rem 1.4rem;
-            backdrop-filter: blur(18px) saturate(150%);
-            -webkit-backdrop-filter: blur(18px) saturate(150%);
-            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .section-sub {
-            font-size: 0.9rem;
-            color: var(--muted);
-            margin-top: 0.2rem;
-        }
-
-        .section-status {
-            font-size: 0.8rem;
-            padding: 0.25rem 0.8rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid rgba(148, 163, 184, 0.4);
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .section-status--done {
-            border-color: rgba(34, 197, 94, 0.7);
-            color: rgba(134, 239, 172, 0.9);
-            background: rgba(22, 163, 74, 0.15);
-        }
-
-        .section-status--fail {
-            border-color: rgba(248, 113, 113, 0.7);
-            color: rgba(248, 113, 113, 0.95);
-            background: rgba(127, 29, 29, 0.28);
-        }
-
-        .section-body {
-            margin-bottom: 1rem;
-        }
-
-        .section-footer {
-            margin-top: 0.3rem;
-        }
-
-        /* Sortier-Aufgabe */
-
-        .sort-pool {
-            border-radius: 18px;
-            border: 1px dashed rgba(148, 163, 184, 0.5);
-            background: var(--sort-pool-bg);
-            padding: 0.75rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-bottom: 1rem;
-            transition: background 0.3s ease;
-        }
-
-        .sort-board {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.9rem;
-        }
-
-        .escape-dropzone {
-            border-radius: 18px;
-            border: 1px dashed rgba(148, 163, 184, 0.6);
-            background: var(--dropzone-bg);
-            padding: 0.75rem 0.9rem;
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .escape-dropzone-label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text);
-        }
-
-        .escape-dropzone-label span {
-            display: block;
-            margin-top: 0.1rem;
-        }
-
-        .escape-dropzone.is-over {
-            border-style: solid;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
-            background: var(--dropzone-over-bg);
-        }
-
-        /* Drag-Karten */
-
-        .drag-card {
-            border-radius: 12px;
-            padding: 0.5rem 0.9rem;
-            font-size: 0.9rem;
-            border: 1px solid rgba(148, 163, 184, 0.7);
-            background: var(--drag-card-bg);
-            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
-            cursor: grab;
-            user-select: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-start;
-            max-width: 100%;
-            height: auto;
-            color: var(--text);
-            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-
-        .drag-card.dragging {
-            opacity: 0.85;
-            transform: scale(1.03);
-            cursor: grabbing;
-        }
-
-        .drag-card.correct {
-            border-color: rgba(34, 197, 94, 0.9);
-            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6), 0 14px 28px rgba(22, 163, 74, 0.5);
-        }
-
-        .drag-card.wrong {
-            border-color: rgba(248, 113, 113, 0.9);
-            box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.6), 0 14px 28px rgba(127, 29, 29, 0.65);
-        }
-
-        .drag-card-text {
-            white-space: normal;
-            line-height: 1.35;
-            text-align: left;
-        }
-
-        /* Quiz-Bereich */
-
-        .quiz-question {
-            max-width: 60rem;
-        }
-
-        .quiz-options {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.35rem;
-        }
-
-        .quiz-options li {
-            display: block;
-            width: 100%;
-            margin: 0.25rem 0;
-        }
-
-        .quiz-options li label {
-            display: inline-flex !important;
-            align-items: flex-start;
-            gap: 0.5rem;
-            width: 100%;
-            cursor: pointer;
-            font-size: 0.92rem;
-            max-width: 100%;
-            white-space: normal;
-            color: var(--text);
-        }
-
-        .quiz-options li input[type="radio"] {
-            flex: 0 0 auto !important;
-            width: auto;
-            margin-top: 0.2rem;
-            margin-right: 0;
-            accent-color: var(--accent);
-            order: 0;
-        }
-
-        /* Capital-Tabelle */
-
-        .capital-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.93rem;
-        }
-
-        .capital-table th {
-            text-align: left;
-            padding-bottom: 0.4rem;
-            font-weight: 500;
-            color: var(--muted);
-        }
-
-        .capital-table td {
-            padding: 0.3rem 0;
-            color: var(--text);
-        }
-
-        .capital-table select {
-            width: 100%;
-            border-radius: 999px;
-            border: 1px solid var(--border-soft);
-            background: var(--input-bg);
-            color: var(--text);
-            padding: 0.35rem 0.85rem;
-            font-size: 0.9rem;
-            outline: none;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: var(--input-gradient-image);
-            background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
-            background-size: 7px 7px, 7px 7px;
-            background-repeat: no-repeat;
-            cursor: pointer;
-            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .capital-table select.correct {
-            border-color: rgba(34, 197, 94, 0.9);
-            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6), 0 14px 30px rgba(22, 163, 74, 0.7);
-        }
-
-        .capital-table select.wrong {
-            border-color: rgba(248, 113, 113, 0.95);
-            box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.7), 0 14px 30px rgba(127, 29, 29, 0.7);
-        }
-
-        /* Buttons in den Section-Footern */
-
-        .section-footer .btn {
-            background: var(--btn-footer-bg);
-            border-color: var(--accent);
-            color: var(--accent-strong);
-            padding-inline: 1.5rem;
-        }
-
-        .section-footer .btn:hover {
-            background: var(--btn-secondary-hover-bg);
-        }
-
-        /* Kleinere Screens */
-
-        @media (max-width: 900px) {
-            .panel {
-                padding: 1.5rem 1.25rem 1.75rem;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1.1rem;
-            }
-
-            .stats {
-                flex-direction: row;
-                align-items: center;
-                justify-content: flex-start;
-            }
-
-            .sort-board {
-                grid-template-columns: 1fr;
-            }
-
-            .door-scene {
-                margin-bottom: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="Escape-Game.css">
 </head>
 
 <body>
-    <div class="page">
-        <main class="panel">
-            <div class="game-content">
-                <header class="header">
-                    <div class="title-block">
-                        <h1>Mini-Escape-Room</h1>
-                        <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
-                    </div>
-                    <div class="stats">
-                        <div class="stat-chip stat-chip--timer">
-                            <span>Zeit</span>
-                            <span id="stat-timer">03:00</span>
-                        </div>
-                        <div class="stat-chip">
-                            <span>Rätsel gelöst</span>
-                            <span id="stat-solved">0 / 3</span>
-                        </div>
-                    </div>
-                </header>
-
-                <div class="toolbar">
-
-                    <button class="btn-secondary btn" id="restart-btn" type="button">
-                        <span>↻</span> Neu starten
-                    </button>
+<div class="page">
+    <main class="panel">
+        <div class="game-content">
+            <header class="header">
+                <div class="title-block">
+                    <h1>Mini-Escape-Room</h1>
+                    <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
                 </div>
-
-                <div class="door-wrapper">
-                    <div class="door-scene">
-                        <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
-                        <div class="door" id="door"></div>
-                        <div class="door-floor"></div>
-                        <div class="door-glow" id="door-glow"></div>
+                <div class="stats">
+                    <div class="stat-chip stat-chip--timer">
+                        <span>Zeit</span>
+                        <span id="stat-timer">03:00</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span>Rätsel gelöst</span>
+                        <span id="stat-solved">0 / 3</span>
                     </div>
                 </div>
+            </header>
 
-                <div class="layout-grid">
-                    <!-- Rätsel 1: Sortieraufgabe Haftung -->
-                    <section class="section-card" id="section-sort">
-                        <div class="section-header">
-                            <div>
-                                <div class="section-title">Rätsel 1: Haftung einsortieren</div>
-                                <div class="section-sub">Ziehe die Haftungseigenschaften in die passende Kategorie.
-                                </div>
-                            </div>
-                            <div class="section-status" id="status-sort">offen</div>
-                        </div>
-                        <div class="section-body">
-                            <div class="sort-pool" id="sort-pool"></div>
-                            <div class="sort-board">
-                                <div class="escape-dropzone" data-zone="person">
-                                    <div class="escape-dropzone-label">
-                                        Personengesellschaften<br>
-                                        <span style="font-size:10px;color:hsl(var(--txt-muted));">
-                                            (Einzelunternehmen, GbR, OHG, KG)
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="escape-dropzone" data-zone="kapital">
-                                    <div class="escape-dropzone-label">
-                                        Kapitalgesellschaften<br>
-                                        <span style="font-size:10px;color:hsl(var(--txt-muted));">
-                                            (GmbH, UG)
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="escape-dropzone" data-zone="beide">
-                                    <div class="escape-dropzone-label">Kann zu beiden passen</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="section-footer">
-                            <button class="btn" id="check-sort-btn" type="button">
-                                <span>✔</span> Rätsel prüfen
-                            </button>
-                        </div>
-                    </section>
+            <div class="toolbar">
+                <button class="btn-secondary btn" id="restart-btn" type="button">
+                    <span>↻</span> Neu starten
+                </button>
+            </div>
 
-                    <!-- Rätsel 2: Quiz -->
-                    <section class="section-card" id="section-quiz">
-                        <div class="section-header">
-                            <div>
-                                <div class="section-title">Rätsel 2: Kurz-Quiz Rechtsformen</div>
-                                <div class="section-sub">Beantworte zwei Fragen – jede mit einer richtigen Antwort.
-                                </div>
-                            </div>
-                            <div class="section-status" id="status-quiz">offen</div>
-                        </div>
-                        <div class="section-body">
-                            <div class="quiz-question" data-quiz-id="q1">
-                                <div class="quiz-text">1. Welche Aussage zur GmbH stimmt?</div>
-                                <ul class="quiz-options">
-                                    <li><label><input type="radio" name="q1" value="a"> Die Gesellschafter haften immer
-                                            mit
-                                            ihrem gesamten Privatvermögen.</label></li>
-                                    <li><label><input type="radio" name="q1" value="b"> Es gibt kein gesetzliches
-                                            Mindestkapital.</label></li>
-                                    <li><label><input type="radio" name="q1" value="c"> Es ist ein Stammkapital von
-                                            25.000 €
-                                            vorgeschrieben.</label></li>
-                                </ul>
-                            </div>
-                            <div class="quiz-question" data-quiz-id="q2">
-                                <div class="quiz-text">2. Was ist typisch für eine GbR?</div>
-                                <ul class="quiz-options">
-                                    <li><label><input type="radio" name="q2" value="a"> Es muss mindestens eine Million
-                                            Euro
-                                            Kapital eingebracht werden.</label></li>
-                                    <li><label><input type="radio" name="q2" value="b"> Mindestens zwei Personen
-                                            schließen
-                                            sich zusammen und haften persönlich.</label></li>
-                                    <li><label><input type="radio" name="q2" value="c"> Sie ist immer an der Börse
-                                            notiert.</label></li>
-                                </ul>
-                            </div>
-                            <div class="quiz-feedback" id="quiz-feedback">Wähle je Frage eine Antwort.</div>
-                        </div>
-                        <div class="section-footer">
-                            <button class="btn" id="check-quiz-btn" type="button">
-                                <span>✔</span> Quiz prüfen
-                            </button>
-                        </div>
-                    </section>
-
-                    <!-- Rätsel 3: Mindestkapital -->
-                    <section class="section-card" id="section-capital">
-                        <div class="section-header">
-                            <div>
-                                <div class="section-title">Rätsel 3: Form → Mindestkapital</div>
-                                <div class="section-sub">Ordne das typische Mindestkapital zu den Rechtsformen zu.</div>
-                            </div>
-                            <div class="section-status" id="status-capital">offen</div>
-                        </div>
-                        <div class="section-body">
-                            <table class="capital-table">
-                                <thead>
-                                    <tr>
-                                        <th>Rechtsform</th>
-                                        <th>Mindestkapital</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Einzelunternehmen</td>
-                                        <td>
-                                            <select data-form="Einzelunternehmen">
-                                                <option value="">– bitte wählen –</option>
-                                                <option value="kein">kein gesetzliches Mindestkapital</option>
-                                                <option value="1euro">ab 1 € Stammkapital</option>
-                                                <option value="25000">25.000 € Stammkapital</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>GbR</td>
-                                        <td>
-                                            <select data-form="GbR">
-                                                <option value="">– bitte wählen –</option>
-                                                <option value="kein">kein gesetzliches Mindestkapital</option>
-                                                <option value="1euro">ab 1 € Stammkapital</option>
-                                                <option value="25000">25.000 € Stammkapital</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>UG (haftungsbeschränkt)</td>
-                                        <td>
-                                            <select data-form="UG (haftungsbeschränkt)">
-                                                <option value="">– bitte wählen –</option>
-                                                <option value="kein">kein gesetzliches Mindestkapital</option>
-                                                <option value="1euro">ab 1 € Stammkapital</option>
-                                                <option value="25000">25.000 € Stammkapital</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>GmbH</td>
-                                        <td>
-                                            <select data-form="GmbH">
-                                                <option value="">– bitte wählen –</option>
-                                                <option value="kein">kein gesetzliches Mindestkapital</option>
-                                                <option value="1euro">ab 1 € Stammkapital</option>
-                                                <option value="25000">25.000 € Stammkapital</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="section-footer">
-                            <button class="btn" id="check-capital-btn" type="button">
-                                <span>✔</span> Zuordnung prüfen
-                            </button>
-                        </div>
-                    </section>
+            <div class="door-wrapper">
+                <div class="door-scene">
+                    <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
+                    <div class="door" id="door"></div>
+                    <div class="door-floor"></div>
+                    <div class="door-glow" id="door-glow"></div>
                 </div>
             </div>
-        </main>
-    </div>
 
-    <!-- Konfiguration laden -->
-    <script src="../config.js"></script>
-    <script src="game_base.js"></script>
-    <script>
-        // NEU: Daten direkt im Code, damit es ohne Webserver lokal (file://) läuft
-        const GAME_CONFIG = {
-            "game_type": "escape_game",
-            "schema_version": "1.0",
-            // "title": "Mini-Escape-Room – Rechtsformen",
-            // "topic": "Unternehmensformen / Rechtsformen",
-            "estimated_minutes": 20,
-            "sections": [
-                {
-                    "id": "haftung-sort",
-                    "type": "sort",
-                    "title": "Rätsel 1: Haftung einsortieren",
-                    "subtitle": "Ziehe die Haftungseigenschaften in die passende Kategorie.",
-                    "hintDefault": "Tipp: Wer haftet privat, wer nur mit der Gesellschaft?",
-                    "sortColumns": [
-                        {
-                            "zone": "person",
-                            "label": "Personengesellschaften",
-                            "hint": "(Einzelunternehmen, GbR, OHG, KG)"
-                        },
-                        {
-                            "zone": "kapital",
-                            "label": "Kapitalgesellschaften",
-                            "hint": "(GmbH, UG)"
-                        },
-                        {
-                            "zone": "beide",
-                            "label": "Kann zu beiden passen",
-                            "hint": ""
-                        }
-                    ],
-                    "sortCards": [
-                        {
-                            "id": "s1",
-                            "text": "Volle persönliche Haftung mit Privatvermögen",
-                            "correctZone": "person"
-                        },
-                        {
-                            "id": "s2",
-                            "text": "Haftung grundsätzlich auf Gesellschaftsvermögen beschränkt",
-                            "correctZone": "kapital"
-                        },
-                        {
-                            "id": "s3",
-                            "text": "Kein gesetzliches Mindestkapital vorgeschrieben",
-                            "correctZone": "person"
-                        },
-                        {
-                            "id": "s4",
-                            "text": "Stammkapital muss eingezahlt werden",
-                            "correctZone": "kapital"
-                        },
-                        {
-                            "id": "s5",
-                            "text": "Kann je nach Ausgestaltung bei allen Rechtsformen durch Bürgschaften verstärkt werden",
-                            "correctZone": "beide"
-                        }
-                    ]
-                },
-                {
-                    "id": "quiz-rechtsformen",
-                    "type": "quiz",
-                    "title": "Rätsel 2: Kurz-Quiz Rechtsformen",
-                    "subtitle": "Beantworte zwei Fragen – jede mit einer richtigen Antwort.",
-                    "hintDefault": "Nur wenn alle Antworten richtig sind, zählt das Rätsel als gelöst.",
-                    "questions": [
-                        {
-                            "id": "q1",
-                            "text": "1. Welche Aussage zur GmbH stimmt?",
-                            "options": [
-                                { "value": "a", "text": "Die Gesellschafter haften immer mit ihrem gesamten Privatvermögen." },
-                                { "value": "b", "text": "Es gibt kein gesetzliches Mindestkapital." },
-                                { "value": "c", "text": "Es ist ein Stammkapital von 25.000 € vorgeschrieben." }
-                            ],
-                            "correct": "c"
-                        },
-                        {
-                            "id": "q2",
-                            "text": "2. Was ist typisch für eine GbR?",
-                            "options": [
-                                { "value": "a", "text": "Es muss mindestens eine Million Euro Kapital eingebracht werden." },
-                                { "value": "b", "text": "Mindestens zwei Personen schließen sich zusammen und haften persönlich." },
-                                { "value": "c", "text": "Sie ist immer an der Börse notiert." }
-                            ],
-                            "correct": "b"
-                        }
-                    ]
-                },
-                {
-                    "id": "capital-mindestkapital",
-                    "type": "capital",
-                    "title": "Rätsel 3: Form → Mindestkapital",
-                    "subtitle": "Ordne das typische Mindestkapital zu den Rechtsformen zu.",
-                    "hintDefault": "Hinweis: Personengesellschaften brauchen in der Regel kein gesetzliches Mindestkapital.",
-                    "rows": [
-                        {
-                            "key": "einzel",
-                            "label": "Einzelunternehmen",
-                            "correct": "kein",
-                            "options": [
-                                { "value": "", "text": "– bitte wählen –" },
-                                { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
-                                { "value": "1euro", "text": "ab 1 € Stammkapital" },
-                                { "value": "25000", "text": "25.000 € Stammkapital" }
-                            ]
-                        },
-                        {
-                            "key": "gbr",
-                            "label": "GbR",
-                            "correct": "kein",
-                            "options": [
-                                { "value": "", "text": "– bitte wählen –" },
-                                { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
-                                { "value": "1euro", "text": "ab 1 € Stammkapital" },
-                                { "value": "25000", "text": "25.000 € Stammkapital" }
-                            ]
-                        },
-                        {
-                            "key": "ug",
-                            "label": "UG (haftungsbeschränkt)",
-                            "correct": "1euro",
-                            "options": [
-                                { "value": "", "text": "– bitte wählen –" },
-                                { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
-                                { "value": "1euro", "text": "ab 1 € Stammkapital" },
-                                { "value": "25000", "text": "25.000 € Stammkapital" }
-                            ]
-                        },
-                        {
-                            "key": "gmbh",
-                            "label": "GmbH",
-                            "correct": "25000",
-                            "options": [
-                                { "value": "", "text": "– bitte wählen –" },
-                                { "value": "kein", "text": "kein gesetzliches Mindestkapital" },
-                                { "value": "1euro", "text": "ab 1 € Stammkapital" },
-                                { "value": "25000", "text": "25.000 € Stammkapital" }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-
-        // --- Escape Game Logic refactored into GameBase Subclass ---
-
-        class EscapeGame extends window.GameBase {
-            constructor() {
-                super({
-                    expectedGameType: 'escape_game',
-                    rootElementId: 'game-root' // Not strictly used as we manipulate various IDs directly
-                });
-
-                // Game State
-                this.START_SECONDS = 180;
-                this.remainingSeconds = this.START_SECONDS;
-                this.timerId = null;
-                this.gameLocked = false;
-
-                this.sectionSolved = {
-                    sort: false,
-                    quiz: false,
-                    capital: false
-                };
-
-                this.sortCardsData = [];
-                this.quizSolutions = {};
-                this.capitalSolutions = {};
-                this.draggingCardId = null;
-
-                // DOM Elements (assigned in onDataLoaded)
-                this.statTimerEl = null;
-                this.statSolvedEl = null;
-                this.statStatusEl = null;
-                this.doorEl = null;
-                this.doorSignEl = null;
-                this.doorGlowEl = null;
-                this.sortPoolEl = null;
-                this.quizFeedbackEl = null;
-            }
-
-            /**
-             * OVERRIDE: Payload direkt aus GAME_CONFIG holen (lokal, kein Server nötig)
-             */
-            async _loadPayload() {
-                // Wir ignorieren SessionStorage/Drive und nehmen direkt die Konstante
-                return GAME_CONFIG;
-            }
-
-            onDataLoaded(data) {
-                // 1. Config parsen & Datenstrukturen füllen
-                this._parseConfig(data);
-
-                // 2. DOM-Elemente binden
-                this.statTimerEl = document.getElementById("stat-timer");
-                this.statSolvedEl = document.getElementById("stat-solved");
-                this.statStatusEl = document.getElementById("stat-status"); // Falls vorhanden
-
-                this.doorEl = document.getElementById("door");
-                this.doorSignEl = document.getElementById("door-sign");
-                this.doorGlowEl = document.getElementById("door-glow");
-
-                this.sortPoolEl = document.getElementById("sort-pool");
-                this.quizFeedbackEl = document.getElementById("quiz-feedback");
-
-                // Buttons
-                document.getElementById("restart-btn").addEventListener("click", () => this.resetGame());
-                document.getElementById("check-sort-btn").addEventListener("click", () => this.checkSort());
-                document.getElementById("check-quiz-btn").addEventListener("click", () => this.checkQuiz());
-                document.getElementById("check-capital-btn").addEventListener("click", () => this.checkCapital());
-
-                // Drag Drop Zones
-                const dropzones = document.querySelectorAll(".escape-dropzone");
-                dropzones.forEach(zone => {
-                    zone.addEventListener("dragover", (e) => this.handleDragOverZone(e));
-                    zone.addEventListener("dragleave", (e) => this.handleDragLeaveZone(e));
-                    zone.addEventListener("drop", (e) => this.handleDropZone(e));
-                });
-
-                // Start
-                this.resetGame();
-            }
-
-            _parseConfig(config) {
-                const sortSection = config.sections.find(s => s.type === "sort");
-                const quizSection = config.sections.find(s => s.type === "quiz");
-                const capitalSection = config.sections.find(s => s.type === "capital");
-
-                if (sortSection && Array.isArray(sortSection.sortCards)) {
-                    this.sortCardsData = sortSection.sortCards;
-                }
-
-                if (quizSection && Array.isArray(quizSection.questions)) {
-                    this.quizSolutions = {};
-                    quizSection.questions.forEach(q => {
-                        this.quizSolutions[q.id] = q.correct;
-                        // Render HTML immediately
-                        const qRoot = document.querySelector(`.quiz-question[data-quiz-id="${String(q.id)}"]`);
-                        if (!qRoot) return;
-
-                        const textEl = qRoot.querySelector(".quiz-text");
-                        if (textEl) textEl.textContent = q.text;
-
-                        const listEl = qRoot.querySelector(".quiz-options");
-                        if (listEl && Array.isArray(q.options)) {
-                            listEl.innerHTML = "";
-                            q.options.forEach(o => {
-                                const li = document.createElement("li");
-                                li.innerHTML = `<label><input type="radio" name="${q.id}" value="${o.value}"> ${o.text}</label>`;
-                                listEl.appendChild(li);
-                            });
-                        }
-                    });
-                }
-
-                if (capitalSection && Array.isArray(capitalSection.rows)) {
-                    this.capitalSolutions = {};
-                    capitalSection.rows.forEach(row => {
-                        this.capitalSolutions[row.label] = row.correct;
-
-                        const sel = document.querySelector(`select[data-form="${row.label}"]`);
-                        if (sel && Array.isArray(row.options)) {
-                            sel.innerHTML = "";
-                            row.options.forEach(o => {
-                                const opt = document.createElement("option");
-                                opt.value = o.value;
-                                opt.textContent = o.text;
-                                sel.appendChild(opt);
-                            });
-                        }
-                    });
-                }
-            }
-
-            // --- Timer Logic ---
-
-            startTimer() {
-                if (this.timerId) clearInterval(this.timerId);
-                this.timerId = setInterval(() => this.tickTimer(), 1000);
-            }
-
-            tickTimer() {
-                if (this.gameLocked) return;
-                this.remainingSeconds -= 1;
-                if (this.remainingSeconds <= 0) {
-                    this.remainingSeconds = 0;
-                    this.updateTimerDisplay();
-                    this.handleTimeUp();
-                    return;
-                }
-                this.updateTimerDisplay();
-            }
-
-            updateTimerDisplay() {
-                if (!this.statTimerEl) return;
-                this.statTimerEl.textContent = this.formatTime(this.remainingSeconds);
-                this.statTimerEl.style.color = this.remainingSeconds <= 10
-                    ? 'hsl(var(--error))'
-                    : 'var(--text)'; // FIXED: use var(--text) instead of undefined hsl var 
-            }
-
-            formatTime(seconds) {
-                const m = Math.floor(seconds / 60);
-                const s = seconds % 60;
-                const mm = m < 10 ? "0" + m : String(m);
-                const ss = s < 10 ? "0" + s : String(s);
-                return mm + ":" + ss;
-            }
-
-            handleTimeUp() {
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.timerId = null;
-                }
-                this.gameLocked = true;
-
-                this.doorSignEl.textContent = "ZU SPÄT";
-                this.doorSignEl.classList.remove("door-sign--open");
-                this.doorSignEl.classList.add("door-sign--closed");
-                this.doorEl.classList.remove("door--open");
-                this.doorGlowEl.classList.remove("door-glow--active");
-
-                this._disableAllButtons();
-            }
-
-            _disableAllButtons() {
-                const btns = document.querySelectorAll("#check-sort-btn, #check-quiz-btn, #check-capital-btn");
-                btns.forEach(b => b.disabled = true);
-            }
-            _enableAllButtons() {
-                const btns = document.querySelectorAll("#check-sort-btn, #check-quiz-btn, #check-capital-btn");
-                btns.forEach(b => b.disabled = false);
-            }
-
-            // --- Game Logic ---
-
-            updateSolvedStatus() {
-                const solvedCount = Object.values(this.sectionSolved).filter(Boolean).length;
-                this.statSolvedEl.textContent = solvedCount + " / 3";
-
-                if (solvedCount === 3 && !this.gameLocked && this.remainingSeconds > 0) {
-                    this.openDoor();
-                }
-            }
-
-            openDoor() {
-                this.gameLocked = true;
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.timerId = null;
-                }
-
-                this.doorEl.classList.add("door--open");
-                this.doorGlowEl.classList.add("door-glow--active");
-                this.doorSignEl.textContent = "OFFEN";
-                this.doorSignEl.classList.remove("door-sign--closed");
-                this.doorSignEl.classList.add("door-sign--open");
-
-                this._disableAllButtons();
-            }
-
-            resetGame() {
-                if (this.timerId) clearInterval(this.timerId);
-
-                this.remainingSeconds = this.START_SECONDS;
-                this.gameLocked = false;
-                this.sectionSolved = { sort: false, quiz: false, capital: false };
-
-                // UI Reset
-                this.updateTimerDisplay();
-                this.statSolvedEl.textContent = "0 / 3";
-
-                document.getElementById("status-sort").textContent = "offen";
-                document.getElementById("status-sort").className = "section-status";
-                document.getElementById("status-quiz").textContent = "offen";
-                document.getElementById("status-quiz").className = "section-status";
-                document.getElementById("status-capital").textContent = "offen";
-                document.getElementById("status-capital").className = "section-status";
-
-                this.doorEl.classList.remove("door--open");
-                this.doorGlowEl.classList.remove("door-glow--active");
-                this.doorSignEl.textContent = "GESCHLOSSEN";
-                this.doorSignEl.classList.add("door-sign--closed");
-                this.doorSignEl.classList.remove("door-sign--open");
-
-                this.resetSortBoard();
-
-                // Quiz Reset
-                document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
-                this.quizFeedbackEl.textContent = "Wähle je Frage eine Antwort.";
-
-                // Capital Reset
-                document.querySelectorAll(".capital-table select").forEach(sel => {
-                    sel.value = "";
-                    sel.classList.remove("correct", "wrong");
-                });
-
-                this._enableAllButtons();
-                this.startTimer();
-            }
-
-            // --- Drag & Drop ---
-
-            resetSortBoard() {
-                this.sortPoolEl.innerHTML = "";
-                this.sortCardsData.forEach(card => {
-                    const el = this.createSortCard(card);
-                    this.sortPoolEl.appendChild(el);
-                });
-                const dropzones = document.querySelectorAll(".escape-dropzone");
-                dropzones.forEach(zone => {
-                    zone.classList.remove("is-over");
-                    const children = Array.from(zone.children).filter(c => !c.classList.contains("escape-dropzone-label"));
-                    children.forEach(c => c.remove());
-                });
-            }
-
-            createSortCard(cardData) {
-                const el = document.createElement("div");
-                el.className = "drag-card";
-                el.draggable = true;
-                el.dataset.cardId = cardData.id;
-                el.dataset.correctZone = cardData.correctZone;
-
-                const textSpan = document.createElement("span");
-                textSpan.className = "drag-card-text";
-                textSpan.textContent = cardData.text;
-                el.appendChild(textSpan);
-
-                el.addEventListener("dragstart", (e) => {
-                    if (this.gameLocked) {
-                        e.preventDefault();
-                        return;
-                    }
-                    this.draggingCardId = cardData.id;
-                    el.classList.add("dragging");
-                    e.dataTransfer.effectAllowed = "move";
-                    e.dataTransfer.setData("text/plain", cardData.id);
-                });
-
-                el.addEventListener("dragend", () => {
-                    this.draggingCardId = null;
-                    el.classList.remove("dragging");
-                });
-
-                return el;
-            }
-
-            handleDragOverZone(e) {
-                if (this.gameLocked) return;
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-                e.currentTarget.classList.add("is-over");
-            }
-
-            handleDragLeaveZone(e) {
-                e.currentTarget.classList.remove("is-over");
-            }
-
-            handleDropZone(e) {
-                if (this.gameLocked) return;
-                e.preventDefault();
-                const zone = e.currentTarget;
-                zone.classList.remove("is-over");
-
-                const cardId = e.dataTransfer.getData("text/plain") || this.draggingCardId;
-                if (!cardId) return;
-
-                const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
-                if (!cardEl) return;
-
-                cardEl.classList.remove("correct", "wrong");
-                zone.appendChild(cardEl);
-            }
-
-            checkSort() {
-                if (this.gameLocked) return;
-
-                let correct = 0;
-                const total = this.sortCardsData.length;
-
-                document.querySelectorAll(".drag-card").forEach(card => card.classList.remove("correct", "wrong"));
-
-                this.sortCardsData.forEach(cardData => {
-                    const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
-                    if (!cardEl) return;
-
-                    const parentZone = cardEl.closest(".escape-dropzone");
-                    const zoneName = parentZone ? parentZone.dataset.zone : null;
-
-                    if (!zoneName) {
-                        cardEl.classList.add("wrong");
-                        return;
-                    }
-
-                    if (zoneName === cardData.correctZone) {
-                        cardEl.classList.add("correct");
-                        correct += 1;
-                    } else {
-                        cardEl.classList.add("wrong");
-                    }
-                });
-
-                const statusEl = document.getElementById("status-sort");
-                if (correct === total) {
-                    this.sectionSolved.sort = true;
-                    statusEl.textContent = "gelöst";
-                    statusEl.className = "section-status section-status--done";
-                } else {
-                    this.sectionSolved.sort = false;
-                    statusEl.textContent = "noch Fehler";
-                    statusEl.className = "section-status section-status--fail";
-                }
-
-                this.updateSolvedStatus();
-            }
-
-            // --- Quiz Logic ---
-
-            checkQuiz() {
-                if (this.gameLocked) return;
-
-                // NOTE: Hardcoded q1, q2 check for specific logic, can be made generic but keeping simple reuse
-                const q1 = document.querySelector('input[name="q1"]:checked');
-                const q2 = document.querySelector('input[name="q2"]:checked');
-
-                const statusEl = document.getElementById("status-quiz");
-
-                if (!q1 || !q2) {
-                    this.quizFeedbackEl.textContent = "Bitte jede der beiden Fragen beantworten.";
-                    this.sectionSolved.quiz = false;
-                    statusEl.textContent = "unvollständig";
-                    statusEl.className = "section-status section-status--fail";
-                    this.updateSolvedStatus();
-                    return;
-                }
-
-                const correctQ1 = q1.value === this.quizSolutions.q1;
-                const correctQ2 = q2.value === this.quizSolutions.q2;
-
-                if (correctQ1 && correctQ2) {
-                    this.sectionSolved.quiz = true;
-                    statusEl.textContent = "gelöst";
-                    statusEl.className = "section-status section-status--done";
-                    this.quizFeedbackEl.textContent = "Beide Antworten sind richtig.";
-                } else {
-                    this.sectionSolved.quiz = false;
-                    statusEl.textContent = "noch Fehler";
-                    statusEl.className = "section-status section-status--fail";
-                    this.quizFeedbackEl.textContent = "Mindestens eine Antwort ist falsch.";
-                }
-                this.updateSolvedStatus();
-            }
-
-            // --- Capital Logic ---
-
-            checkCapital() {
-                if (this.gameLocked) return;
-
-                let correct = 0;
-                const total = Object.keys(this.capitalSolutions).length;
-                const selects = document.querySelectorAll(".capital-table select");
-
-                selects.forEach(sel => sel.classList.remove("correct", "wrong"));
-
-                selects.forEach(sel => {
-                    const form = sel.dataset.form;
-                    const expected = this.capitalSolutions[form];
-                    const chosen = sel.value;
-
-                    if (!chosen) {
-                        sel.classList.add("wrong");
-                        return;
-                    }
-
-                    if (chosen === expected) {
-                        sel.classList.add("correct");
-                        correct += 1;
-                    } else {
-                        sel.classList.add("wrong");
-                    }
-                });
-
-                const statusEl = document.getElementById("status-capital");
-                if (correct === total) {
-                    this.sectionSolved.capital = true;
-                    statusEl.textContent = "gelöst";
-                    statusEl.className = "section-status section-status--done";
-                } else {
-                    this.sectionSolved.capital = false;
-                    statusEl.textContent = "noch Fehler";
-                    statusEl.className = "section-status section-status--fail";
-                }
-                this.updateSolvedStatus();
-            }
-        }
-
-        // --- Init ---
-        // Start game without fileId check for local demo mode if we want,
-        // but GameBase normally checks for fileId.
-
-        // Workaround: We override init() OR we just append ?fileId=... if missing before calling super.init?
-        // No, init is async.
-
-        // Let's modify the instance after creation.
-        const game = new EscapeGame();
-
-        if (!new URLSearchParams(window.location.search).has('fileId')) {
-            // Fake the parameter so GameBase doesn't complain
-            const url = new URL(window.location);
-            url.searchParams.set('fileId', 'LOCAL_DEMO');
-            window.history.replaceState({}, '', url);
-        }
-
-        game.init();
-    </script>
+            <div class="layout-grid">
+                <!-- Rätsel 1: Sortieraufgabe Haftung -->
+                <section class="section-card" id="section-sort">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">Rätsel 1: Haftung einsortieren</div>
+                            <div class="section-sub">Ziehe die Haftungseigenschaften in die passende Kategorie.</div>
+                        </div>
+                        <div class="section-status" id="status-sort">offen</div>
+                    </div>
+                    <div class="section-body">
+                        <div class="sort-pool" id="sort-pool"></div>
+                        <div class="sort-board">
+                            <div class="escape-dropzone" data-zone="person">
+                                <div class="escape-dropzone-label">
+                                    Personengesellschaften<br>
+                                    <span style="font-size:10px;color:hsl(var(--txt-muted));">
+                                        (Einzelunternehmen, GbR, OHG, KG)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="escape-dropzone" data-zone="kapital">
+                                <div class="escape-dropzone-label">
+                                    Kapitalgesellschaften<br>
+                                    <span style="font-size:10px;color:hsl(var(--txt-muted));">
+                                        (GmbH, UG)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="escape-dropzone" data-zone="beide">
+                                <div class="escape-dropzone-label">Kann zu beiden passen</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-footer">
+                        <button class="btn" id="check-sort-btn" type="button">
+                            <span>✔</span> Rätsel prüfen
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Rätsel 2: Quiz -->
+                <section class="section-card" id="section-quiz">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">Rätsel 2: Kurz-Quiz Rechtsformen</div>
+                            <div class="section-sub">Beantworte zwei Fragen – jede mit einer richtigen Antwort.</div>
+                        </div>
+                        <div class="section-status" id="status-quiz">offen</div>
+                    </div>
+                    <div class="section-body">
+                        <div class="quiz-question" data-quiz-id="q1">
+                            <div class="quiz-text">1. Welche Aussage zur GmbH stimmt?</div>
+                            <ul class="quiz-options">
+                                <li><label><input type="radio" name="q1" value="a"> Die Gesellschafter haften immer mit
+                                    ihrem gesamten Privatvermögen.</label></li>
+                                <li><label><input type="radio" name="q1" value="b"> Es gibt kein gesetzliches
+                                    Mindestkapital.</label></li>
+                                <li><label><input type="radio" name="q1" value="c"> Es ist ein Stammkapital von 25.000 €
+                                    vorgeschrieben.</label></li>
+                            </ul>
+                        </div>
+                        <div class="quiz-question" data-quiz-id="q2">
+                            <div class="quiz-text">2. Was ist typisch für eine GbR?</div>
+                            <ul class="quiz-options">
+                                <li><label><input type="radio" name="q2" value="a"> Es muss mindestens eine Million Euro
+                                    Kapital eingebracht werden.</label></li>
+                                <li><label><input type="radio" name="q2" value="b"> Mindestens zwei Personen schließen
+                                    sich zusammen und haften persönlich.</label></li>
+                                <li><label><input type="radio" name="q2" value="c"> Sie ist immer an der Börse
+                                    notiert.</label></li>
+                            </ul>
+                        </div>
+                        <div class="quiz-feedback" id="quiz-feedback">Wähle je Frage eine Antwort.</div>
+                    </div>
+                    <div class="section-footer">
+                        <button class="btn" id="check-quiz-btn" type="button">
+                            <span>✔</span> Quiz prüfen
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Rätsel 3: Mindestkapital -->
+                <section class="section-card" id="section-capital">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">Rätsel 3: Form → Mindestkapital</div>
+                            <div class="section-sub">Ordne das typische Mindestkapital zu den Rechtsformen zu.</div>
+                        </div>
+                        <div class="section-status" id="status-capital">offen</div>
+                    </div>
+                    <div class="section-body">
+                        <table class="capital-table">
+                            <thead>
+                            <tr>
+                                <th>Rechtsform</th>
+                                <th>Mindestkapital</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Einzelunternehmen</td>
+                                <td>
+                                    <select data-form="Einzelunternehmen">
+                                        <option value="">– bitte wählen –</option>
+                                        <option value="kein">kein gesetzliches Mindestkapital</option>
+                                        <option value="1euro">ab 1 € Stammkapital</option>
+                                        <option value="25000">25.000 € Stammkapital</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>GbR</td>
+                                <td>
+                                    <select data-form="GbR">
+                                        <option value="">– bitte wählen –</option>
+                                        <option value="kein">kein gesetzliches Mindestkapital</option>
+                                        <option value="1euro">ab 1 € Stammkapital</option>
+                                        <option value="25000">25.000 € Stammkapital</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>UG (haftungsbeschränkt)</td>
+                                <td>
+                                    <select data-form="UG (haftungsbeschränkt)">
+                                        <option value="">– bitte wählen –</option>
+                                        <option value="kein">kein gesetzliches Mindestkapital</option>
+                                        <option value="1euro">ab 1 € Stammkapital</option>
+                                        <option value="25000">25.000 € Stammkapital</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>GmbH</td>
+                                <td>
+                                    <select data-form="GmbH">
+                                        <option value="">– bitte wählen –</option>
+                                        <option value="kein">kein gesetzliches Mindestkapital</option>
+                                        <option value="1euro">ab 1 € Stammkapital</option>
+                                        <option value="25000">25.000 € Stammkapital</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="section-footer">
+                        <button class="btn" id="check-capital-btn" type="button">
+                            <span>✔</span> Zuordnung prüfen
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Konfiguration laden -->
+<script src="../config.js"></script>
+<script src="game_base.js"></script>
+
+<!-- JSON-Interpretation + lokale Demo-Config -->
+<script src="Escape-Game_payload.js"></script>
+
+<!-- Spiel-Logik -->
+<script src="Escape-Game.js"></script>
 </body>
-
 </html>
-```
