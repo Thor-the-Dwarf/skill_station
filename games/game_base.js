@@ -1,14 +1,93 @@
-/* game_base.js
- *
- * Gemeinsame Basisklasse für alle Spiel-Seiten.
- * Erwartung: debugg.html legt JSON einmalig in sessionStorage ab:
- *   key = 'game_payload_' + fileId
- *   value = JSON.stringify(payload)
- *
- * Jede Spiel-Seite:
- *   - bindet diese Datei ein
- *   - definiert eine Subklasse, die onDataLoaded(...) implementiert
- *   - ruft game.init()
+/**
+ * ============================================================================
+ * game_base.js - Basis-Klasse für alle Spiele
+ * ============================================================================
+ * 
+ * ZWECK:
+ * ------
+ * Diese Datei stellt eine wiederverwendbare Basis-Klasse für alle Spiele bereit.
+ * Sie übernimmt die technischen Details wie:
+ * - Laden des JSON-Payloads aus sessionStorage oder Drive
+ * - Theme-Verwaltung (Dark/Light Mode)
+ * - Validierung der Spiel-Daten
+ * - Fehlerbehandlung
+ * 
+ * VERWENDUNG IN EINEM SPIEL:
+ * ---------------------------
+ * 1. Binde diese Datei in dein Spiel-HTML ein:
+ *    <script src="game_base.js"></script>
+ * 
+ * 2. Erstelle eine Subklasse von GameBase:
+ *    class MeinSpiel extends GameBase {
+ *        constructor() {
+ *            super({ expectedGameType: 'mein_spiel_typ' });
+ *        }
+ * 
+ *        onDataLoaded(data) {
+ *            // Hier kommt deine Spiel-Logik
+ *            console.log('Spiel-Daten:', data);
+ *        }
+ *    }
+ * 
+ * 3. Initialisiere dein Spiel:
+ *    const game = new MeinSpiel();
+ *    game.init();
+ * 
+ * DATENFLUSS:
+ * -----------
+ * 1. GameBase.init() wird aufgerufen
+ * 2. URL-Parameter werden gelesen (fileId)
+ * 3. Payload wird aus sessionStorage geladen (oder von Drive)
+ * 4. Payload wird validiert (game_type prüfen)
+ * 5. onDataLoaded() der Subklasse wird mit validen Daten aufgerufen
+ * 
+ * ERWARTETE URL-PARAMETER:
+ * ------------------------
+ * - fileId: Die Google Drive File-ID des JSON-Payloads (PFLICHT)
+ * - game_type: Optional, für zusätzliche Validierung
+ * 
+ * BEISPIEL:
+ * ---------
+ * Escape-Game.html?fileId=1abc...xyz
+ * 
+ * JSON-FORMAT:
+ * ------------
+ * Das JSON muss mindestens folgende Felder enthalten:
+ * {
+ *     "game_type": "escape_game",  // Identifiziert den Spieltyp
+ *     "title": "Mein Spiel",       // Optional: Titel für den Browser-Tab
+ *     "schema_version": "1.0",     // Optional: Schema-Version
+ *     ... // Weitere spiel-spezifische Daten
+ * }
+ * 
+ * SESSION STORAGE:
+ * ----------------
+ * Der drive_interpreter.js speichert das Payload:
+ * - Key: 'game_payload_' + fileId
+ * - Value: JSON.stringify(payload)
+ * 
+ * Falls sessionStorage leer ist, lädt GameBase direkt von Drive nach.
+ * 
+ * THEME-SYSTEM:
+ * -------------
+ * GameBase verwaltet automatisch das Dark/Light Theme:
+ * - Liest Theme aus localStorage ('globalTheme_v1')
+ * - Setzt die Klasse 'theme-light' am <html>-Element
+ * - Bindet einen Theme-Toggle-Button (ID: 'theme-toggle')
+ * 
+ * FEHLERBEHANDLUNG:
+ * -----------------
+ * Bei kritischen Fehlern zeigt GameBase eine formatierte Fehlermeldung an
+ * und verhindert das Laden des Spiels. Fehler werden in die Console geloggt.
+ * 
+ * ENTWICKLER-HINWEISE:
+ * --------------------
+ * - Überschreibe IMMER onDataLoaded() in deiner Subklasse
+ * - Nutze this.payload für Zugriff auf die Spiel-Daten
+ * - Nutze this.fileId für die Drive File-ID
+ * - Nutze this._fatal(msg) für kritische Fehler
+ * 
+ * ============================================================================
  */
 
 (function () {

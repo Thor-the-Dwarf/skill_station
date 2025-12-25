@@ -1,9 +1,97 @@
+/**
+ * ============================================================================
+ * shared_theme.css - Globales Theme-System für DriveGames
+ * ============================================================================
+ * 
+ * ZWECK:
+ * ------
+ * Diese Datei definiert das zentrale Design-System für die gesamte Anwendung.
+ * Sie verwendet CSS Custom Properties (Variablen) für ein konsistentes,
+ * wartbares und theme-fähiges Design.
+ * 
+ * DESIGN-PHILOSOPHIE:
+ * -------------------
+ * - **Glassmorphism**: Halbtransparente Elemente mit Blur-Effekten
+ * - **Cyber-Aesthetik**: Neon-Glows und elektrische Akzente
+ * - **HSL-Farbsystem**: Flexible Farbmanipulation über Hue-Sat-Lightness
+ * - **Dark/Light Mode**: Vollständige Theme-Unterstützung
+ * 
+ * VERWENDUNG:
+ * -----------
+ * Diese Datei sollte in jeder HTML-Datei eingebunden werden:
+ *   <link rel="stylesheet" href="shared_theme.css">
+ * 
+ * oder für Dateien im games-Ordner:
+ *   <link rel="stylesheet" href="../shared_theme.css">
+ * 
+ * THEME-WECHSEL:
+ * --------------
+ * Füge die Klasse 'theme-light' zum <html>-Element hinzu:
+ *   document.documentElement.classList.add('theme-light');
+ * 
+ * Für Dark Mode entferne die Klasse:
+ *   document.documentElement.classList.remove('theme-light');
+ * 
+ * VERFÜGBARE KOMPONENTEN:
+ * -----------------------
+ * - .card / .section-card: Glassmorphismus-Karten
+ * - .btn / .btn.primary: Buttons mit Glow-Effekten
+ * - input / select / textarea: Styled Form-Elemente
+ * - .section-status: Status-Pills mit Farb-Varianten
+ * 
+ * CSS-VARIABLEN VERWENDEN:
+ * ------------------------
+ * In deinem eigenen CSS kannst du die Variablen nutzen:
+ *   background: hsl(var(--bg-surface) / 0.5);
+ *   color: hsl(var(--primary));
+ *   border: 1px solid hsl(var(--glass-border));
+ * 
+ * NEUE FARBEN HINZUFÜGEN:
+ * -----------------------
+ * 1. Definiere die Farbe in :root als HSL-Triplet:
+ *    --my-color: 120 80% 50%;
+ * 
+ * 2. Optional: Überschreibe sie in :root.theme-light:
+ *    --my-color: 120 40% 30%;
+ * 
+ * 3. Verwende sie in deinen Styles:
+ *    color: hsl(var(--my-color));
+ * 
+ * PERFORMANCE-TIPPS:
+ * ------------------
+ * - backdrop-filter: blur() ist performance-intensiv, verwende es sparsam
+ * - Glow-Effekte (box-shadow) können bei vielen Elementen FPS beeinflussen
+ * - Transformations (translateY, scale) sind GPU-beschleunigt = performant
+ * 
+ * ============================================================================
+ */
+
 :root {
     /* 
        HSL Color System - "Cyber-Glass" Edition
        High Transparency & Neon Glows
-    */
+       
+       WARUM HSL?
+       ----------
+       HSL (Hue, Saturation, Lightness) ist ideal für Theme-Systeme:
+       - Hue: Der Farbton (0-360°)
+       - Saturation: Die Sättigung (0-100%)
+       - Lightness: Die Helligkeit (0-100%)
+       
+       Dies ermöglicht einfache Anpassungen:
+       - Hellere Variante: Lightness erhöhen
+       - Gedämpftere Farbe: Saturation verringern
+       - Transparenz: "/" Syntax verwenden
+       
+       VERWENDUNG:
+       -----------
+       Statt: color: hsl(195, 100%, 60%);
+       Nutze: color: hsl(var(--primary)); /* nutzt die Variable */
 
+    Mit Transparenz:
+        background: hsl(var(--primary) / 0.5);
+    /* 50% transparent */
+    */
     /* Brand / Accent - Cyan/Electric Blue */
     --primary-hue: 195;
     --primary-sat: 100%;
