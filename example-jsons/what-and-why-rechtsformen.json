@@ -1,0 +1,149 @@
+{
+    "game_type": "what_and_why",
+    "title": "Rechtsformen: What & Why",
+    "schema_version": "1.0",
+    "description": "Schritt 1: eine Antwort (What) wählen · Schritt 2: passende Begründungen (Why) markieren.",
+    "cases": [
+        {
+            "id": "case1",
+            "profile": "Anna und Ben wollen gemeinsam einen Online-Shop für nachhaltige Textilien gründen. Sie haben wenig Startkapital (ca. 5.000 €), möchten aber beide voll haften und auf Augenhöhe entscheiden.",
+            "tags": [
+                "2 Personen",
+                "Wenig Kapital",
+                "Handel"
+            ],
+            "options": [
+                {
+                    "id": "gmbh",
+                    "label": "GmbH",
+                    "isCorrect": false,
+                    "whys": [
+                        {
+                            "id": "w1",
+                            "text": "Für eine GmbH braucht man mind. 25.000 € Stammkapital.",
+                            "correct": true
+                        },
+                        {
+                            "id": "w2",
+                            "text": "Bei der GmbH haftet man beschränkt, nicht voll.",
+                            "correct": true
+                        }
+                    ]
+                },
+                {
+                    "id": "ohg",
+                    "label": "OHG",
+                    "isCorrect": true,
+                    "whys": [
+                        {
+                            "id": "w3",
+                            "text": "Die OHG ist eine Personengesellschaft für Kaufleute.",
+                            "correct": true
+                        },
+                        {
+                            "id": "w4",
+                            "text": "Alle Gesellschafter haften unbeschränkt mit dem Privatvermögen.",
+                            "correct": true
+                        },
+                        {
+                            "id": "w5",
+                            "text": "Es ist kein Mindestkapital nötig.",
+                            "correct": true
+                        },
+                        {
+                            "id": "w6",
+                            "text": "Die OHG ist nur für Kleinunternehmen geeignet.",
+                            "correct": false
+                        }
+                    ]
+                },
+                {
+                    "id": "einzelunternehmen",
+                    "label": "Einzelunternehmen",
+                    "isCorrect": false,
+                    "whys": [
+                        {
+                            "id": "w7",
+                            "text": "Ein Einzelunternehmen kann nur von einer Person geführt werden.",
+                            "correct": true
+                        }
+                    ]
+                }
+            ],
+            "solution": "Die OHG passt perfekt: 2+ Personen, kein Mindestkapital, volle Haftung, für Handelsbetriebe geeignet."
+        },
+        {
+            "id": "case2",
+            "profile": "Clara ist freiberufliche Grafikdesignerin. Sie arbeitet allein von zu Hause aus, hat nur geringe laufende Kosten und möchte möglichst wenig Bürokratie.",
+            "tags": [
+                "1 Person",
+                "Freiberuf",
+                "Wenig Bürokratie"
+            ],
+            "options": [
+                {
+                    "id": "einzelunternehmen",
+                    "label": "Einzelunternehmen",
+                    "isCorrect": true,
+                    "whys": [
+                        {
+                            "id": "w1",
+                            "text": "Einzelunternehmen ist die einfachste Rechtsform für Solo-Selbständige.",
+                            "correct": true
+                        },
+                        {
+                            "id": "w2",
+                            "text": "Kein Eintrag ins Handelsregister nötig (bei Freiberuflern).",
+                            "correct": true
+                        },
+                        {
+                            "id": "w3",
+                            "text": "Clara haftet mit ihrem Privatvermögen.",
+                            "correct": true
+                        },
+                        {
+                            "id": "w4",
+                            "text": "Kein Mindestkapital erforderlich.",
+                            "correct": true
+                        }
+                    ]
+                },
+                {
+                    "id": "ug",
+                    "label": "UG (haftungsbeschränkt)",
+                    "isCorrect": false,
+                    "whys": [
+                        {
+                            "id": "w5",
+                            "text": "Die UG hat mehr Bürokratie (Handelsregister, Geschäftsführer-Organ).",
+                            "correct": true
+                        },
+                        {
+                            "id": "w6",
+                            "text": "Für Freiberufler ohne Team ist die UG oft überdimensioniert.",
+                            "correct": true
+                        }
+                    ]
+                },
+                {
+                    "id": "ag",
+                    "label": "AG",
+                    "isCorrect": false,
+                    "whys": [
+                        {
+                            "id": "w7",
+                            "text": "Eine AG hat sehr hohe Gründungs- und Verwaltungskosten.",
+                            "correct": true
+                        },
+                        {
+                            "id": "w8",
+                            "text": "AG ist für große Unternehmen mit vielen Aktionären gedacht.",
+                            "correct": true
+                        }
+                    ]
+                }
+            ],
+            "solution": "Einzelunternehmen ist ideal: minimale Bürokratie, kein Mindestkapital, perfekt für Solo-Freiberufler."
+        }
+    ]
+}

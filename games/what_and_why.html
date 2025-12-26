@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <title>What & Why</title>
+
+    <!-- Global Theme System -->
+    <link rel="stylesheet" href="../shared_theme.css">
+
+    <!-- Game-specific Styles -->
+    <link rel="stylesheet" href="what_and_why.css">
+</head>
+
+<body>
+    <div id="game-root">
+        <div class="page" style="display:block;">
+            <main class="panel">
+                <!-- Header -->
+                <header class="header">
+                    <div class="title-block">
+                        <h1>What & Why</h1>
+                        <p>Schritt 1: eine Antwort (What) wählen · Schritt 2: passende Begründungen (Why) markieren.</p>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-chip stat-chip--round">
+                            <span>Fall</span>
+                            <span id="round-label">1 / 1</span>
+                        </div>
+                        <div class="stat-chip">
+                            <span>What-Punkte</span>
+                            <span id="score-form">0</span>
+                        </div>
+                        <div class="stat-chip">
+                            <span>Why-Punkte</span>
+                            <span id="score-reason">0</span>
+                        </div>
+                        <div class="stat-chip stat-chip--success">
+                            <span>Gesamt</span>
+                            <span id="score-total">0</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="pill">
+                        <strong>How to:</strong> Erst ein What wählen (Toggle-Frage). Danach erscheinen passende
+                        Why-Statements als Checkbox-Quiz.
+                    </div>
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" type="button" aria-label="Theme wechseln">🌙</button>
+                    <!-- Restart Button -->
+                    <button class="btn-secondary btn" id="restart-btn" type="button">
+                        <span>↻</span> Reset
+                    </button>
+                </div>
+
+                <!-- Case Card -->
+                <section class="case-card">
+                    <div class="case-label">Fallbeschreibung</div>
+                    <div class="case-body" id="case-text"></div>
+                    <div class="case-tags" id="case-tags"></div>
+                </section>
+
+                <!-- What Options -->
+                <section class="options-group" id="what-group">
+                    <h3 class="section-title">1 · What auswählen (Einfachauswahl)</h3>
+                    <ul class="option-list" id="form-options"></ul>
+                </section>
+
+                <!-- Why Options (shown after What selection) -->
+                <section class="options-group" id="why-group">
+                    <h3 class="section-title">2 · Why-Begründungen (Mehrfachauswahl)</h3>
+                    <ul class="option-list" id="reason-options"></ul>
+                </section>
+
+                <!-- Feedback and Check Button -->
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;">
+                    <div class="feedback" id="feedback-box">
+                        Wähle zuerst ein What. Danach erscheinen passende Why-Optionen.
+                    </div>
+                    <button class="btn" id="check-btn" type="button">
+                        <span>✔</span> Antwort prüfen
+                    </button>
+                </div>
+
+                <!-- Info Section (shown after evaluation) -->
+                <div class="info-section" id="info-section" style="display:none;"></div>
+
+                <!-- Summary Box (shown at end) -->
+                <div class="summary-box" id="summary-box" style="display:none;"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Configuration -->
+    <script src="../config.js"></script>
+
+    <!-- Game Base Class -->
+    <script src="game_base.js"></script>
+
+    <!-- Payload Interpreter -->
+    <script src="what_and_why_payload.js"></script>
+
+    <!-- Game Logic -->
+    <script src="what_and_why.js"></script>
+</body>
+
+</html>
