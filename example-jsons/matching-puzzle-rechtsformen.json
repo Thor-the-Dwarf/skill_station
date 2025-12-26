@@ -1,0 +1,48 @@
+{
+    "game_type": "matching_puzzle",
+    "title": "Rechtsformen Matching",
+    "schema_version": "1.0",
+    "subtitle": "Ziel: Wähle jeweils eine Karte aus jeder Spalte (Name, Beschreibung, Praxisbeispiel), sodass ein passender Dreier-Satz entsteht. Klicke erneut auf eine Karte, um sie abzuwählen.",
+    "columnTitles": {
+        "column1": "Rechtsform",
+        "column2": "Beschreibung",
+        "column3": "Praxisbeispiel"
+    },
+    "columnHints": {
+        "column1": "Wähle einen Namen.",
+        "column2": "Wähle die passende Kurzbeschreibung.",
+        "column3": "Suche ein passendes Praxisbeispiel."
+    },
+    "sets": [
+        {
+            "id": "gmbh",
+            "name": "GmbH",
+            "description": "Kapitalgesellschaft mit beschränkter Haftung, Mindeststammkapital 25.000 €.",
+            "example": "Mittelständische IT-Agentur mit 30 Mitarbeitenden, mehrere Gesellschafter."
+        },
+        {
+            "id": "ug",
+            "name": "UG (haftungsbeschränkt)",
+            "description": "Variante der GmbH mit sehr geringem Stammkapital, haftungsbeschränkt.",
+            "example": "Zwei Gründer betreiben einen Online-Shop mit geringem Startkapital."
+        },
+        {
+            "id": "einzel",
+            "name": "Einzelunternehmen",
+            "description": "Eine natürliche Person führt das Unternehmen, volle Privat­haftung.",
+            "example": "Freiberuflicher Webentwickler mit eigenem kleinen Büro."
+        },
+        {
+            "id": "ohg",
+            "name": "OHG",
+            "description": "Personengesellschaft von Kaufleuten, alle Gesellschafter haften unbeschränkt.",
+            "example": "Regionale Großbäckerei, geführt von mehreren Inhabern als Handelsbetrieb."
+        },
+        {
+            "id": "ag",
+            "name": "AG",
+            "description": "Kapitalgesellschaft mit in Aktien zerlegtem Grundkapital.",
+            "example": "Börsennotierter Automobilhersteller mit tausenden Aktionären."
+        }
+    ]
+}

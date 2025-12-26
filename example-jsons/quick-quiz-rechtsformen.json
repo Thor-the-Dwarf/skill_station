@@ -1,0 +1,58 @@
+{
+    "game_type": "quick_quiz",
+    "title": "Rechtsformen Quick-Quiz",
+    "schema_version": "1.0",
+    "timePerQuestionSeconds": 12,
+    "introText": "Klick auf „Start", um das Quick-Quiz zu starten.","sublineText": "Wähle die Rechtsform, zu der die Aussage passt – oder „alle" / „keine".",
+    "answerLabels": [
+        "GmbH",
+        "UG",
+        "OHG",
+        "Einzelunternehmen",
+        "AG",
+        "alle",
+        "keine"
+    ],
+    "questions": [
+        {
+            "text": "Bei dieser Rechtsform gibt es ein Mindeststammkapital von 25.000 €.",
+            "correct": "GmbH"
+        },
+        {
+            "text": "Diese Rechtsform kann mit einem symbolischen Startkapital von 1 € gegründet werden.",
+            "correct": "UG"
+        },
+        {
+            "text": "Die Gesellschafter haften hier persönlich und unbeschränkt mit ihrem Privatvermögen.",
+            "correct": "OHG"
+        },
+        {
+            "text": "Für diese Rechtsform ist kein Eintrag ins Handelsregister zwingend erforderlich.",
+            "correct": "Einzelunternehmen"
+        },
+        {
+            "text": "Das Grundkapital dieser Rechtsform ist in Aktien zerlegt.",
+            "correct": "AG"
+        },
+        {
+            "text": "Bei diesen Rechtsformen haftet man als Gesellschafter persönlich.",
+            "correct": "OHG"
+        },
+        {
+            "text": "Diese Rechtsform kann von nur einer Person gegründet werden.",
+            "correct": "alle"
+        },
+        {
+            "text": "Für diese Rechtsform gibt es kein festes Mindeststammkapital.",
+            "correct": "OHG"
+        },
+        {
+            "text": "Diese Rechtsformen sind typisch für kleine Unternehmen.",
+            "correct": "UG"
+        },
+        {
+            "text": "Ein Eintrag ins Handelsregister ist bei dieser Rechtsform zwingend notwendig.",
+            "correct": "AG"
+        }
+    ]
+}

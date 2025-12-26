@@ -159,11 +159,11 @@
         // WICHTIG: Hier neue Spieltypen hinzufügen!
         if (gameType === 'escape_game') return `${base}/Escape-Game.html`;
         if (gameType === 'matching_puzzle') return `${base}/matching_puzzle.html`;
+        if (gameType === 'wer_bin_ich') return `${base}/wer_bin_ich.html`;
+        if (gameType === 'quick_quiz') return `${base}/quick_quiz.html`;
 
         // Weitere Spieltypen können hier hinzugefügt werden:
-        // if (gameType === 'quick_quiz') return `${base}/quick_quiz.html`;
         // if (gameType === 'sortier_spiel') return `${base}/sortier_spiel.html`;
-        // if (gameType === 'wer_bin_ich') return `${base}/wer_bin_ich.html`;
 
         // Unbekannter Spieltyp -> Fehler werfen
         throw new Error(`Unbekannter game_type: "${String(gameType)}"`);

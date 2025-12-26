@@ -1,0 +1,94 @@
+{
+    "game_type": "wer_bin_ich",
+    "title": "Unternehmensformen-Edition",
+    "schema_version": "1.0",
+    "legalForms": [
+        {
+            "id": "gmbh",
+            "name": "GmbH",
+            "attributes": {
+                "minCapital": true,
+                "personalLiability": false,
+                "onePersonPossible": true,
+                "tradeRegisterRequired": true,
+                "typicalForSmallBusiness": false
+            }
+        },
+        {
+            "id": "ug",
+            "name": "UG (haftungsbeschränkt)",
+            "attributes": {
+                "minCapital": true,
+                "personalLiability": false,
+                "onePersonPossible": true,
+                "tradeRegisterRequired": true,
+                "typicalForSmallBusiness": true
+            }
+        },
+        {
+            "id": "ohg",
+            "name": "OHG",
+            "attributes": {
+                "minCapital": false,
+                "personalLiability": true,
+                "onePersonPossible": false,
+                "tradeRegisterRequired": true,
+                "typicalForSmallBusiness": true
+            }
+        },
+        {
+            "id": "einzelunternehmen",
+            "name": "Einzelunternehmen",
+            "attributes": {
+                "minCapital": false,
+                "personalLiability": true,
+                "onePersonPossible": true,
+                "tradeRegisterRequired": false,
+                "typicalForSmallBusiness": true
+            }
+        },
+        {
+            "id": "ag",
+            "name": "AG",
+            "attributes": {
+                "minCapital": true,
+                "personalLiability": false,
+                "onePersonPossible": true,
+                "tradeRegisterRequired": true,
+                "typicalForSmallBusiness": false
+            }
+        }
+    ],
+    "questions": [
+        {
+            "id": "minCapital",
+            "text": "Gibt es ein festes Mindestkapital?",
+            "hotkey": "1",
+            "attributeKey": "minCapital"
+        },
+        {
+            "id": "personalLiability",
+            "text": "Haften die Gesellschafter persönlich / privat?",
+            "hotkey": "2",
+            "attributeKey": "personalLiability"
+        },
+        {
+            "id": "onePersonPossible",
+            "text": "Kann die Rechtsform von nur einer Person gegründet werden?",
+            "hotkey": "3",
+            "attributeKey": "onePersonPossible"
+        },
+        {
+            "id": "tradeRegisterRequired",
+            "text": "Ist ein Eintrag ins Handelsregister zwingend notwendig?",
+            "hotkey": "4",
+            "attributeKey": "tradeRegisterRequired"
+        },
+        {
+            "id": "typicalForSmallBusiness",
+            "text": "Ist die Rechtsform eher für kleine Unternehmen typisch?",
+            "hotkey": "5",
+            "attributeKey": "typicalForSmallBusiness"
+        }
+    ]
+}
