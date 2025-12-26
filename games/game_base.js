@@ -126,6 +126,7 @@
         // ================================================================
         async init() {
             this.rootEl = document.getElementById(this.rootElementId) || document.body;
+            // Theme-Toggle (optional - AppBar hat bereits einen)
             this.themeToggleBtn = document.getElementById('theme-toggle');
 
             this._initTheme();

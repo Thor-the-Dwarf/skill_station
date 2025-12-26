@@ -5,13 +5,14 @@
  * 
  * ZWECK:
  * Drag & Drop Sortier-Spiel mit Pool und Sort-Spalten.
- * Karten können in mehrere korrekte Spalten gehören.
+ * Karten können in mehrere Spalten gezogen werden (1:n).
  * 
  * SPIELPRINZIP:
- * - Karten aus Pool in Spalten ziehen
- * - Jede Karte hat correctForms (array)
- * - Evaluation prüft ob Karte in korrekter Spalte
- * - Reset bringt alle Karten zurück in Pool (shuffled)
+ * - Karten aus Pool in Spalten ziehen (werden gecloned, nicht verschoben)
+ * - Jede Karte kann in mehrere Spalten platziert werden
+ * - Jede Karte hat correctForms (array) mit allen korrekten Zuordnungen
+ * - Evaluation prüft alle Platzierungen separat
+ * - Reset entfernt alle Clones, Originale bleiben im Pool
  * 
  * ============================================================================
  */
@@ -181,7 +182,6 @@
         onDragEnd(e) {
             e.currentTarget.classList.remove('dragging');
             this.dragCardId = null;
-            this.updatePoolEmptyState();
         }
 
         /**
@@ -201,7 +201,7 @@
         }
 
         /**
-         * Drop Zone Handler
+         * Drop Zone Handler - Erstellt Clone statt Karte zu verschieben
          */
         onDropZone(e) {
             e.preventDefault();
@@ -211,28 +211,51 @@
             const cardId = e.dataTransfer.getData('text/plain') || this.dragCardId;
             if (!cardId) return;
 
-            const cardEl = document.querySelector(`.sort-card[data-card-id="${cardId}"]`);
-            if (!cardEl) return;
+            // Finde Original-Karte (im Pool oder bereits gecloned)
+            let sourceCardEl = document.querySelector(`.sort-card[data-card-id="${cardId}"]`);
 
-            cardEl.classList.remove('correct', 'wrong');
-            zone.appendChild(cardEl);
-            this.updatePoolEmptyState();
-        }
-
-        /**
-         * Aktualisiert Pool Empty State
-         */
-        updatePoolEmptyState() {
-            if (this.poolEl.children.length === 0) {
-                this.poolEl.classList.add('empty');
-                this.poolEl.textContent = 'Alle Karten verteilt – Auswerten oder Karten neu sortieren.';
-            } else {
-                if (this.poolEl.classList.contains('empty')) {
-                    this.poolEl.classList.remove('empty');
-                    this.poolEl.textContent = '';
-                }
+            // Falls es ein Clone ist, finde das Original
+            if (!sourceCardEl) {
+                sourceCardEl = document.querySelector(`.sort-card[data-original-id="${cardId}"]`);
             }
+
+            if (!sourceCardEl) return;
+
+            // Wenn Target der Pool ist: Lösche Clone (falls vorhanden)
+            const isPoolDrop = zone.dataset.dropzone === 'pool';
+            if (isPoolDrop) {
+                // Clones können zurück in Pool gezogen werden -> löschen
+                if (sourceCardEl.dataset.originalId) {
+                    sourceCardEl.remove();
+                }
+                return;
+            }
+
+            // Prüfe ob diese Karte bereits in dieser Spalte ist
+            const targetForm = zone.dataset.form;
+            const existingClone = zone.querySelector(
+                `.sort-card[data-original-id="${cardId}"][data-form="${targetForm}"], 
+                 .sort-card[data-card-id="${cardId}"][data-form="${targetForm}"]`
+            );
+
+            if (existingClone) {
+                // Karte ist bereits in dieser Spalte
+                return;
+            }
+
+            // Erstelle Clone der Karte für diese Spalte
+            const cardData = this.cards.find(c => c.id === cardId);
+            if (!cardData) return;
+
+            const cloneEl = this.createCard(cardData);
+            cloneEl.dataset.originalId = cardId; // Markiere als Clone
+            cloneEl.dataset.form = targetForm;   // Merke zu welcher Form es gehört
+            cloneEl.classList.remove('correct', 'wrong');
+
+            zone.appendChild(cloneEl);
         }
+
+
 
         /**
          * Löscht Card States
@@ -244,55 +267,75 @@
         }
 
         /**
-         * Evaluiert die Sortierung
+         * Evaluiert die Sortierung - prüft alle Platzierungen
          */
         evaluate() {
             this.clearCardStates();
-            let correctCount = 0;
-
-            const total = this.cards.length;
+            let correctPlacements = 0;
+            let totalPlacements = 0;
 
             this.cards.forEach(cardData => {
-                const cardEl = document.querySelector(`.sort-card[data-card-id="${cardData.id}"]`);
-                if (!cardEl) return;
+                // Finde alle Platzierungen dieser Karte (Original + Clones)
+                const placements = document.querySelectorAll(
+                    `.sort-card[data-card-id="${cardData.id}"], 
+                     .sort-card[data-original-id="${cardData.id}"]`
+                );
 
-                const parentZone = cardEl.closest('[data-dropzone]');
-                const assignedForm = parentZone ? parentZone.dataset.form || null : null;
+                placements.forEach(cardEl => {
+                    // Nur Clones in Spalten zählen (nicht Original im Pool)
+                    const parentZone = cardEl.closest('[data-dropzone="column"]');
+                    if (!parentZone) return;
 
-                const isCorrect =
-                    assignedForm &&
-                    cardData.correctForms.includes(assignedForm);
+                    totalPlacements++;
+                    const assignedForm = parentZone.dataset.form || null;
 
-                if (isCorrect) {
-                    cardEl.classList.add('correct');
-                    correctCount++;
-                } else {
-                    cardEl.classList.add('wrong');
-                }
+                    const isCorrect =
+                        assignedForm &&
+                        cardData.correctForms.includes(assignedForm);
+
+                    if (isCorrect) {
+                        cardEl.classList.add('correct');
+                        correctPlacements++;
+                    } else {
+                        cardEl.classList.add('wrong');
+                    }
+                });
             });
 
-            this.statCorrectEl.textContent = correctCount.toString();
+            this.statCorrectEl.textContent = correctPlacements.toString();
 
-            if (correctCount === total) {
+            // Feedback basierend auf Placements
+            if (totalPlacements === 0) {
+                this.feedbackEl.className = 'feedback';
+                this.feedbackEl.innerHTML = 'Ziehe die Eigenschaften in passende Spalten. Eine Eigenschaft kann in mehrere Spalten passen.';
+            } else if (correctPlacements === totalPlacements && totalPlacements > 0) {
                 this.feedbackEl.className = 'feedback success';
-                this.feedbackEl.innerHTML = 'Perfekt sortiert – alle Eigenschaften sind richtig zugeordnet. <strong>Prüfungsreif.</strong>';
-            } else if (correctCount === 0) {
+                this.feedbackEl.innerHTML = 'Perfekt sortiert – alle Zuordnungen sind korrekt. <strong>Prüfungsreif.</strong>';
+            } else if (correctPlacements === 0) {
                 this.feedbackEl.className = 'feedback error';
-                this.feedbackEl.innerHTML = 'Hier passt fast nichts – schau dir die Lernhilfe an und sortiere gezielt.';
+                this.feedbackEl.innerHTML = 'Hier passt fast nichts – überprüfe die Zuordnungen.';
             } else {
                 this.feedbackEl.className = 'feedback';
-                this.feedbackEl.innerHTML = `Du hast <strong>${correctCount} von ${total}</strong> Eigenschaften richtig zugeordnet. Rote Karten kannst du neu ziehen und korrigieren.`;
+                this.feedbackEl.innerHTML = `Du hast <strong>${correctPlacements} von ${totalPlacements}</strong> Zuordnungen richtig gemacht. Rote Karten kannst du entfernen oder verschieben.`;
             }
         }
 
         /**
-         * Setzt Board zurück
+         * Setzt Board zurück - entfernt alle Clones
          */
         resetBoard() {
             this.clearCardStates();
+
+            // Entferne alle Clones aus Spalten
+            document.querySelectorAll('.sort-card[data-original-id]').forEach(clone => {
+                clone.remove();
+            });
+
+            // Originale bleiben im Pool, shuffle neu
             this.initCards();
+
             this.feedbackEl.className = 'feedback';
-            this.feedbackEl.textContent = 'Ziehe jede Eigenschaft in mindestens eine Spalte. Einige Eigenschaften passen zu mehreren Rechtsformen.';
+            this.feedbackEl.textContent = 'Ziehe jede Eigenschaft in passende Spalten. Eine Eigenschaft kann zu mehreren Rechtsformen passen.';
         }
     }
 
