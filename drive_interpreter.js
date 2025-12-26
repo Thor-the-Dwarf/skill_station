@@ -162,6 +162,7 @@
         if (gameType === 'wer_bin_ich') return `${base}/wer_bin_ich.html`;
         if (gameType === 'quick_quiz') return `${base}/quick_quiz.html`;
         if (gameType === 'what_and_why') return `${base}/what_and_why.html`;
+        if (gameType === 'sortier_spiel') return `${base}/sortier_spiel.html`;
 
         // Weitere Spieltypen können hier hinzugefügt werden:
         // if (gameType === 'sortier_spiel') return `${base}/sortier_spiel.html`;

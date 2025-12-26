@@ -1,0 +1,142 @@
+{
+    "game_type": "sortier_spiel",
+    "title": "Rechtsformen Sortier-Spiel",
+    "schema_version": "1.0",
+    "description": "Ziehe die Eigenschaften in die passende Spalte der Rechtsform.",
+    "columns": [
+        {
+            "id": "einzelunternehmen",
+            "title": "Einzelunternehmen",
+            "subtitle": "1 Inhaber"
+        },
+        {
+            "id": "gbr",
+            "title": "GbR",
+            "subtitle": "einfache Personenges."
+        },
+        {
+            "id": "ohg",
+            "title": "OHG",
+            "subtitle": "Kaufleute"
+        },
+        {
+            "id": "kg",
+            "title": "KG",
+            "subtitle": "Kompl./Kommand."
+        },
+        {
+            "id": "gmbh",
+            "title": "GmbH",
+            "subtitle": "Kapitalges."
+        },
+        {
+            "id": "ug",
+            "title": "UG",
+            "subtitle": "Mini-GmbH"
+        }
+    ],
+    "cards": [
+        {
+            "id": "card1",
+            "text": "Mindestkapital: 25.000 €",
+            "correctForms": [
+                "gmbh"
+            ]
+        },
+        {
+            "id": "card2",
+            "text": "Kann mit 1 € gegründet werden",
+            "correctForms": [
+                "ug"
+            ]
+        },
+        {
+            "id": "card3",
+            "text": "Volle Privathaftung",
+            "correctForms": [
+                "einzelunternehmen",
+                "gbr",
+                "ohg"
+            ]
+        },
+        {
+            "id": "card4",
+            "text": "Beschränkte Haftung",
+            "correctForms": [
+                "gmbh",
+                "ug",
+                "kg"
+            ]
+        },
+        {
+            "id": "card5",
+            "text": "Handelsregistereintrag zwingend",
+            "correctForms": [
+                "ohg",
+                "kg",
+                "gmbh",
+                "ug"
+            ]
+        },
+        {
+            "id": "card6",
+            "text": "Kein Handelsregistereintrag nötig",
+            "correctForms": [
+                "einzelunternehmen",
+                "gbr"
+            ]
+        },
+        {
+            "id": "card7",
+            "text": "Nur eine Person",
+            "correctForms": [
+                "einzelunternehmen"
+            ]
+        },
+        {
+            "id": "card8",
+            "text": "Mindestens 2 Personen",
+            "correctForms": [
+                "gbr",
+                "ohg",
+                "kg"
+            ]
+        },
+        {
+            "id": "card9",
+            "text": "Für Freiberufler geeignet",
+            "correctForms": [
+                "einzelunternehmen",
+                "gbr"
+            ]
+        },
+        {
+            "id": "card10",
+            "text": "Typisch für Handelsbetriebe",
+            "correctForms": [
+                "ohg",
+                "kg",
+                "gmbh"
+            ]
+        },
+        {
+            "id": "card11",
+            "text": "Geschäftsführer erforderlich",
+            "correctForms": [
+                "gmbh",
+                "ug"
+            ]
+        },
+        {
+            "id": "card12",
+            "text": "Gesellschaftsvertrag notwendig",
+            "correctForms": [
+                "gbr",
+                "ohg",
+                "kg",
+                "gmbh",
+                "ug"
+            ]
+        }
+    ]
+}

@@ -2,308 +2,90 @@
 <html lang="de">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Eigenschafts-Sortier-Spiel – Rechtsformen</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    .page {
-      display: block;
-    }
+  <meta charset="UTF-8">
+  <title>Sortier-Spiel</title>
 
-    .page > .panel {
-      width: 100%;
-      max-width: none;
-    }
-  </style>
+  <!-- Global Theme System -->
+  <link rel="stylesheet" href="../shared_theme.css">
+
+  <!-- Game-specific Styles -->
+  <link rel="stylesheet" href="sortier_spiel.css">
 </head>
 
 <body>
-<div class="page">
-  <main class="panel">
-    <header class="header">
-      <div class="title-block">
-        <h1>Eigenschafts-Sortier-Spiel</h1>
-        <p>Ziehe die Eigenschaften in die passende Spalte der Rechtsform.</p>
-      </div>
-      <div class="stats">
-        <div class="stat-chip">
-          <span>Karten</span>
-          <span id="stat-total">0</span>
-        </div>
-        <div class="stat-chip stat-chip--success">
-          <span>Richtig</span>
-          <span id="stat-correct">0</span>
-        </div>
-      </div>
-    </header>
+  <div id="game-root">
+    <div class="page">
+      <main class="panel">
+        <!-- Header -->
+        <header class="header">
+          <div class="title-block">
+            <h1>Eigenschafts-Sortier-Spiel</h1>
+            <p>Ziehe die Eigenschaften in die passende Spalte der Rechtsform.</p>
+          </div>
+          <div class="stats">
+            <div class="stat-chip">
+              <span>Karten</span>
+              <span id="stat-total">0</span>
+            </div>
+            <div class="stat-chip stat-chip--success">
+              <span>Richtig</span>
+              <span id="stat-correct">0</span>
+            </div>
+          </div>
+        </header>
 
-    <div class="toolbar">
-      <div class="pill">
-        <strong>Drag & Drop:</strong> Karten aus dem Pool in die Spalten ziehen. Danach <strong>Auswerten</strong>.
-      </div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn-secondary btn" id="reset-btn" type="button">
-          <span>↻</span> Reset
-        </button>
-        <button class="btn" id="check-btn" type="button">
-          <span>✔</span> Auswerten
-        </button>
-      </div>
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="pill">
+            <strong>Drag & Drop:</strong> Karten aus dem Pool in die Spalten ziehen. Danach <strong>Auswerten</strong>.
+          </div>
+          <div style="display:flex;gap:6px;">
+            <!-- Theme Toggle -->
+            <button id="theme-toggle" type="button" aria-label="Theme wechseln">🌙</button>
+            <!-- Reset Button -->
+            <button class="btn-secondary btn" id="reset-btn" type="button">
+              <span>↻</span> Reset
+            </button>
+            <!-- Check Button -->
+            <button class="btn" id="check-btn" type="button">
+              <span>✔</span> Auswerten
+            </button>
+          </div>
+        </div>
+
+        <!-- Board with Pool and Columns -->
+        <section class="board">
+          <div class="pool-wrapper">
+            <h3 class="section-title">Eigenschaften-Pool</h3>
+            <div class="pool" id="pool" data-dropzone="pool" data-form="">
+              <!-- Karten werden hier per JS eingefügt -->
+            </div>
+          </div>
+
+          <div class="columns-grid" id="columns-grid">
+            <!-- Spalten werden dynamisch aus JSON generiert -->
+          </div>
+        </section>
+
+        <!-- Feedback -->
+        <div class="feedback" id="feedback">
+          Ziehe jede Eigenschaft in mindestens eine Spalte. Einige Eigenschaften passen zu mehreren Rechtsformen.
+        </div>
+      </main>
     </div>
+  </div>
 
-    <section class="board">
-      <div class="pool-wrapper">
-        <h3 class="section-title">Eigenschaften-Pool</h3>
-        <div class="pool" id="pool" data-dropzone="pool" data-form="">
-          <!-- Karten kommen per JS hier rein -->
-        </div>
-      </div>
+  <!-- Configuration -->
+  <script src="../config.js"></script>
 
-      <div class="columns-grid">
-        <div class="sort-column" data-form="Einzelunternehmen">
-          <div class="column-header">
-            <span class="column-title">Einzelunternehmen</span>
-            <span class="column-sub">1 Inhaber</span>
-          </div>
-          <div class="sort-dropzone" data-dropzone="column" data-form="Einzelunternehmen"></div>
-        </div>
-        <div class="sort-column" data-form="GbR">
-          <div class="column-header">
-            <span class="column-title">GbR</span>
-            <span class="column-sub">einfache Personenges.</span>
-          </div>
-          <div class="sort-dropzone" data-dropzone="column" data-form="GbR"></div>
-        </div>
-        <div class="sort-column" data-form="OHG">
-          <div class="column-header">
-            <span class="column-title">OHG</span>
-            <span class="column-sub">Kaufleute</span>
-          </div>
-          <div class="sort-dropzone" data-dropzone="column" data-form="OHG"></div>
-        </div>
-        <div class="sort-column" data-form="KG">
-          <div class="column-header">
-            <span class="column-title">KG</span>
-            <span class="column-sub">Kompl./Kommand.</span>
-          </div>
-          <div class="sort-dropzone" data-dropzone="column" data-form="KG"></div>
-        </div>
-        <div class="sort-column" data-form="GmbH">
-          <div class="column-header">
-            <span class="column-title">GmbH</span>
-            <span class="column-sub">Kapitalges.</span>
-          </div>
-          <div class="sort-dropzone" data-dropzone="column" data-form="GmbH"></div>
-        </div>
-        <div class="sort-column" data-form="UG">
-          <div class="column-header">
-            <span class="column-title">UG</span>
-            <span class="column-sub">Mini-GmbH</span>
-          </div>
-          <div class="sort-dropzone" data-dropzone="column" data-form="UG"></div>
-        </div>
-      </div>
-    </section>
+  <!-- Game Base Class -->
+  <script src="game_base.js"></script>
 
-    <div class="feedback" id="feedback">
-      Ziehe jede Eigenschaft in mindestens eine Spalte. Einige Eigenschaften passen zu mehreren Rechtsformen.
-    </div>
-  </main>
-</div>
+  <!-- Payload Interpreter -->
+  <script src="sortier_spiel_payload.js"></script>
 
-<script>
-  // wird aus externer JSON-Datei befüllt
-  let cardsData = [];
-
-  const poolEl = document.getElementById("pool");
-  const dropzones = document.querySelectorAll("[data-dropzone]");
-  const feedbackEl = document.getElementById("feedback");
-  const statTotalEl = document.getElementById("stat-total");
-  const statCorrectEl = document.getElementById("stat-correct");
-  const statPercentEl = document.getElementById("stat-percent");
-  const checkBtn = document.getElementById("check-btn");
-  const resetBtn = document.getElementById("reset-btn");
-
-  let dragCardId = null;
-
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  function createCard(card) {
-    const el = document.createElement("div");
-    el.className = "sort-card";
-    el.draggable = true;
-    el.dataset.cardId = card.id;
-
-    const textSpan = document.createElement("span");
-    textSpan.className = "sort-card-text";
-    textSpan.textContent = card.text;
-
-    const tagSpan = document.createElement("span");
-    tagSpan.className = "sort-card-tag";
-    tagSpan.textContent = "Eigenschaft";
-
-    el.appendChild(textSpan);
-    el.appendChild(tagSpan);
-
-    el.addEventListener("dragstart", onDragStart);
-    el.addEventListener("dragend", onDragEnd);
-
-    return el;
-  }
-
-  function initCards() {
-    poolEl.innerHTML = "";
-    poolEl.classList.remove("empty");
-    const shuffled = shuffle(cardsData);
-    shuffled.forEach(card => {
-      const el = createCard(card);
-      poolEl.appendChild(el);
-    });
-    statTotalEl.textContent = cardsData.length;
-    statCorrectEl.textContent = "0";
-    statPercentEl.textContent = "0 %";
-  }
-
-  function onDragStart(e) {
-    const el = e.currentTarget;
-    dragCardId = el.dataset.cardId;
-    el.classList.add("dragging");
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", dragCardId);
-  }
-
-  function onDragEnd(e) {
-    e.currentTarget.classList.remove("dragging");
-    dragCardId = null;
-    updatePoolEmptyState();
-  }
-
-  function onDragOverZone(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    e.currentTarget.classList.add("is-over");
-  }
-
-  function onDragLeaveZone(e) {
-    e.currentTarget.classList.remove("is-over");
-  }
-
-  function onDropZone(e) {
-    e.preventDefault();
-    const zone = e.currentTarget;
-    zone.classList.remove("is-over");
-
-    const cardId = e.dataTransfer.getData("text/plain") || dragCardId;
-    if (!cardId) return;
-
-    const cardEl = document.querySelector(`.sort-card[data-card-id="${cardId}"]`);
-    if (!cardEl) return;
-
-    cardEl.classList.remove("correct", "wrong");
-    zone.appendChild(cardEl);
-    updatePoolEmptyState();
-  }
-
-  function updatePoolEmptyState() {
-    if (poolEl.children.length === 0) {
-      poolEl.classList.add("empty");
-      poolEl.textContent = "Alle Karten verteilt – Auswerten oder Karten neu sortieren.";
-    } else {
-      if (poolEl.classList.contains("empty")) {
-        poolEl.classList.remove("empty");
-        poolEl.textContent = "";
-      }
-    }
-  }
-
-  function clearCardStates() {
-    document.querySelectorAll(".sort-card").forEach(card => {
-      card.classList.remove("correct", "wrong");
-    });
-  }
-
-  function evaluate() {
-    clearCardStates();
-    let correctCount = 0;
-
-    const total = cardsData.length;
-
-    cardsData.forEach(cardData => {
-      const cardEl = document.querySelector(`.sort-card[data-card-id="${cardData.id}"]`);
-      if (!cardEl) return;
-
-      const parentZone = cardEl.closest("[data-dropzone]");
-      const assignedForm = parentZone ? parentZone.dataset.form || null : null;
-
-      const isCorrect =
-              assignedForm &&
-              cardData.correctForms.includes(assignedForm);
-
-      if (isCorrect) {
-        cardEl.classList.add("correct");
-        correctCount++;
-      } else {
-        cardEl.classList.add("wrong");
-      }
-    });
-
-    statCorrectEl.textContent = correctCount.toString();
-    const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-    statPercentEl.textContent = percent + " %";
-
-    if (correctCount === total) {
-      feedbackEl.className = "feedback success";
-      feedbackEl.innerHTML = "Perfekt sortiert – alle Eigenschaften sind richtig zugeordnet. <strong>Prüfungsreif.</strong>";
-    } else if (correctCount === 0) {
-      feedbackEl.className = "feedback error";
-      feedbackEl.innerHTML = "Hier passt fast nichts – schau dir die Lernhilfe an und sortiere gezielt nach Haftung, Mindestkapital und Gründeranzahl.";
-    } else {
-      feedbackEl.className = "feedback";
-      feedbackEl.innerHTML = `Du hast <strong>${correctCount} von ${total}</strong> Eigenschaften richtig zugeordnet. Rote Karten kannst du neu ziehen und korrigieren.`;
-    }
-  }
-
-  function resetBoard() {
-    clearCardStates();
-    initCards();
-    feedbackEl.className = "feedback";
-    feedbackEl.textContent = "Ziehe jede Eigenschaft in mindestens eine Spalte. Einige Eigenschaften passen zu mehreren Rechtsformen.";
-  }
-
-  // Daten aus externer JSON-Datei laden
-  async function loadData() {
-    try {
-      const response = await fetch('daten-rechtsformen.json');
-      if (!response.ok) {
-        console.error('Fehler beim Laden der JSON:', response.status, response.statusText);
-        return;
-      }
-      const data = await response.json();
-      cardsData = Array.isArray(data.cards) ? data.cards : [];
-      initCards();
-    } catch (err) {
-      console.error('Fehler beim Laden der JSON:', err);
-    }
-  }
-
-  dropzones.forEach(zone => {
-    zone.addEventListener("dragover", onDragOverZone);
-    zone.addEventListener("dragleave", onDragLeaveZone);
-    zone.addEventListener("drop", onDropZone);
-  });
-
-  checkBtn.addEventListener("click", evaluate);
-  resetBtn.addEventListener("click", resetBoard);
-
-  loadData();
-</script>
+  <!-- Game Logic -->
+  <script src="sortier_spiel.js"></script>
 </body>
 
 </html>
