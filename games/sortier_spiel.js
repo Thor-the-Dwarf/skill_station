@@ -8,11 +8,10 @@
  * Karten können in mehrere Spalten gezogen werden (1:n).
  * 
  * SPIELPRINZIP:
- * - Karten aus Pool in Spalten ziehen (werden gecloned, nicht verschoben)
- * - Jede Karte kann in mehrere Spalten platziert werden
- * - Jede Karte hat correctForms (array) mit allen korrekten Zuordnungen
- * - Evaluation prüft alle Platzierungen separat
- * - Reset entfernt alle Clones, Originale bleiben im Pool
+ * - Pool -> Spalte: MOVE (Karte verschwindet aus Pool)
+ * - Spalte -> Spalte: CLONE (Karte wird dupliziert)
+ * - Spalte -> Pool: DELETE (Karte wird gelöscht, erscheint im Pool wenn letzte Kopie weg)
+ * - Evaluation prüft alle Platzierungen
  * 
  * ============================================================================
  */
@@ -36,7 +35,8 @@
             this.cards = [];          // Array von {id, text, correctForms: [...]}
 
             // Spiel-State
-            this.dragCardId = null;   // Aktuell gedragte Karte
+            this.dragCardId = null;   // Aktuelle Karten-ID
+            this.draggedElement = null; // Aktuell gedragtes Element (für Clones wichtig)
 
             // DOM-Referenzen
             this.poolEl = null;
@@ -171,6 +171,7 @@
         onDragStart(e) {
             const el = e.currentTarget;
             this.dragCardId = el.dataset.cardId;
+            this.draggedElement = el; // Speichere genaue Element-Referenz
             el.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', this.dragCardId);
@@ -182,6 +183,7 @@
         onDragEnd(e) {
             e.currentTarget.classList.remove('dragging');
             this.dragCardId = null;
+            this.draggedElement = null;
         }
 
         /**
@@ -201,7 +203,23 @@
         }
 
         /**
-         * Drop Zone Handler - Erstellt Clone statt Karte zu verschieben
+         * Prüft ob Karte noch im Spiel ist, sonst zurück in Pool
+         */
+        checkAndRestoreToPool(cardId) {
+            // Suche ob diese Karte noch irgendwo existiert
+            const remaining = document.querySelectorAll(`.sort-card[data-card-id="${cardId}"]`);
+            if (remaining.length === 0) {
+                // Keine Instanz mehr da -> Wiederherstellen im Pool
+                const cardData = this.cards.find(c => c.id === cardId);
+                if (cardData) {
+                    const newCard = this.createCard(cardData);
+                    this.poolEl.appendChild(newCard);
+                }
+            }
+        }
+
+        /**
+         * Drop Zone Handler - Move aus Pool, Clone aus Container
          */
         onDropZone(e) {
             e.preventDefault();
@@ -209,50 +227,53 @@
             zone.classList.remove('is-over');
 
             const cardId = e.dataTransfer.getData('text/plain') || this.dragCardId;
-            if (!cardId) return;
+            const sourceEl = this.draggedElement;
 
-            // Finde Original-Karte (im Pool oder bereits gecloned)
-            let sourceCardEl = document.querySelector(`.sort-card[data-card-id="${cardId}"]`);
+            if (!cardId || !sourceEl) return;
 
-            // Falls es ein Clone ist, finde das Original
-            if (!sourceCardEl) {
-                sourceCardEl = document.querySelector(`.sort-card[data-original-id="${cardId}"]`);
-            }
-
-            if (!sourceCardEl) return;
-
-            // Wenn Target der Pool ist: Lösche Clone (falls vorhanden)
             const isPoolDrop = zone.dataset.dropzone === 'pool';
+            // Prüfe ob Source im Pool war (direktes Kind von poolEl)
+            const isSourceInPool = sourceEl.parentElement && sourceEl.parentElement.id === 'pool';
+
+            // FALL 1: Drop in POOL
             if (isPoolDrop) {
-                // Clones können zurück in Pool gezogen werden -> löschen
-                if (sourceCardEl.dataset.originalId) {
-                    sourceCardEl.remove();
-                }
+                if (isSourceInPool) return; // Schon im Pool -> nichts tun
+
+                // Karte kommt aus Container -> Löschen
+                sourceEl.remove();
+
+                // Checken ob es die letzte war -> Wenn ja, im Pool wiederherstellen
+                this.checkAndRestoreToPool(cardId);
                 return;
             }
 
-            // Prüfe ob diese Karte bereits in dieser Spalte ist
+            // FALL 2: Drop in CONTAINER
             const targetForm = zone.dataset.form;
-            const existingClone = zone.querySelector(
-                `.sort-card[data-original-id="${cardId}"][data-form="${targetForm}"], 
-                 .sort-card[data-card-id="${cardId}"][data-form="${targetForm}"]`
-            );
 
-            if (existingClone) {
-                // Karte ist bereits in dieser Spalte
-                return;
+            // Duplikat-Check: Ist Karte schon in DIESEM Container?
+            const duplicate = zone.querySelector(`.sort-card[data-card-id="${cardId}"]`);
+            if (duplicate) return; // Karte ist hier schon vorhanden
+
+            // Unterscheidung: Move oder Clone?
+            if (isSourceInPool) {
+                // MOVE: Aus Pool verschieben (ist dann weg aus Pool)
+                sourceEl.dataset.form = targetForm;
+                sourceEl.classList.remove('correct', 'wrong');
+                // Entferne is-clone Marker falls vorhanden (sollte nicht, aber sicherheitshalber)
+                delete sourceEl.dataset.isClone;
+                delete sourceEl.dataset.originalId;
+
+                zone.appendChild(sourceEl);
+            } else {
+                // CLONE: Aus anderem Container kopieren
+                const cardData = this.cards.find(c => c.id === cardId);
+                if (!cardData) return;
+
+                const clone = this.createCard(cardData);
+                clone.dataset.form = targetForm;
+                // Wir brauchen keine speziellen Marker mehr, jede Karte ist gleichwertig
+                zone.appendChild(clone);
             }
-
-            // Erstelle Clone der Karte für diese Spalte
-            const cardData = this.cards.find(c => c.id === cardId);
-            if (!cardData) return;
-
-            const cloneEl = this.createCard(cardData);
-            cloneEl.dataset.originalId = cardId; // Markiere als Clone
-            cloneEl.dataset.form = targetForm;   // Merke zu welcher Form es gehört
-            cloneEl.classList.remove('correct', 'wrong');
-
-            zone.appendChild(cloneEl);
         }
 
 
@@ -275,14 +296,11 @@
             let totalPlacements = 0;
 
             this.cards.forEach(cardData => {
-                // Finde alle Platzierungen dieser Karte (Original + Clones)
-                const placements = document.querySelectorAll(
-                    `.sort-card[data-card-id="${cardData.id}"], 
-                     .sort-card[data-original-id="${cardData.id}"]`
-                );
+                // Finde alle Instanzen dieser Karte
+                const instances = document.querySelectorAll(`.sort-card[data-card-id="${cardData.id}"]`);
 
-                placements.forEach(cardEl => {
-                    // Nur Clones in Spalten zählen (nicht Original im Pool)
+                instances.forEach(cardEl => {
+                    // Ignoriere Karten im Pool
                     const parentZone = cardEl.closest('[data-dropzone="column"]');
                     if (!parentZone) return;
 
@@ -321,17 +339,16 @@
         }
 
         /**
-         * Setzt Board zurück - entfernt alle Clones
+         * Setzt Board zurück
          */
         resetBoard() {
             this.clearCardStates();
 
-            // Entferne alle Clones aus Spalten
-            document.querySelectorAll('.sort-card[data-original-id]').forEach(clone => {
-                clone.remove();
-            });
+            // Lösche alle Karten aus den Spalten
+            const cols = document.querySelectorAll('.sort-dropzone .sort-card');
+            cols.forEach(el => el.remove());
 
-            // Originale bleiben im Pool, shuffle neu
+            // Pool neu befüllen
             this.initCards();
 
             this.feedbackEl.className = 'feedback';
