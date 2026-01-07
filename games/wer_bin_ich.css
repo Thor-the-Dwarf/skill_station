@@ -240,6 +240,10 @@ section h2 {
     cursor: default;
 }
 
+.question-btn.used {
+    display: none;
+}
+
 /* Answer Section */
 .answer-section {
     margin-top: 10px;

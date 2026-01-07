@@ -148,10 +148,16 @@
         /**
          * Stellt eine Frage und zeigt Antwort
          * @param {Object} question - Die Frage
+         * @param {HTMLElement} [btnEl] - Der Button (optional)
          */
-        askQuestion(question) {
+        askQuestion(question, btnEl) {
             if (!this.secretForm || this.gameOver) {
                 return;
+            }
+
+            // Button ausblenden
+            if (btnEl) {
+                btnEl.classList.add('used');
             }
 
             this.questionCount++;
@@ -213,7 +219,7 @@
                 btn.appendChild(spanText);
                 btn.appendChild(spanHotkey);
 
-                btn.addEventListener('click', () => this.askQuestion(q));
+                btn.addEventListener('click', (e) => this.askQuestion(q, e.currentTarget));
 
                 this.questionListEl.appendChild(btn);
             });
@@ -324,7 +330,11 @@
             this.guessInput.value = '';
             this.guessFeedbackEl.textContent = '';
             this.guessFeedbackEl.className = '';
+
+            // Buttons resetten
             this.setQuestionButtonsDisabled(false);
+            const usedButtons = document.querySelectorAll('.question-btn.used');
+            usedButtons.forEach(btn => btn.classList.remove('used'));
         }
     }
 
