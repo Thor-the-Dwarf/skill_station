@@ -604,15 +604,9 @@
 
         // --- 3. View Switcher ---
         function init() {
-            const savedId = localStorage.getItem(STORAGE_KEY_FOLDER);
-            if (savedId) {
-                // Have ID -> Start App
-                currentFolderId = savedId;
-                showApp();
-            } else {
-                // No ID -> Show Welcome
-                showWelcome();
-            }
+            // Always show welcome screen (don't auto-load cached folder)
+            // const savedId = localStorage.getItem(STORAGE_KEY_FOLDER);
+            showWelcome();
         }
 
         function showWelcome() {
