@@ -704,16 +704,21 @@
                 treeRootEl.innerHTML = '';
                 buildTreeHelper(treeRootEl, rootTree, 0);
 
-                // Retrigger view
-                if (appState.selectedId) {
-                    renderViewForId(appState.selectedId);
-                    applySelectedCss();
-                } else {
-                    // Select root
-                    if (rootTree.length > 0) {
-                        selectNode(rootTree[0].id);
-                    }
-                }
+                // Start state: No game selected, reset selection
+                appState.selectedId = null;
+                saveAppState();
+
+                // Clear view
+                viewTitleEl.textContent = 'Bereit';
+                document.getElementById('view-path').textContent = '';
+                viewBodyEl.innerHTML = '<p style="padding:2rem; color:hsl(var(--txt-muted))">Bitte wähle eine Datei aus dem Menü.</p>';
+                document.querySelector('.content-header').classList.remove('hidden');
+                document.querySelector('.content').classList.remove('full-screen');
+                viewBodyEl.classList.remove('iframe-container');
+                viewBodyEl.classList.add('card');
+
+                // Update selection UI (clears highlight)
+                applySelectedCss();
 
             } catch (err) {
                 console.error(err);

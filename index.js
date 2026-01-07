@@ -93,14 +93,22 @@
             treeRootEl.innerHTML = '';
             buildTreeHelper(treeRootEl, rootTree, 0);
 
-            if (appState.selectedId) {
-                renderViewForId(appState.selectedId);
-                applySelectedCss();
-            } else {
-                if (rootTree.length > 0) {
-                    selectNode(rootTree[0].id);
-                }
-            }
+            // Start state: No game selected, reset selection
+            appState.selectedId = null;
+            saveAppState();
+
+            // Clear view
+            document.getElementById('view-title').textContent = 'Bereit';
+            document.getElementById('view-path').textContent = '';
+            const viewBody = document.getElementById('view-body');
+            viewBody.innerHTML = '<p style="padding:2rem; color: #888;">Bitte wähle eine Datei aus dem Menü.</p>';
+
+            document.querySelector('.content-header').classList.remove('hidden');
+            document.querySelector('.content').classList.remove('full-screen');
+            viewBody.classList.remove('iframe-container');
+            viewBody.classList.add('card');
+
+            applySelectedCss();
         } catch (err) {
             console.error(err);
             fatalError('Fehler beim Laden von Drive:\n' + err.message);
