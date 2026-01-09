@@ -275,6 +275,11 @@
     }
 
     function onNodeClick(e, node) {
+        if (!node.isFolder && node.kind !== 'json') {
+            const url = `https://drive.google.com/file/d/${node.id}/view`;
+            window.open(url, '_blank');
+            return;
+        }
         selectNode(node.id);
     }
 

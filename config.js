@@ -1,10 +1,10 @@
 /**
  * ============================================================================
- * config.js - Globale Konfiguration für DriveGames
+ * config.js - Globale Konfiguration für Skill-Station
  * ============================================================================
  * 
  * ZWECK:
- * Diese Datei enthält die globale Konfiguration für die DriveGames-Anwendung,
+ * Diese Datei enthält die globale Konfiguration für die Skill-Station-Anwendung,
  * insbesondere den Google Drive API-Schlüssel.
  * 
  * WICHTIGE HINWEISE FÜR ENTWICKLER:

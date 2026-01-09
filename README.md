@@ -222,7 +222,7 @@ graph TD
 ```bash
 # Mit Git
 git clone https://github.com/Thor-the-Dwarf/DriveGames.git
-cd DriveGames
+cd Skill-Station
 ```
 
 ### Schritt 3: Konfiguration anpassen
@@ -676,7 +676,7 @@ https://DEIN-USERNAME.github.io/DriveGames/index.html
 
 ```bash
 npm install -g vercel
-cd DriveGames
+cd Skill-Station
 vercel
 ```
 
