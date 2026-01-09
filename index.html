@@ -576,20 +576,10 @@
 
     <!-- LOAD CONFIG FIRST (Critical for GitHub/Public Key) -->
     <script src="config.js"></script>
-    iframe.onload = () => {
-    const isLight = document.documentElement.classList.contains('theme-light');
-    if (isLight) iframe.contentDocument.documentElement.classList.add('theme-light');
-    };
-
-    } catch (e) {
-    document.getElementById('view-body').innerHTML = `<p class="error">Fehler beim Laden: ${e.message}</p>`;
-    }
-    }
-
-    // --- Start ---
-    init();
-
-    </script>
+    <!-- LOAD DRIVE INTERPRETER -->
+    <script src="drive_interpreter.js"></script>
+    <!-- MAIN APP LOGIC -->
+    <script src="index.js"></script>
 </body>
 
 </html>
