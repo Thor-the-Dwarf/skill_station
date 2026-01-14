@@ -11,8 +11,16 @@
     const DRIVE_FILES_ENDPOINT = 'https://www.googleapis.com/drive/v3/files';
     const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
+    const STORAGE_KEY_FOLDER = 'drive_root_folder_id';
+    const HISTORY_KEY = 'drive_history_v1';
+    let driveHistory = [];
+
     // App State
-    let currentFolderId = ROOT_FOLDER_ID;
+    // Prioritize ID from local storage if set (switching folders), else fallback to config
+    let storedId = localStorage.getItem(STORAGE_KEY_FOLDER);
+    if (!storedId) storedId = ROOT_FOLDER_ID;
+
+    let currentFolderId = storedId;
     let appState = {
         selectedId: null,
         closedIds: [],
@@ -70,8 +78,6 @@
         const themeToggleGlobal = document.getElementById('theme-toggle-app');
         const drawerBackdrop = document.getElementById('drawer-backdrop');
         const topBarMenuBtn = document.getElementById('menu-tree-btn');
-        const drawerConnectBtn = document.getElementById('connect-btn-drawer');
-        const drawerInput = document.getElementById('drive-input-drawer');
         const viewBody = document.getElementById('view-body');
 
         // Theme
@@ -79,20 +85,15 @@
         initTheme();
 
         // Drawer / Nav
+        // Drawer / Nav
         drawerBackdrop.addEventListener('click', () => setDrawer(false));
         topBarMenuBtn.addEventListener('click', toggleDrawer);
-        // openDrawerStartBtn - Removed
-
-        // Connect
-        drawerConnectBtn.addEventListener('click', handleConnect);
-        drawerInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleConnect();
-        });
 
         // History Init
-        renderHistory();
+        // renderHistory() handled in initConnectionLogic
 
         // Load State
+        initConnectionLogic();
         loadAppState();
 
         try {
@@ -117,6 +118,9 @@
             const meta = await fetchFolderMeta(currentFolderId);
             rootName = meta.name || 'Drive-Ordner';
             document.getElementById('drawer-title').textContent = rootName;
+
+            // Update History Name
+            saveHistoryEntry(currentFolderId, rootName);
 
             rootTree = await buildTreeData(currentFolderId);
             const treeRootEl = document.getElementById('tree-root');
@@ -161,13 +165,25 @@
 
         if (appState.drawerOpen) {
             document.getElementById('app-view').classList.add('tree-open');
-            menuBtn.classList.add('active');
-            backdrop.classList.add('active');
+            if (menuBtn) menuBtn.classList.add('active');
+            if (backdrop) backdrop.classList.add('active');
         } else {
             document.getElementById('app-view').classList.remove('tree-open');
-            menuBtn.classList.remove('active');
-            backdrop.classList.remove('active');
+            if (menuBtn) menuBtn.classList.remove('active');
+            if (backdrop) backdrop.classList.remove('active');
         }
+    }
+
+    function toggleDrawer() {
+        appState.drawerOpen = !appState.drawerOpen;
+        saveAppState();
+        applyDrawerState();
+    }
+
+    function setDrawer(isOpen) {
+        appState.drawerOpen = isOpen;
+        saveAppState();
+        applyDrawerState();
     }
 
     function fatalError(msg) {
@@ -402,6 +418,106 @@
             viewBody.innerHTML = `<p class="error">Fehler beim Laden: ${e.message}</p>`;
         }
     }
+
+    // --- 4. Connection & History Logic (New) ---
+    function initConnectionLogic() {
+        loadHistory();
+        initModal();
+    }
+
+    function loadHistory() {
+        try {
+            driveHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        } catch (e) { driveHistory = []; }
+        renderHistoryDropdown();
+    }
+
+    function saveHistoryEntry(id, name) {
+        driveHistory = driveHistory.filter(h => h.id !== id);
+        driveHistory.unshift({ id, name: name || id, date: Date.now() });
+        if (driveHistory.length > 10) driveHistory.pop();
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(driveHistory));
+        renderHistoryDropdown();
+    }
+
+    function renderHistoryDropdown() {
+        const dd = document.getElementById('history-dropdown');
+        if (!dd) return;
+        dd.innerHTML = '<option value="">Zuletzt verwendet...</option>';
+        driveHistory.forEach(h => {
+            const opt = document.createElement('option');
+            opt.value = h.id;
+            opt.textContent = h.name;
+            if (h.id === currentFolderId) opt.selected = true;
+            dd.appendChild(opt);
+        });
+
+        dd.onchange = (e) => {
+            const newId = e.target.value;
+            if (newId && newId !== currentFolderId) {
+                switchFolder(newId);
+            }
+        };
+    }
+
+    function switchFolder(id) {
+        localStorage.setItem(STORAGE_KEY_FOLDER, id);
+        location.reload();
+    }
+
+    function initModal() {
+        const modal = document.getElementById('connect-modal');
+        const btnOpenConnect = document.getElementById('btn-open-connect');
+        const btnCancel = document.getElementById('btn-modal-cancel');
+        const btnConfirm = document.getElementById('btn-modal-confirm');
+        const modalInput = document.getElementById('modal-drive-input');
+
+        if (!modal) return;
+
+        if (btnOpenConnect) {
+            btnOpenConnect.onclick = () => {
+                modal.classList.add('active');
+                modalInput.value = '';
+                modalInput.focus();
+            };
+        }
+
+        if (btnCancel) btnCancel.onclick = () => modal.classList.remove('active');
+
+        if (btnConfirm) {
+            btnConfirm.onclick = () => {
+                const val = modalInput.value.trim();
+                const id = extractFolderId(val);
+                if (id) {
+                    saveHistoryEntry(id, 'Neuer Ordner...');
+                    switchFolder(id);
+                } else {
+                    alert('Ungültige URL oder ID');
+                }
+            };
+        }
+
+        if (modalInput) {
+            modalInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') btnConfirm.click();
+            });
+        }
+    }
+
+    function extractFolderId(url) {
+        const idRegex = /[-\w]{25,}/;
+        if (url.includes('drive.google.com')) {
+            const parts = url.split('/');
+            const folderIndex = parts.indexOf('folders');
+            if (folderIndex !== -1 && parts[folderIndex + 1]) {
+                const candidate = parts[folderIndex + 1].split('?')[0];
+                if (idRegex.test(candidate)) return candidate;
+            }
+        }
+        if (idRegex.test(url) && !url.includes('/')) return url;
+        return null;
+    }
+
 
     // --- Boot ---
     document.getElementById('theme-toggle-app').addEventListener('click', toggleTheme);

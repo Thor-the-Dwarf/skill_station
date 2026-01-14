@@ -434,18 +434,19 @@
             }
         }
 
-        .content {
-            margin: 0;
-            padding: 1rem;
-            padding-top: calc(64px + 16px);
-        }
+        @media (max-width: 768px) {
+            .content {
+                margin: 0;
+                padding: 1rem;
+                padding-top: calc(64px + 16px);
+            }
 
-        .drawer {
-            top: 64px;
-            left: 0;
-            width: 100vw;
-            height: calc(100vh - 64px);
-        }
+            .drawer {
+                top: 64px;
+                left: 0;
+                width: 100vw;
+                height: calc(100vh - 64px);
+            }
         }
 
         /* --- Connection Modal --- */
