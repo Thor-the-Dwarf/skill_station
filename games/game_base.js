@@ -286,7 +286,8 @@
                 const msg = [
                     'Unerwarteter game_type im JSON.',
                     `Erwartet: "${this.expectedGameType}"`,
-                    `Gefunden: "${actualType}"`
+                    `Gefunden: "${actualType}"`,
+                    `Geladenes HTML: ${window.location.pathname.split('/').pop()}`
                 ].join('\n');
                 this._fatal(msg);
                 return false;

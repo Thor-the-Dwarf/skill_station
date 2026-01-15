@@ -154,21 +154,20 @@
      */
     function _resolveGameHtmlByType(gameType, basePath) {
         const base = _normalizeBasePath(basePath);
+        const type = String(gameType).trim();
+
+        console.log(`[DriveInterpreter] Resolving game type: "${type}"`);
 
         // Mapping: game_type => HTML-Datei
-        // WICHTIG: Hier neue Spieltypen hinzufügen!
-        if (gameType === 'escape_game') return `${base}/Escape-Game.html`;
-        if (gameType === 'matching_puzzle') return `${base}/matching_puzzle.html`;
-        if (gameType === 'wer_bin_ich') return `${base}/wer_bin_ich.html`;
-        if (gameType === 'quick_quiz') return `${base}/quick_quiz.html`;
-        if (gameType === 'what_and_why') return `${base}/what_and_why.html`;
-        if (gameType === 'sortier_spiel') return `${base}/sortier_spiel.html`;
+        if (type === 'escape_game') return `${base}/Escape-Game.html`;
+        if (type === 'matching_puzzle' || type === 'matching-puzzle') return `${base}/matching_puzzle.html`;
+        if (type === 'wer_bin_ich' || type === 'wer-bin-ich') return `${base}/wer_bin_ich.html`;
+        if (type === 'quick_quiz' || type === 'quick-quiz') return `${base}/quick_quiz.html`;
+        if (type === 'what_and_why' || type === 'what-and-why') return `${base}/what_and_why.html`;
+        if (type === 'sortier_spiel' || type === 'sortier-spiel') return `${base}/sortier_spiel.html`;
 
-        // Weitere Spieltypen können hier hinzugefügt werden:
-        // if (gameType === 'sortier_spiel') return `${base}/sortier_spiel.html`;
-
-        // Unbekannter Spieltyp -> Fehler werfen
-        throw new Error(`Unbekannter game_type: "${String(gameType)}"`);
+        // Unbekannter Spieltyp
+        throw new Error(`Unbekannter game_type: "${type}"`);
     }
 
     /**
