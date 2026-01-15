@@ -318,6 +318,10 @@ body {
     color: hsl(var(--txt));
 }
 
+.sort-dropzone[data-dropzone="column"] .sort-card-tag {
+    display: none;
+}
+
 .sort-card-tag {
     font-size: 9px;
     text-transform: uppercase;
