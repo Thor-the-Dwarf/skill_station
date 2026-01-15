@@ -11,78 +11,12 @@
             background: radial-gradient(circle at top, hsl(var(--bg-surface)), hsl(var(--bg)));
             margin: 0;
             min-height: 100vh;
-            /* Flex layout only for the 'welcome' state, overridden by .app later */
         }
 
         /* Helper to hide views */
         .hidden {
             display: none !important;
         }
-
-        /* --- Welcome View --- */
-        #welcome-view {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            width: 100%;
-        }
-
-        .start-container {
-            width: 100%;
-            max-width: 500px;
-            padding: 1rem;
-        }
-
-        .hero-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 2rem;
-            background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--txt)));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .error-msg {
-            color: hsl(var(--error));
-            font-size: 0.9rem;
-            text-align: center;
-            height: 1.2rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .error-msg.visible {
-            opacity: 1;
-        }
-
-        .theme-toggle-fixed {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 50%;
-            transition: background 0.2s;
-            color: hsl(var(--txt));
-            z-index: 100;
-        }
-
-        .theme-toggle-fixed:hover {
-            background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
-        }
-
 
         /* --- App View (Tree/Drawer) Styles (copied from debugg.html) --- */
         #app-view {
@@ -509,38 +443,27 @@
             margin-top: 0.5rem;
             font-size: 0.9rem;
         }
+
+        /* Connect View inside App */
+        .connect-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 
 <body>
-    <!-- Theme Toggle (Global for both views) -->
-    <!-- Ideally, we have one inside the app bar for the app view, and one fixed for welcome view.
-         We can switch visibility or just have two buttons. -->
-
-    <!-- ================= WELCOME VIEW ================= -->
-    <div id="welcome-view">
-        <button id="theme-toggle-welcome" class="theme-toggle-fixed" aria-label="Theme wechseln">🌙</button>
-
-        <div class="start-container">
-            <h1 class="hero-title">Drive-Tree</h1>
-
-            <div class="card">
-                <h2>Willkommen</h2>
-                <p class="section-sub">Bitte gib den Link zu deinem freigegebenen Google Drive Ordner ein, um zu
-                    starten.</p>
-
-                <div class="input-group">
-                    <input type="text" id="drive-link" placeholder="https://drive.google.com/drive/folders/..."
-                        autocomplete="off">
-                    <button id="start-btn" class="btn primary" style="justify-content: center;">Ordner laden</button>
-                </div>
-                <div id="error-msg" class="error-msg">Ungültiger Link oder ID nicht gefunden.</div>
-            </div>
-        </div>
-    </div>
-
     <!-- ================= APP VIEW ================= -->
-    <div id="app-view" class="hidden">
+    <div id="app-view">
         <!-- Backdrop -->
         <div id="drawer-backdrop" class="drawer-backdrop"></div>
 
@@ -552,7 +475,9 @@
 
             <div class="tree-scroll">
                 <nav class="tree" id="tree-root">
-                    <!-- Tree per JS -->
+                    <div style="padding: 1rem; color: hsl(var(--txt-muted)); font-size: 0.9rem;">
+                        Nicht verbunden
+                    </div>
                 </nav>
             </div>
 
@@ -593,19 +518,18 @@
                 </button>
             </header>
 
-            <header class="content-header">
-                <div class="view-title" id="view-title">Drive-Struktur wird geladen …</div>
-                <div class="view-path" id="view-path"></div>
+            <header class="content-header" id="content-header">
+                <div class="view-title" id="view-title">Willkommen</div>
+                <div class="view-path" id="view-path">Skill-Station</div>
             </header>
 
             <section class="card" id="view-body">
-                <h2>Lade...</h2>
+                <!-- Dynamic Content Here -->
             </section>
-        </main>
         </main>
     </div>
 
-    <!-- CONNECTION MODAL -->
+    <!-- CONNECTION MODAL (Also reused for main connect view logic if needed) -->
     <div id="connect-modal" class="modal-overlay">
         <div class="modal-card">
             <h2 class="modal-title">Drive Ordner verbinden</h2>
@@ -638,12 +562,7 @@
         const API_KEY = GLOBAL_CONFIG.apiKey || '';
 
         // UI References
-        const welcomeView = document.getElementById('welcome-view');
         const appView = document.getElementById('app-view');
-        const inputEl = document.getElementById('drive-link');
-        const startBtn = document.getElementById('start-btn');
-        const errorEl = document.getElementById('error-msg');
-        const themeToggleWelcome = document.getElementById('theme-toggle-welcome');
         const themeToggleApp = document.getElementById('theme-toggle-app');
 
         // App State
@@ -663,11 +582,9 @@
             const rootEl = document.documentElement;
             if (theme === 'light') {
                 rootEl.classList.add('theme-light');
-                themeToggleWelcome.textContent = '☀️';
                 themeToggleApp.textContent = '☀️';
             } else {
                 rootEl.classList.remove('theme-light');
-                themeToggleWelcome.textContent = '🌙';
                 themeToggleApp.textContent = '🌙';
             }
 
@@ -692,7 +609,6 @@
             localStorage.setItem(THEME_KEY, next);
         }
 
-        themeToggleWelcome.addEventListener('click', toggleTheme);
         themeToggleApp.addEventListener('click', toggleTheme);
         initTheme();
 
@@ -795,30 +711,7 @@
             });
         }
 
-
-        // --- 3. View Switcher ---
-        function init() {
-            // Always show welcome screen (don't auto-load cached folder)
-            // const savedId = localStorage.getItem(STORAGE_KEY_FOLDER);
-            showWelcome();
-        }
-
-        function showWelcome() {
-            welcomeView.classList.remove('hidden');
-            appView.classList.add('hidden');
-        }
-
-        function showApp() {
-            welcomeView.classList.add('hidden');
-            appView.classList.remove('hidden');
-
-            // Init History UI once app is shown
-            loadHistory();
-            initAppLogic();
-        }
-
-
-        // --- 4. Welcome Screen Logic ---
+        // --- 3. Parsing Helpers ---
         function extractFolderId(url) {
             const idRegex = /[-\w]{25,}/;
             if (url.includes('drive.google.com')) {
@@ -833,46 +726,20 @@
             return null;
         }
 
-        function handleStart() {
-            const val = inputEl.value.trim();
-            if (!val) return;
-            const id = extractFolderId(val);
-            if (id) {
-                localStorage.setItem(STORAGE_KEY_FOLDER, id);
-                currentFolderId = id;
-                // Pre-save to history
-                saveHistoryEntry(id, 'Laden...');
-                showApp();
-            } else {
-                errorEl.classList.add('visible');
-                setTimeout(() => errorEl.classList.remove('visible'), 3000);
-            }
-        }
+        // --- 4. Main Init Logic ---
 
-        startBtn.addEventListener('click', handleStart);
-        inputEl.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleStart();
-        });
+        function init() {
+            // Apply Drawer State early
+            loadAppState();
+            applyDrawerState();
 
-
-        // --- 5. App Logic (Tree, Drawer, Content) ---
-        // Derived from debugg.html but using currentFolderId
-
-        async function initAppLogic() {
-            if (!API_KEY) {
-                fatalError('API-Key fehlt in config.js!');
-                return;
-            }
-
-            // Load UI references for App
-            const treeRootEl = document.getElementById('tree-root');
-            const viewBodyEl = document.getElementById('view-body');
-            const viewTitleEl = document.getElementById('view-title');
-            const drawerBackdrop = document.getElementById('drawer-backdrop');
-            const appViewEl = document.getElementById('app-view');
-            const menuBtn = document.getElementById('menu-tree-btn');
+            // Initialize History
+            loadHistory();
 
             // Wire Drawer Toggle
+            const menuBtn = document.getElementById('menu-tree-btn');
+            const drawerBackdrop = document.getElementById('drawer-backdrop');
+
             menuBtn.onclick = () => {
                 appState.drawerOpen = !appState.drawerOpen;
                 saveAppState();
@@ -884,8 +751,72 @@
                 applyDrawerState();
             }
 
-            loadAppState();
-            applyDrawerState();
+            renderConnectView();
+        }
+
+        function renderConnectView() {
+            const viewTitle = document.getElementById('view-title');
+            const viewPath = document.getElementById('view-path');
+            const viewBody = document.getElementById('view-body');
+            const contentHeader = document.getElementById('content-header');
+
+            viewTitle.textContent = "Willkommen";
+            viewPath.textContent = "Skill-Station";
+            contentHeader.classList.remove('hidden');
+
+            viewBody.innerHTML = `
+                <div class="connect-container">
+                    <h2>Drive-Ordner verbinden</h2>
+                    <p class="section-sub">Bitte gib den Link zu deinem freigegebenen Google Drive Ordner ein, um zu starten.</p>
+                    
+                    <div class="input-group">
+                        <input type="text" id="main-drive-input" placeholder="https://drive.google.com/drive/folders/..." autocomplete="off">
+                        <button id="main-start-btn" class="btn primary" style="justify-content: center;">Ordner laden</button>
+                    </div>
+                </div>
+            `;
+
+            // Wire up the button in the main view
+            const input = document.getElementById('main-drive-input');
+            const btn = document.getElementById('main-start-btn');
+
+            const handleConnect = () => {
+                const val = input.value.trim();
+                const id = extractFolderId(val);
+                if (id) {
+                    saveHistoryEntry(id, 'Laden...');
+                    switchFolder(id); // Reloads page with ID
+                } else {
+                    alert("Ungültiger Link oder ID nicht gefunden.");
+                }
+            };
+
+            btn.onclick = handleConnect;
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter') handleConnect();
+            };
+
+            // Check for saved ID to auto-load
+            const savedId = localStorage.getItem(STORAGE_KEY_FOLDER);
+            if (savedId) {
+                currentFolderId = savedId;
+                initAppLogic(); // Actually load the tree
+            }
+        }
+
+        async function initAppLogic() {
+            if (!currentFolderId) return; // Should not happen if called correctly
+            if (!API_KEY) {
+                fatalError('API-Key fehlt in config.js!');
+                return;
+            }
+
+            const viewBodyEl = document.getElementById('view-body');
+            const viewTitleEl = document.getElementById('view-title');
+
+            // Show loading
+            viewTitleEl.textContent = 'Lade Drive...';
+            viewBodyEl.innerHTML = '<p style="padding:2rem;">Verbinde mit Google Drive...</p>';
 
             // Load Data
             try {
@@ -896,6 +827,7 @@
                 // Update History Name now that we have the real name
                 saveHistoryEntry(currentFolderId, rootName);
 
+                const treeRootEl = document.getElementById('tree-root');
                 rootTree = await buildTreeData(currentFolderId);
                 treeRootEl.innerHTML = '';
                 buildTreeHelper(treeRootEl, rootTree, 0);
@@ -904,11 +836,10 @@
                 appState.selectedId = null;
                 saveAppState();
 
-                // Clear view
+                // Clear view to "Ready" state
                 viewTitleEl.textContent = 'Bereit';
-                document.getElementById('view-path').textContent = '';
+                document.getElementById('view-path').textContent = rootName;
                 viewBodyEl.innerHTML = '<p style="padding:2rem; color:hsl(var(--txt-muted))">Bitte wähle eine Datei aus dem Menü.</p>';
-                document.querySelector('.content-header').classList.remove('hidden');
                 document.querySelector('.content').classList.remove('full-screen');
                 viewBodyEl.classList.remove('iframe-container');
                 viewBodyEl.classList.add('card');
@@ -919,12 +850,13 @@
             } catch (err) {
                 console.error(err);
                 fatalError('Fehler beim Laden von Drive:\n' + err.message);
-                // Maybe button to reset ID?
-                viewBodyEl.innerHTML += `<br><button onclick="localStorage.removeItem('${STORAGE_KEY_FOLDER}'); location.reload()">Zurücksetzen</button>`;
+                // Reset button
+                viewBodyEl.innerHTML += `<br><button class="btn secondary" onclick="localStorage.removeItem('${STORAGE_KEY_FOLDER}'); location.reload()">Zurücksetzen</button>`;
             }
         }
 
-        // --- Helper Methods (Compact version of debugg.html logic) ---
+
+        // --- 5. Helper Methods ---
 
         function loadAppState() {
             try {
@@ -951,7 +883,7 @@
 
         function fatalError(msg) {
             document.getElementById('view-title').textContent = 'Fehler';
-            document.getElementById('view-body').innerHTML = `<p style="color:red">${msg}</p>`;
+            document.getElementById('view-body').innerHTML = `<p style="color:hsl(var(--error))">${msg}</p>`;
         }
 
         async function fetchJson(url) {
@@ -959,10 +891,9 @@
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
                 console.error('Full API Error:', errData);
-                // Debug-Ausgabe für den User sichtbar machen
                 const debugStr = JSON.stringify(errData, null, 2);
                 const msg = (errData.error && errData.error.message) ? errData.error.message : res.statusText;
-                throw new Error(`${res.status} ${msg}\n\nDetails:\n${debugStr}`);
+                throw new Error(`${res.status} ${msg}\nDETAILS:\n${debugStr}`);
             }
             return res.json();
         }
@@ -1153,13 +1084,7 @@
                 viewBody.classList.remove('card');
                 viewBody.classList.add('iframe-container');
 
-                // Payload Logic (SessionStorage)
-                sessionStorage.setItem('game_payload_' + node.id, JSON.stringify({ title: node.name, game_type: 'unknown' })); // Helper mainly
-                // Actually fetch content if needed, but for now just load Game
-                // Determine Game Type... simplified logic:
-
-                // If JSON, we should load it and see 'game_type'.
-                // If PDF, show PDF viewer?
+                sessionStorage.setItem('game_payload_' + node.id, JSON.stringify({ title: node.name, game_type: 'unknown' }));
 
                 if (node.kind === 'json') {
                     loadGame(node);
