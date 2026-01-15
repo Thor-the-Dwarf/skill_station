@@ -587,7 +587,7 @@
                 <button id="menu-tree-btn" class="menu-icon-btn" type="button" title="Ordnerstruktur ein-/ausblenden">
                     📁
                 </button>
-                <div class="top-bar-title">Drive Games</div>
+                <div class="top-bar-title">Drive Games v1.1</div>
                 <button id="theme-toggle-app" class="theme-toggle-btn" type="button" aria-label="Theme wechseln">
                     🌙
                 </button>
@@ -624,6 +624,7 @@
 
     <!-- LOAD CONFIG FIRST (Critical for GitHub/Public Key) -->
     <script src="config.js"></script>
+    <script src="drive_interpreter.js"></script>
 
     <script>
         // --- 1. Global Setup & State ---
@@ -1169,32 +1170,21 @@
         }
 
         async function loadGame(node) {
-            const endpoint = `${DRIVE_FILES_ENDPOINT}/${node.id}?key=${API_KEY}&alt=media`;
+            const viewBody = document.getElementById('view-body');
+            // Clear current content before loading
+            viewBody.innerHTML = '';
+
             try {
-                const res = await fetch(endpoint);
-                const json = await res.json();
-                sessionStorage.setItem('game_payload_' + node.id, JSON.stringify(json));
-
-                let gameFile = 'games/Escape-Game.html'; // Default
-                if (json.game_type === 'what_and_why') gameFile = 'games/what_and_why.html';
-                if (json.game_type === 'quick_quiz') gameFile = 'games/quick_quiz.html';
-                if (json.game_type === 'assign_puzzle') gameFile = 'games/matching_puzzle.html';
-
-                const iframe = document.createElement('iframe');
-                iframe.className = 'game-iframe';
-                // Pass Theme
-                // Note: games need config.js too now!
-                iframe.src = `${gameFile}?fileId=${node.id}`;
-                document.getElementById('view-body').appendChild(iframe);
-
-                // Apply theme to iframe after load
-                iframe.onload = () => {
-                    const isLight = document.documentElement.classList.contains('theme-light');
-                    if (isLight) iframe.contentDocument.documentElement.classList.add('theme-light');
-                };
-
+                await window.DriveInterpreter.loadGame({
+                    fileId: node.id,
+                    apiKey: API_KEY,
+                    driveFilesEndpoint: DRIVE_FILES_ENDPOINT,
+                    containerEl: viewBody,
+                    basePath: 'games',
+                    iframeClassName: 'game-iframe'
+                });
             } catch (e) {
-                document.getElementById('view-body').innerHTML = `<p class="error">Fehler beim Laden: ${e.message}</p>`;
+                viewBody.innerHTML = `<p class="error">Fehler beim Laden: ${e.message}</p>`;
             }
         }
 
