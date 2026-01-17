@@ -483,25 +483,20 @@
 
             <footer class="drawer-footer">
                 <!-- Status Row -->
-                <div class="drawer-footer-row" style="margin-bottom: 1rem;">
-                    <span class="drawer-footer-text">Ausgewählt</span>
-                    <div class="state-pill">
-                        <span id="state-selected-label">–</span>
-                    </div>
-                </div>
+                <!-- Status Row Removed -->
 
                 <!-- Connection Controls -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <button id="btn-open-connect" class="btn secondary" style="width: 100%; justify-content: center;">
-                        🔗 Ordner verbinden
-                    </button>
-
                     <div>
                         <label for="history-dropdown" class="drawer-footer-text">Verlauf</label>
                         <select id="history-dropdown" class="history-select">
                             <option value="">Zuletzt verwendet...</option>
                         </select>
                     </div>
+
+                    <button id="btn-open-connect" class="btn secondary" style="width: 100%; justify-content: center;">
+                        🔗 Ordner verbinden
+                    </button>
                 </div>
             </footer>
         </aside>
@@ -512,7 +507,7 @@
                 <button id="menu-tree-btn" class="menu-icon-btn" type="button" title="Ordnerstruktur ein-/ausblenden">
                     📁
                 </button>
-                <div class="top-bar-title">Drive Games v1.1</div>
+                <div class="top-bar-title">Die Wiederholung ist die Mutter des Lernens</div>
                 <button id="theme-toggle-app" class="theme-toggle-btn" type="button" aria-label="Theme wechseln">
                     🌙
                 </button>
@@ -1027,7 +1022,7 @@
                 if (n.dataset.id === appState.selectedId) n.classList.add('tree-node--selected');
                 else n.classList.remove('tree-node--selected');
             });
-            document.getElementById('state-selected-label').textContent = appState.selectedId || '-';
+            // Removed: document.getElementById('state-selected-label').textContent = ...
         }
 
         function findNode(nodes, id) {

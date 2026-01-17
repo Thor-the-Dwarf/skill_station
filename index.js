@@ -340,7 +340,7 @@
             if (n.dataset.id === appState.selectedId) n.classList.add('tree-node--selected');
             else n.classList.remove('tree-node--selected');
         });
-        document.getElementById('state-selected-label').textContent = appState.selectedId || '-';
+        // Removed: document.getElementById('state-selected-label').textContent = appState.selectedId || '-';
     }
 
     function findNode(nodes, id) {
