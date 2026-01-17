@@ -50,22 +50,8 @@
             </p>
 
             <!-- 3-Column Grid -->
-            <div class="columns">
-                <div class="column">
-                    <p class="column-title">1 · Rechtsform</p>
-                    <p class="column-hint">Wähle einen Namen.</p>
-                    <div id="col-names" class="card-list"></div>
-                </div>
-                <div class="column">
-                    <p class="column-title">2 · Beschreibung</p>
-                    <p class="column-hint">Wähle die passende Kurzbeschreibung.</p>
-                    <div id="col-descriptions" class="card-list"></div>
-                </div>
-                <div class="column">
-                    <p class="column-title">3 · Praxisbeispiel</p>
-                    <p class="column-hint">Suche ein passendes Praxisbeispiel.</p>
-                    <div id="col-examples" class="card-list"></div>
-                </div>
+            <div id="columns-container" class="columns">
+                <!-- Columns will be generated here -->
             </div>
 
             <!-- Feedback -->
@@ -82,7 +68,7 @@
     <script src="game_base.js"></script>
 
     <!-- Payload Interpreter -->
-    <script src="matching_puzzle_payload.js"></script>
+    <!-- Payload Interpreter - REMOVED -->
 
     <!-- Game Logic -->
     <script src="matching_puzzle.js"></script>
