@@ -1,17 +1,11 @@
 /**
  * ============================================================================
- * wer_bin_ich.js - Wer-bin-ich? Spiellogik
+ * wer_bin_ich.js - Wer-bin-ich? Spiellogik (Generic Refactor)
  * ============================================================================
  * 
  * ZWECK:
  * Hauptlogik für das "Wer bin ich?"-Ratespiel. Erweitert GameBase.
- * 
- * SPIELPRINZIP:
- * - System wählt geheime Rechtsform
- * - Spieler stellt Ja/Nein-Fragen aus Katalog
- * - System antwortet basierend auf Attributen
- * - Historie der Fragen wird angezeigt
- * - Spieler rät die Rechtsform
+ * Dynamisch konfigurierbar über JSON für verschiedene Themen (Rechtsformen, Tiere, etc.).
  * 
  * ============================================================================
  */
@@ -19,10 +13,6 @@
 (function () {
     'use strict';
 
-    /**
-     * Wer-bin-ich Klasse
-     * Erweitert GameBase für JSON-Loading und Theme-Support
-     */
     class WerBinIch extends GameBase {
         constructor() {
             super({
@@ -33,9 +23,10 @@
             // Spiel-Daten (aus JSON)
             this.legalForms = [];     // Array von {id, name, attributes: {...}}
             this.questions = [];      // Array von {id, text, hotkey, attributeKey}
+            this.configData = {};     // Full JSON data
 
             // Spiel-State
-            this.secretForm = null;   // Aktuell geheime Rechtsform
+            this.secretForm = null;   // Aktuell geheimes Item
             this.questionCount = 0;   // Anzahl gestellter Fragen
             this.gameOver = false;    // Spiel gewonnen?
 
@@ -49,14 +40,20 @@
             this.guessInput = null;
             this.guessBtn = null;
             this.guessFeedbackEl = null;
+
+            // Generic UI Elements
+            this.secretHintEl = null;
+            this.poolListEl = null;
+            this.answerSectionTitleEl = null;
+            this.guessSectionTitleEl = null;
+            this.poolSectionTitleEl = null;
+
         }
 
-        /**
-         * Wird von GameBase aufgerufen, nachdem JSON geladen wurde
-         * @param {Object} data - Das JSON-Payload
-         */
         onDataLoaded(data) {
-            // DOM-Referenzen holen
+            this.configData = data;
+
+            // 1. DOM Referenzen
             this.questionListEl = document.getElementById('question-list');
             this.questionCountEl = document.getElementById('question-count');
             this.answerTextEl = document.getElementById('answer-text');
@@ -67,12 +64,34 @@
             this.guessBtn = document.getElementById('guess-btn');
             this.guessFeedbackEl = document.getElementById('guess-feedback');
 
-            // Payload-Daten anwenden
-            if (window.WerBinIchPayload) {
-                window.WerBinIchPayload.applyPayloadToGame(this, data);
+            this.secretHintEl = document.getElementById('secret-hint');
+            this.poolListEl = document.getElementById('pool-list');
+            this.answerSectionTitleEl = document.getElementById('answer-section-title');
+            this.guessSectionTitleEl = document.getElementById('guess-section-title');
+            this.poolSectionTitleEl = document.getElementById('pool-section-title');
+
+            // 2. Daten laden (Legal Forms = Generic Items)
+            if (Array.isArray(data.legalForms)) {
+                this.legalForms = data.legalForms;
+            }
+            if (Array.isArray(data.questions)) {
+                this.questions = data.questions;
             }
 
-            // Event-Listener
+            // 3. UI-Texte anwenden
+            this.applyUiLabels(data);
+
+            // 4. Titel setzen
+            if (data.title) {
+                const titleEl = document.querySelector('.game-title');
+                if (titleEl) titleEl.textContent = data.title;
+                document.title = data.title;
+            }
+
+            // 5. Pool Liste rendern
+            this.renderPoolList();
+
+            // 6. Event-Listener
             this.newGameBtn.addEventListener('click', () => this.startNewGame());
             this.guessBtn.addEventListener('click', () => this.handleGuess());
             this.guessInput.addEventListener('keydown', (event) => {
@@ -81,51 +100,66 @@
                 }
             });
 
-            // Spiel initialisieren
+            // 7. Spiel initialisieren
             this.initQuestionButtons();
             this.startNewGame();
         }
 
         /**
-         * Wählt zufällige Rechtsform aus
-         * @returns {Object} Zufällige Rechtsform
+         * Wendet konfigurierbare UI-Labels an
          */
+        applyUiLabels(data) {
+            const labels = data.uiLabels || {};
+
+            // Default Fallbacks
+            const secretHint = labels.secretHint || "Das System hat heimlich eine {item} gewählt.";
+            const poolTitle = labels.poolTitle || "Im Pool";
+            const guessTitle = labels.guessTitle || "Raten";
+            const answerTitle = labels.answerTitle || "Antwort";
+            const placeholder = labels.placeholder || "...";
+
+            // Apply
+            if (this.secretHintEl) {
+                // Initial text (might be overwritten by updateSecretHint)
+                this.secretHintEl.innerHTML = secretHint.replace('{item}', '<span class="secret-name">???</span>');
+            }
+            if (this.poolSectionTitleEl) this.poolSectionTitleEl.textContent = poolTitle;
+            if (this.guessSectionTitleEl) this.guessSectionTitleEl.textContent = guessTitle;
+            if (this.answerSectionTitleEl) this.answerSectionTitleEl.textContent = answerTitle;
+            if (this.guessInput) this.guessInput.placeholder = placeholder;
+        }
+
+        renderPoolList() {
+            if (!this.poolListEl) return;
+            // Config override?
+            if (this.configData.poolListHtml) {
+                this.poolListEl.innerHTML = this.configData.poolListHtml;
+            } else {
+                this.poolListEl.innerHTML = this.legalForms
+                    .map(form => `<li>${form.name}</li>`)
+                    .join('');
+            }
+        }
+
         pickRandomForm() {
             const idx = Math.floor(Math.random() * this.legalForms.length);
             return this.legalForms[idx];
         }
 
-        /**
-         * Setzt Antwort-Buttons zurück
-         */
         resetAnswerButtons() {
             this.answerButtons.forEach(btn => btn.classList.remove('active'));
         }
 
-        /**
-         * Aktiviert Antwort-Button (Ja/Nein)
-         * @param {string} type - 'yes' oder 'no'
-         */
         setActiveAnswerButton(type) {
             this.resetAnswerButtons();
             const btn = document.querySelector(`.answer-btn[data-type="${type}"]`);
-            if (btn) {
-                btn.classList.add('active');
-            }
+            if (btn) btn.classList.add('active');
         }
 
-        /**
-         * Aktualisiert Fragen-Zähler
-         */
         updateQuestionCount() {
             this.questionCountEl.textContent = String(this.questionCount);
         }
 
-        /**
-         * Fügt Eintrag zur Historie hinzu
-         * @param {Object} question - Die gestellte Frage
-         * @param {boolean} answerIsYes - Ob Antwort "Ja" ist
-         */
         addHistoryEntry(question, answerIsYes) {
             const li = document.createElement('li');
             li.className = 'history-item';
@@ -140,69 +174,40 @@
 
             li.appendChild(qSpan);
             li.appendChild(pill);
-
-            // Neueste Frage oben
             this.historyListEl.prepend(li);
         }
 
-        /**
-         * Stellt eine Frage und zeigt Antwort
-         * @param {Object} question - Die Frage
-         * @param {HTMLElement} [btnEl] - Der Button (optional)
-         */
         askQuestion(question, btnEl) {
-            if (!this.secretForm || this.gameOver) {
-                return;
-            }
+            if (!this.secretForm || this.gameOver) return;
 
-            // Button ausblenden
-            if (btnEl) {
-                btnEl.classList.add('used');
-            }
+            if (btnEl) btnEl.classList.add('used');
 
             this.questionCount++;
             this.updateQuestionCount();
 
-            // Antwort evaluieren basierend auf attributeKey
             const answerIsYes = this.evaluateQuestion(question, this.secretForm);
-
-            // Antwort-Button aktivieren
             this.setActiveAnswerButton(answerIsYes ? 'yes' : 'no');
 
-            // Antwort-Text setzen
             this.answerTextEl.textContent =
                 (answerIsYes ? 'Ja' : 'Nein') + ' – ' + question.text;
 
-            // Zur Historie hinzufügen
             this.addHistoryEntry(question, answerIsYes);
         }
 
-        /**
-         * Evaluiert eine Frage gegen eine Rechtsform
-         * @param {Object} question - Die Frage mit attributeKey
-         * @param {Object} form - Die Rechtsform mit attributes
-         * @returns {boolean} Ob Antwort "Ja" ist
-         */
         evaluateQuestion(question, form) {
-            // Für JSON-kompatibilität: attributeKey direkt prüfen
+            // Json-based attribute check
             if (question.attributeKey && form.attributes) {
                 return !!form.attributes[question.attributeKey];
             }
-
-            // Fallback: evaluate-Funktion (für hardcoded Data)
+            // Fallback function (if data is JS-based)
             if (typeof question.evaluate === 'function') {
                 return !!question.evaluate(form);
             }
-
             return false;
         }
 
-        /**
-         * Initialisiert Fragen-Buttons
-         */
         initQuestionButtons() {
             this.questionListEl.innerHTML = '';
-
             this.questions.forEach(q => {
                 const btn = document.createElement('button');
                 btn.className = 'question-btn';
@@ -218,50 +223,30 @@
 
                 btn.appendChild(spanText);
                 btn.appendChild(spanHotkey);
-
                 btn.addEventListener('click', (e) => this.askQuestion(q, e.currentTarget));
-
                 this.questionListEl.appendChild(btn);
             });
         }
 
-        /**
-         * Bereinigt Eingabe für Vergleich
-         * @param {string} value - Die Eingabe
-         * @returns {string} Bereinigte Eingabe
-         */
         sanitizeGuess(value) {
-            return value
-                .toLowerCase()
-                .replace(/\s+/g, '')
-                .replace(/[().-]/g, '');
+            return value.toLowerCase().replace(/\s+/g, '').replace(/[().-]/g, '');
         }
 
-        /**
-         * Findet Rechtsform basierend auf Eingabe
-         * @param {string} value - Die Eingabe
-         * @returns {Object|null} Gefundene Rechtsform oder null
-         */
         findFormByGuess(value) {
             const sanitized = this.sanitizeGuess(value);
             if (!sanitized) return null;
-
             return this.legalForms.find(form => {
                 const formNameSanitized = this.sanitizeGuess(form.name);
                 return formNameSanitized === sanitized;
             }) || null;
         }
 
-        /**
-         * Behandelt Rate-Versuch
-         */
         handleGuess() {
             if (!this.secretForm) return;
 
             const guess = this.guessInput.value.trim();
-
             if (!guess) {
-                this.guessFeedbackEl.textContent = 'Gib eine Rechtsform ein, bevor du rätst.';
+                this.guessFeedbackEl.textContent = 'Gib etwas ein, bevor du rätst.';
                 this.guessFeedbackEl.className = 'error';
                 return;
             }
@@ -269,76 +254,83 @@
             const guessedForm = this.findFormByGuess(guess);
 
             if (!guessedForm) {
-                this.guessFeedbackEl.textContent =
-                    'Diese Rechtsform ist nicht im Pool. Nutze die Liste als Orientierung.';
+                this.guessFeedbackEl.textContent = 'Dies ist nicht im Pool der Möglichkeiten.';
                 this.guessFeedbackEl.className = 'error';
                 return;
             }
 
             if (guessedForm.id === this.secretForm.id) {
-                // Gewonnen!
+                // WIN
                 this.gameOver = true;
-                this.guessFeedbackEl.textContent =
-                    `Richtig! Die gesuchte Rechtsform war: ${this.secretForm.name}. ` +
-                    `Starte eine neue Runde mit „Neue Runde".`;
+                this.guessFeedbackEl.textContent = `Richtig! Es war: ${this.secretForm.name}. Starte eine neue Runde.`;
                 this.guessFeedbackEl.className = 'success';
+
+                // Reveal in hint
+                this.updateSecretHint(true);
+
             } else {
-                // Falsch geraten
-                this.guessFeedbackEl.textContent =
-                    'Leider falsch. Gesucht ist eine andere Rechtsform. ' +
-                    'Stelle weitere Fragen und versuche es erneut.';
+                // LOSE
+                this.guessFeedbackEl.textContent = 'Leider falsch. Versuche es weiter.';
                 this.guessFeedbackEl.className = 'error';
             }
         }
 
-        /**
-         * Aktiviert/Deaktiviert Fragen-Buttons
-         * @param {boolean} disabled - true = disable
-         */
+        updateSecretHint(reveal) {
+            if (!this.secretHintEl) return;
+            const labels = this.configData.uiLabels || {};
+            const secretHintTemplate = labels.secretHint || "Das System hat heimlich eine {item} gewählt.";
+
+            const name = reveal ? this.secretForm.name : (labels.secretPlaceholder || "Rechtsform"); // Fallback for placeholder
+
+            // If strictly generic, we might want a generic placeholder from JSON like "Entity"
+            // For now, let's look for a specific 'secretItemName' in uiLabels
+            const secretItemName = labels.secretItemName || "Rechtsform";
+
+            const display = reveal ? `<span class="secret-name highlight">${name}</span>` : `<span class="secret-name">${secretItemName}</span>`;
+
+            this.secretHintEl.innerHTML = secretHintTemplate.replace('{item}', display);
+        }
+
         setQuestionButtonsDisabled(disabled) {
             const buttons = document.querySelectorAll('.question-btn');
             buttons.forEach(btn => {
-                if (disabled) {
-                    btn.classList.add('disabled');
-                } else {
-                    btn.classList.remove('disabled');
-                }
+                if (disabled) btn.classList.add('disabled');
+                else btn.classList.remove('disabled');
             });
         }
 
-        /**
-         * Startet neues Spiel
-         */
         startNewGame() {
             if (this.legalForms.length === 0) {
-                this.answerTextEl.textContent = 'Keine Rechtsformen verfügbar.';
+                this.answerTextEl.textContent = 'Keine Daten verfügbar.';
                 return;
             }
 
-            // Neue geheime Form wählen
             this.secretForm = this.pickRandomForm();
-
-            // State zurücksetzen
             this.questionCount = 0;
             this.gameOver = false;
 
-            // UI zurücksetzen
             this.updateQuestionCount();
             this.resetAnswerButtons();
+
             this.historyListEl.innerHTML = '';
-            this.answerTextEl.textContent = 'Neue Runde gestartet. Stelle eine Frage aus dem Katalog.';
+
+            // Generic restart message
+            const restartMsg = this.configData.uiLabels?.startMessage || 'Neue Runde gestartet. Stelle eine Frage.';
+            this.answerTextEl.textContent = restartMsg;
+
             this.guessInput.value = '';
             this.guessFeedbackEl.textContent = '';
             this.guessFeedbackEl.className = '';
 
-            // Buttons resetten
+            // Reset Hint (Hide Secret)
+            this.updateSecretHint(false);
+
             this.setQuestionButtonsDisabled(false);
             const usedButtons = document.querySelectorAll('.question-btn.used');
             usedButtons.forEach(btn => btn.classList.remove('used'));
         }
     }
 
-    // Spiel initialisieren, wenn DOM geladen
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             const game = new WerBinIch();

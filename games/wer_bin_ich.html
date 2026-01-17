@@ -39,20 +39,19 @@
               <span class="label">Fragen</span>
               <span class="value" id="question-count">0</span>
             </div>
-            <p class="secret-hint">
-              Das System hat heimlich eine
-              <span class="secret-name">Rechtsform</span> gewählt.
+            <p class="secret-hint" id="secret-hint">
+              <!-- Secret hint will be injected here -->
             </p>
           </div>
 
           <h2>Fragenkatalog</h2>
           <p class="section-subtitle">
-            Klicke auf eine Frage, um sie der geheimen Rechtsform zu stellen.
+            Klicke auf eine Frage, um sie zu stellen.
           </p>
           <div id="question-list" class="question-list"></div>
 
           <div class="answer-section">
-            <h2>Antwort der Rechtsform</h2>
+            <h2 id="answer-section-title">Antwort</h2>
             <div class="answer-buttons">
               <button class="answer-btn" data-type="yes">Ja</button>
               <button class="answer-btn" data-type="no">Nein</button>
@@ -66,30 +65,25 @@
 
         <!-- Right Column: Guessing & Info -->
         <section>
-          <h2>Rechtsform raten</h2>
+          <h2 id="guess-section-title">Raten</h2>
           <p class="section-subtitle">
-            Nutze deine Hinweise, um zu raten, welche Rechtsform gemeint ist.
+            Nutze deine Hinweise, um die Lösung zu finden.
           </p>
           <div class="guess-section">
             <div class="guess-row">
-              <input id="guess-input" type="text"
-                placeholder="z. B. GmbH, UG (haftungsbeschränkt), OHG, Einzelunternehmen, AG">
+              <input id="guess-input" type="text" placeholder="...">
               <button id="guess-btn" type="button">Raten</button>
             </div>
             <p id="guess-feedback"></p>
           </div>
 
           <div style="margin-top: 14px;">
-            <h2>Im Pool der Rechtsformen</h2>
+            <h2 id="pool-section-title">Im Pool</h2>
             <p class="section-subtitle" style="margin-bottom:6px;">
-              Diese Rechtsformen kommen aktuell im Spiel vor:
+              Diese Elemente kommen aktuell im Spiel vor:
             </p>
-            <ul class="info-list">
-              <li>GmbH</li>
-              <li>UG (haftungsbeschränkt)</li>
-              <li>OHG</li>
-              <li>Einzelunternehmen</li>
-              <li>AG</li>
+            <ul class="info-list" id="pool-list">
+              <!-- Will be filled dynamically -->
             </ul>
           </div>
         </section>
@@ -103,8 +97,7 @@
   <!-- Game Base Class -->
   <script src="game_base.js"></script>
 
-  <!-- Payload Interpreter -->
-  <script src="wer_bin_ich_payload.js"></script>
+  <!-- Payload Interpreter - REMOVED -->
 
   <!-- Game Logic -->
   <script src="wer_bin_ich.js"></script>
