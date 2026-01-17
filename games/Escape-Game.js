@@ -14,64 +14,212 @@
             this.timerId = null;
             this.gameLocked = false;
 
-            this.sectionSolved = {
-                sort: false,
-                quiz: false,
-                capital: false
-            };
+            // Generic section tracking
+            // We store solution data by section ID
+            this.sectionData = {};
+            this.solvedSections = new Set();
+            this.totalSections = 0;
 
-            this.sortCardsData = [];
-            this.quizSolutions = {};
-            this.capitalSolutions = {};
             this.draggingCardId = null;
 
-            // DOM Elements (assigned in onDataLoaded)
+            // DOM Elements
             this.statTimerEl = null;
             this.statSolvedEl = null;
-            this.statStatusEl = null;
             this.doorEl = null;
             this.doorSignEl = null;
             this.doorGlowEl = null;
-            this.sortPoolEl = null;
-            this.quizFeedbackEl = null;
+            this.puzzleContainer = null;
         }
 
         onDataLoaded(data) {
-            // 1. Config parsen & Datenstrukturen füllen + DOM-Teile updaten
-            window.EscapeGamePayload.applyPayloadToGame(this, data);
-
-            // 2. DOM-Elemente binden
+            // 1. Setup global stats
             this.statTimerEl = document.getElementById("stat-timer");
             this.statSolvedEl = document.getElementById("stat-solved");
-            this.statStatusEl = document.getElementById("stat-status");
 
             this.doorEl = document.getElementById("door");
             this.doorSignEl = document.getElementById("door-sign");
             this.doorGlowEl = document.getElementById("door-glow");
 
-            this.sortPoolEl = document.getElementById("sort-pool");
-            this.quizFeedbackEl = document.getElementById("quiz-feedback");
+            this.puzzleContainer = document.getElementById("puzzle-container");
 
             // Buttons
-            document.getElementById("restart-btn").addEventListener("click", () => this.resetGame());
-            document.getElementById("check-sort-btn").addEventListener("click", () => this.checkSort());
-            document.getElementById("check-quiz-btn").addEventListener("click", () => this.checkQuiz());
-            document.getElementById("check-capital-btn").addEventListener("click", () => this.checkCapital());
+            const restartBtn = document.getElementById("restart-btn");
+            if (restartBtn) restartBtn.addEventListener("click", () => this.resetGame());
 
-            // Drag Drop Zones
-            const dropzones = document.querySelectorAll(".escape-dropzone");
-            dropzones.forEach(zone => {
-                zone.addEventListener("dragover", (e) => this.handleDragOverZone(e));
-                zone.addEventListener("dragleave", (e) => this.handleDragLeaveZone(e));
-                zone.addEventListener("drop", (e) => this.handleDropZone(e));
-            });
+            // 2. Render Sections
+            this.renderSections(data.sections || []);
 
-            // Start
+            // 3. Start
             this.resetGame();
         }
 
-        // --- Timer Logic ---
+        renderSections(sections) {
+            this.puzzleContainer.innerHTML = "";
+            this.sectionData = {};
+            this.totalSections = sections.length;
+            this.solvedSections.clear();
 
+            sections.forEach(section => {
+                // Determine container
+                const sectionEl = document.createElement("section");
+                sectionEl.className = "section-card";
+                sectionEl.id = `section-${section.id}`; // consistent ID for styling if needed
+
+                // Header
+                const header = document.createElement("div");
+                header.className = "section-header";
+                header.innerHTML = `
+                    <div>
+                        <div class="section-title">${section.title || 'Rätsel'}</div>
+                        <div class="section-sub">${section.subtitle || ''}</div>
+                    </div>
+                    <div class="section-status" id="status-${section.id}">offen</div>
+                `;
+                sectionEl.appendChild(header);
+
+                // Body container
+                const body = document.createElement("div");
+                body.className = "section-body";
+                sectionEl.appendChild(body);
+
+                // Footer container
+                const footer = document.createElement("div");
+                footer.className = "section-footer";
+                sectionEl.appendChild(footer);
+
+                // Check button
+                const checkBtn = document.createElement("button");
+                checkBtn.className = "btn";
+                checkBtn.type = "button";
+                checkBtn.innerHTML = `<span>✔</span> Prüfen`;
+                checkBtn.addEventListener("click", () => this.checkSection(section.id));
+                footer.appendChild(checkBtn);
+
+                // Render specific type
+                if (section.type === "sort") {
+                    this.renderSort(section, body);
+                } else if (section.type === "quiz") {
+                    this.renderQuiz(section, body);
+                } else if (section.type === "capital") {
+                    this.renderCapital(section, body);
+                } else {
+                    body.textContent = "Unknown Type: " + section.type;
+                }
+
+                // Store data for validation
+                this.sectionData[section.id] = section;
+                this.puzzleContainer.appendChild(sectionEl);
+            });
+        }
+
+        // --- Renderers ---
+
+        renderSort(section, container) {
+            // Pool
+            const pool = document.createElement("div");
+            pool.className = "sort-pool";
+            pool.id = `pool-${section.id}`;
+            container.appendChild(pool);
+
+            // Board
+            const board = document.createElement("div");
+            board.className = "sort-board";
+            container.appendChild(board);
+
+            // Create Zones
+            (section.sortColumns || []).forEach(col => {
+                const zone = document.createElement("div");
+                zone.className = "escape-dropzone";
+                zone.dataset.zone = col.zone;
+
+                // Drag Events
+                zone.addEventListener("dragover", (e) => this.handleDragOverZone(e));
+                zone.addEventListener("dragleave", (e) => this.handleDragLeaveZone(e));
+                zone.addEventListener("drop", (e) => this.handleDropZone(e));
+
+                const label = document.createElement("div");
+                label.className = "escape-dropzone-label";
+                label.innerHTML = `${col.label}<br><span style="font-size:10px;color:hsl(var(--txt-muted));">${col.hint || ''}</span>`;
+                zone.appendChild(label);
+                board.appendChild(zone);
+            });
+
+            // Populate Cards (Initial) in resetGame usually, but can do here if we just reset later
+            // We just store cards data in sectionData and let resetGame handle filling the pool? 
+            // Better: Render them now, resetGame essentially just moves them back.
+            // Actually resetGame triggers "resetSortBoard" for all sort sections.
+        }
+
+        renderQuiz(section, container) {
+            (section.questions || []).forEach(q => {
+                const qDiv = document.createElement("div");
+                qDiv.className = "quiz-question";
+                qDiv.dataset.quizId = q.id;
+
+                const text = document.createElement("div");
+                text.className = "quiz-text";
+                text.textContent = q.text;
+                qDiv.appendChild(text);
+
+                const ul = document.createElement("ul");
+                ul.className = "quiz-options";
+                (q.options || []).forEach(opt => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `<label><input type="radio" name="${section.id}_${q.id}" value="${opt.value}"> ${opt.text}</label>`;
+                    ul.appendChild(li);
+                });
+                qDiv.appendChild(ul);
+                container.appendChild(qDiv);
+            });
+            const feedback = document.createElement("div");
+            feedback.className = "quiz-feedback";
+            feedback.id = `feedback-${section.id}`;
+            feedback.textContent = section.hintDefault || "Wähle je Frage eine Antwort";
+            container.appendChild(feedback);
+        }
+
+        renderCapital(section, container) {
+            // Table structure
+            const table = document.createElement("table");
+            table.className = "capital-table";
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>${section.col1Title || 'Item'}</th>
+                        <th>${section.col2Title || 'Zuordnung'}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector("tbody");
+
+            (section.rows || []).forEach(row => {
+                const tr = document.createElement("tr");
+                const tdLabel = document.createElement("td");
+                tdLabel.textContent = row.label;
+                const tdInput = document.createElement("td");
+
+                const select = document.createElement("select");
+                select.dataset.rowKey = row.key;
+                select.dataset.sectionId = section.id;
+
+                // Options
+                (row.options || []).forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt.value;
+                    option.textContent = opt.text;
+                    select.appendChild(option);
+                });
+
+                tdInput.appendChild(select);
+                tr.appendChild(tdLabel);
+                tr.appendChild(tdInput);
+                tbody.appendChild(tr);
+            });
+            container.appendChild(table);
+        }
+
+        // --- Timer logic (mostly same) ---
         startTimer() {
             if (this.timerId) clearInterval(this.timerId);
             this.timerId = setInterval(() => this.tickTimer(), 1000);
@@ -92,89 +240,65 @@
         updateTimerDisplay() {
             if (!this.statTimerEl) return;
             this.statTimerEl.textContent = this.formatTime(this.remainingSeconds);
-            this.statTimerEl.style.color = this.remainingSeconds <= 10
-                ? 'hsl(var(--error))'
-                : 'var(--text)';
+            this.statTimerEl.style.color = this.remainingSeconds <= 10 ? 'hsl(var(--error))' : 'var(--text)';
         }
 
         formatTime(seconds) {
             const m = Math.floor(seconds / 60);
             const s = seconds % 60;
-            const mm = m < 10 ? "0" + m : String(m);
-            const ss = s < 10 ? "0" + s : String(s);
-            return mm + ":" + ss;
+            return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
         }
 
         handleTimeUp() {
-            if (this.timerId) {
-                clearInterval(this.timerId);
-                this.timerId = null;
-            }
+            if (this.timerId) { clearInterval(this.timerId); this.timerId = null; }
             this.gameLocked = true;
-
             this.doorSignEl.textContent = "ZU SPÄT";
             this.doorSignEl.classList.remove("door-sign--open");
             this.doorSignEl.classList.add("door-sign--closed");
             this.doorEl.classList.remove("door--open");
             this.doorGlowEl.classList.remove("door-glow--active");
-
             this._disableAllButtons();
         }
 
         _disableAllButtons() {
-            const btns = document.querySelectorAll("#check-sort-btn, #check-quiz-btn, #check-capital-btn");
-            btns.forEach(b => b.disabled = true);
+            document.querySelectorAll(".section-footer .btn").forEach(b => b.disabled = true);
         }
 
         _enableAllButtons() {
-            const btns = document.querySelectorAll("#check-sort-btn, #check-quiz-btn, #check-capital-btn");
-            btns.forEach(b => b.disabled = false);
+            document.querySelectorAll(".section-footer .btn").forEach(b => b.disabled = false);
         }
 
         // --- Game Logic ---
 
         updateSolvedStatus() {
-            const solvedCount = Object.values(this.sectionSolved).filter(Boolean).length;
-            this.statSolvedEl.textContent = solvedCount + " / 3";
+            const count = this.solvedSections.size;
+            this.statSolvedEl.textContent = `${count} / ${this.totalSections}`;
 
-            if (solvedCount === 3 && !this.gameLocked && this.remainingSeconds > 0) {
+            if (count === this.totalSections && !this.gameLocked && this.remainingSeconds > 0) {
                 this.openDoor();
             }
         }
 
         openDoor() {
             this.gameLocked = true;
-            if (this.timerId) {
-                clearInterval(this.timerId);
-                this.timerId = null;
-            }
-
+            if (this.timerId) clearInterval(this.timerId);
             this.doorEl.classList.add("door--open");
             this.doorGlowEl.classList.add("door-glow--active");
             this.doorSignEl.textContent = "OFFEN";
             this.doorSignEl.classList.remove("door-sign--closed");
             this.doorSignEl.classList.add("door-sign--open");
-
             this._disableAllButtons();
         }
 
         resetGame() {
             if (this.timerId) clearInterval(this.timerId);
-
             this.remainingSeconds = this.START_SECONDS;
             this.gameLocked = false;
-            this.sectionSolved = { sort: false, quiz: false, capital: false };
+            this.solvedSections.clear();
 
             // UI Reset
             this.updateTimerDisplay();
-            this.statSolvedEl.textContent = "0 / 3";
-
-            document.getElementById("status-sort").textContent = "offen";
-            document.getElementById("status-sort").className = "section-status";
-            document.getElementById("status-quiz").textContent = "offen";
-            document.getElementById("status-quiz").className = "section-status";
-            document.getElementById("status-capital").textContent = "offen";
-            document.getElementById("status-capital").className = "section-status";
+            this.statSolvedEl.textContent = `0 / ${this.totalSections}`;
 
             this.doorEl.classList.remove("door--open");
             this.doorGlowEl.classList.remove("door-glow--active");
@@ -182,36 +306,166 @@
             this.doorSignEl.classList.add("door-sign--closed");
             this.doorSignEl.classList.remove("door-sign--open");
 
-            this.resetSortBoard();
+            // Reset each section
+            Object.values(this.sectionData).forEach(section => {
+                const statusEl = document.getElementById(`status-${section.id}`);
+                if (statusEl) {
+                    statusEl.textContent = "offen";
+                    statusEl.className = "section-status";
+                }
 
-            // Quiz Reset
-            document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
-            this.quizFeedbackEl.textContent = "Wähle je Frage eine Antwort.";
-
-            // Capital Reset
-            document.querySelectorAll(".capital-table select").forEach(sel => {
-                sel.value = "";
-                sel.classList.remove("correct", "wrong");
+                if (section.type === "sort") {
+                    this.resetSortBoard(section);
+                } else if (section.type === "quiz") {
+                    // Uncheck radios
+                    document.querySelectorAll(`input[name^="${section.id}_"]`).forEach(i => i.checked = false);
+                    const fb = document.getElementById(`feedback-${section.id}`);
+                    if (fb) fb.textContent = section.hintDefault || "";
+                } else if (section.type === "capital") {
+                    // Reset selects
+                    const table = document.querySelector(`#section-${section.id} table`);
+                    if (table) {
+                        table.querySelectorAll("select").forEach(sel => {
+                            sel.value = "";
+                            sel.classList.remove("correct", "wrong");
+                        });
+                    }
+                }
             });
 
             this._enableAllButtons();
             this.startTimer();
         }
 
-        // --- Drag & Drop ---
+        checkSection(sectionId) {
+            if (this.gameLocked) return;
 
-        resetSortBoard() {
-            this.sortPoolEl.innerHTML = "";
-            this.sortCardsData.forEach(card => {
-                const el = this.createSortCard(card);
-                this.sortPoolEl.appendChild(el);
+            const section = this.sectionData[sectionId];
+            if (!section) return;
+
+            let solved = false;
+            if (section.type === "sort") solved = this.checkSort(section);
+            else if (section.type === "quiz") solved = this.checkQuiz(section);
+            else if (section.type === "capital") solved = this.checkCapital(section);
+
+            const statusEl = document.getElementById(`status-${sectionId}`);
+            if (solved) {
+                this.solvedSections.add(sectionId);
+                statusEl.textContent = "gelöst";
+                statusEl.className = "section-status section-status--done";
+            } else {
+                this.solvedSections.delete(sectionId);
+                statusEl.textContent = "noch Fehler";
+                statusEl.className = "section-status section-status--fail";
+            }
+            this.updateSolvedStatus();
+        }
+
+        // --- Specific Checks ---
+
+        checkSort(section) {
+            let correctCount = 0;
+            const cardData = section.sortCards || [];
+            const total = cardData.length;
+
+            // Reset visual state
+            // Find all cards for this section? Actually cards have unique IDs. 
+            // But we need to make sure we only target cards belonging to this section if we had multiple sort puzzles.
+            // Currently IDs are global in JSON. Assuming IDs unique. To be safe, scope search.
+            const sectionEl = document.getElementById(`section-${section.id}`);
+            const cards = sectionEl.querySelectorAll(".drag-card");
+            cards.forEach(c => c.classList.remove("correct", "wrong"));
+
+            let allCorrect = true;
+
+            // Loop through DATA to check where each card is
+            cardData.forEach(card => {
+                const el = sectionEl.querySelector(`.drag-card[data-card-id="${card.id}"]`);
+                if (!el) {
+                    allCorrect = false;
+                    return;
+                }
+
+                const parentZone = el.closest(".escape-dropzone");
+                if (!parentZone) {
+                    el.classList.add("wrong");
+                    allCorrect = false;
+                    return;
+                }
+
+                const zoneName = parentZone.dataset.zone;
+                if (zoneName === card.correctZone) {
+                    el.classList.add("correct");
+                } else {
+                    el.classList.add("wrong");
+                    allCorrect = false;
+                }
             });
 
-            const dropzones = document.querySelectorAll(".escape-dropzone");
-            dropzones.forEach(zone => {
-                zone.classList.remove("is-over");
-                const children = Array.from(zone.children).filter(c => !c.classList.contains("escape-dropzone-label"));
-                children.forEach(c => c.remove());
+            return allCorrect;
+        }
+
+        checkQuiz(section) {
+            const questions = section.questions || [];
+            let allCorrect = true;
+
+            questions.forEach(q => {
+                const selected = document.querySelector(`input[name="${section.id}_${q.id}"]:checked`);
+                const userVal = selected ? selected.value : null;
+                if (userVal !== q.correct) {
+                    allCorrect = false;
+                }
+            });
+
+            const fb = document.getElementById(`feedback-${section.id}`);
+            if (fb) {
+                fb.textContent = allCorrect ? "Alles richtig!" : "Mindestens eine Antwort ist falsch/fehlt.";
+            }
+            return allCorrect;
+        }
+
+        checkCapital(section) {
+            const rows = section.rows || [];
+            let allCorrect = true;
+            const sectionEl = document.getElementById(`section-${section.id}`);
+            const selects = sectionEl.querySelectorAll("select");
+
+            selects.forEach(sel => sel.classList.remove("correct", "wrong"));
+
+            rows.forEach(row => {
+                const sel = sectionEl.querySelector(`select[data-row-key="${row.key}"]`);
+                if (!sel) return;
+
+                if (sel.value === row.correct) {
+                    sel.classList.add("correct");
+                } else {
+                    sel.classList.add("wrong");
+                    allCorrect = false;
+                }
+            });
+            return allCorrect;
+        }
+
+        // --- Drag & Drop Helpers ---
+
+        resetSortBoard(section) {
+            const pool = document.getElementById(`pool-${section.id}`);
+            if (!pool) return;
+            pool.innerHTML = "";
+
+            const sectionEl = document.getElementById(`section-${section.id}`);
+            // Clear dropzones
+            sectionEl.querySelectorAll(".escape-dropzone").forEach(z => {
+                z.classList.remove("is-over");
+                // Remove drag cards only
+                const cards = z.querySelectorAll(".drag-card");
+                cards.forEach(c => c.remove());
+            });
+
+            // Re-create cards in pool
+            (section.sortCards || []).forEach(cardData => {
+                const el = this.createSortCard(cardData);
+                pool.appendChild(el);
             });
         }
 
@@ -220,18 +474,14 @@
             el.className = "drag-card";
             el.draggable = true;
             el.dataset.cardId = cardData.id;
-            el.dataset.correctZone = cardData.correctZone;
 
-            const textSpan = document.createElement("span");
-            textSpan.className = "drag-card-text";
-            textSpan.textContent = cardData.text;
-            el.appendChild(textSpan);
+            const span = document.createElement("span");
+            span.className = "drag-card-text";
+            span.textContent = cardData.text;
+            el.appendChild(span);
 
             el.addEventListener("dragstart", (e) => {
-                if (this.gameLocked) {
-                    e.preventDefault();
-                    return;
-                }
+                if (this.gameLocked) { e.preventDefault(); return; }
                 this.draggingCardId = cardData.id;
                 el.classList.add("dragging");
                 e.dataTransfer.effectAllowed = "move";
@@ -242,7 +492,6 @@
                 this.draggingCardId = null;
                 el.classList.remove("dragging");
             });
-
             return el;
         }
 
@@ -266,135 +515,17 @@
             const cardId = e.dataTransfer.getData("text/plain") || this.draggingCardId;
             if (!cardId) return;
 
+            // Find card anywhere in document (or better, scoped to current puzzle?)
+            // Since we know drag started and stored draggingCardId, and ID is unique:
             const cardEl = document.querySelector(`.drag-card[data-card-id="${cardId}"]`);
             if (!cardEl) return;
 
             cardEl.classList.remove("correct", "wrong");
             zone.appendChild(cardEl);
         }
-
-        checkSort() {
-            if (this.gameLocked) return;
-
-            let correct = 0;
-            const total = this.sortCardsData.length;
-
-            document.querySelectorAll(".drag-card").forEach(card => card.classList.remove("correct", "wrong"));
-
-            this.sortCardsData.forEach(cardData => {
-                const cardEl = document.querySelector(`.drag-card[data-card-id="${cardData.id}"]`);
-                if (!cardEl) return;
-
-                const parentZone = cardEl.closest(".escape-dropzone");
-                const zoneName = parentZone ? parentZone.dataset.zone : null;
-
-                if (!zoneName) {
-                    cardEl.classList.add("wrong");
-                    return;
-                }
-
-                if (zoneName === cardData.correctZone) {
-                    cardEl.classList.add("correct");
-                    correct += 1;
-                } else {
-                    cardEl.classList.add("wrong");
-                }
-            });
-
-            const statusEl = document.getElementById("status-sort");
-            if (correct === total) {
-                this.sectionSolved.sort = true;
-                statusEl.textContent = "gelöst";
-                statusEl.className = "section-status section-status--done";
-            } else {
-                this.sectionSolved.sort = false;
-                statusEl.textContent = "noch Fehler";
-                statusEl.className = "section-status section-status--fail";
-            }
-
-            this.updateSolvedStatus();
-        }
-
-        // --- Quiz Logic ---
-
-        checkQuiz() {
-            if (this.gameLocked) return;
-
-            const q1 = document.querySelector('input[name="q1"]:checked');
-            const q2 = document.querySelector('input[name="q2"]:checked');
-
-            const statusEl = document.getElementById("status-quiz");
-
-            if (!q1 || !q2) {
-                this.quizFeedbackEl.textContent = "Bitte jede der beiden Fragen beantworten.";
-                this.sectionSolved.quiz = false;
-                statusEl.textContent = "unvollständig";
-                statusEl.className = "section-status section-status--fail";
-                this.updateSolvedStatus();
-                return;
-            }
-
-            const correctQ1 = q1.value === this.quizSolutions.q1;
-            const correctQ2 = q2.value === this.quizSolutions.q2;
-
-            if (correctQ1 && correctQ2) {
-                this.sectionSolved.quiz = true;
-                statusEl.textContent = "gelöst";
-                statusEl.className = "section-status section-status--done";
-                this.quizFeedbackEl.textContent = "Beide Antworten sind richtig.";
-            } else {
-                this.sectionSolved.quiz = false;
-                statusEl.textContent = "noch Fehler";
-                statusEl.className = "section-status section-status--fail";
-                this.quizFeedbackEl.textContent = "Mindestens eine Antwort ist falsch.";
-            }
-            this.updateSolvedStatus();
-        }
-
-        // --- Capital Logic ---
-
-        checkCapital() {
-            if (this.gameLocked) return;
-
-            let correct = 0;
-            const total = Object.keys(this.capitalSolutions).length;
-            const selects = document.querySelectorAll(".capital-table select");
-
-            selects.forEach(sel => sel.classList.remove("correct", "wrong"));
-
-            selects.forEach(sel => {
-                const form = sel.dataset.form;
-                const expected = this.capitalSolutions[form];
-                const chosen = sel.value;
-
-                if (!chosen) {
-                    sel.classList.add("wrong");
-                    return;
-                }
-
-                if (chosen === expected) {
-                    sel.classList.add("correct");
-                    correct += 1;
-                } else {
-                    sel.classList.add("wrong");
-                }
-            });
-
-            const statusEl = document.getElementById("status-capital");
-            if (correct === total) {
-                this.sectionSolved.capital = true;
-                statusEl.textContent = "gelöst";
-                statusEl.className = "section-status section-status--done";
-            } else {
-                this.sectionSolved.capital = false;
-                statusEl.textContent = "noch Fehler";
-                statusEl.className = "section-status section-status--fail";
-            }
-            this.updateSolvedStatus();
-        }
     }
 
-    // --- Init ---
     const game = new EscapeGame();
     game.init();
+
 })();
