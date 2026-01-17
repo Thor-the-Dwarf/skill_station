@@ -43,6 +43,37 @@
         }
 
         onDataLoaded(data) {
+            // Backward Compatibility: Normalize data if using old schema
+            if (data.sets && data.sets.length > 0) {
+                const first = data.sets[0];
+                if (!first.col1 && first.name) {
+                    data.sets = data.sets.map(s => ({
+                        ...s,
+                        col1: s.name,
+                        col2: s.description,
+                        col3: s.example
+                    }));
+                }
+            }
+            // Backward Compatibility: Normalize titles/hints if using old schema and not new
+            if (!data.columnTitles && data.columnTitles !== {}) { // Ensure it exists
+                // If undefined, maybe init? But JSON usually has it.
+                // If old JSON has columnTitles with column1/column2... wait, old JSON HAD column1...
+                // Let's check old JSON. It had "columnTitles": {"column1": "..."}
+                // New code looks for this.configData.columnTitles[key] where key is 'col1'.
+                // So we need to map column1 -> col1
+            }
+            if (data.columnTitles) {
+                if (data.columnTitles.column1 && !data.columnTitles.col1) data.columnTitles.col1 = data.columnTitles.column1;
+                if (data.columnTitles.column2 && !data.columnTitles.col2) data.columnTitles.col2 = data.columnTitles.column2;
+                if (data.columnTitles.column3 && !data.columnTitles.col3) data.columnTitles.col3 = data.columnTitles.column3;
+            }
+            if (data.columnHints) {
+                if (data.columnHints.column1 && !data.columnHints.col1) data.columnHints.col1 = data.columnHints.column1;
+                if (data.columnHints.column2 && !data.columnHints.col2) data.columnHints.col2 = data.columnHints.column2;
+                if (data.columnHints.column3 && !data.columnHints.col3) data.columnHints.col3 = data.columnHints.column3;
+            }
+
             this.configData = data;
 
             // 1. DOM Referenzen
