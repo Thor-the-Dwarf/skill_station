@@ -258,15 +258,14 @@
         .top-bar-title {
             font-weight: 600;
             font-size: 1rem;
-            background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--txt)));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: hsl(var(--txt));
             text-align: center;
             justify-self: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
+            text-shadow: 0 0 10px hsl(var(--primary) / 0.3);
         }
 
         @media (max-width: 600px) {
