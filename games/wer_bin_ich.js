@@ -110,23 +110,35 @@
          */
         applyUiLabels(data) {
             const labels = data.uiLabels || {};
+            // "Topic" shortcut (e.g. "Rechtsform", "Tier", "Element")
+            const topic = data.topic || labels.topic || "Element";
 
-            // Default Fallbacks
-            const secretHint = labels.secretHint || "Das System hat heimlich eine {item} gewählt.";
-            const poolTitle = labels.poolTitle || "Im Pool";
-            const guessTitle = labels.guessTitle || "Raten";
-            const answerTitle = labels.answerTitle || "Antwort";
+            // Default Fallbacks using Topic
+            const secretHint = labels.secretHint || `Das System hat heimlich eine {item} gewählt.`;
+            const poolTitle = labels.poolTitle || `Im Pool (${topic})`;
+            const guessTitle = labels.guessTitle || `${topic} raten`;
+            const answerTitle = labels.answerTitle || `Antwort (${topic})`;
             const placeholder = labels.placeholder || "...";
+
+            // Subtitles
+            const questionSubtitle = labels.questionSubtitle || "Klicke auf eine Frage, um sie zu stellen.";
+            const guessSubtitle = labels.guessSubtitle || "Nutze deine Hinweise, um die Lösung zu finden.";
 
             // Apply
             if (this.secretHintEl) {
-                // Initial text (might be overwritten by updateSecretHint)
                 this.secretHintEl.innerHTML = secretHint.replace('{item}', '<span class="secret-name">???</span>');
             }
             if (this.poolSectionTitleEl) this.poolSectionTitleEl.textContent = poolTitle;
             if (this.guessSectionTitleEl) this.guessSectionTitleEl.textContent = guessTitle;
             if (this.answerSectionTitleEl) this.answerSectionTitleEl.textContent = answerTitle;
             if (this.guessInput) this.guessInput.placeholder = placeholder;
+
+            // Subtitles (need selector)
+            const qSubEl = document.querySelector('#question-list')?.previousElementSibling;
+            if (qSubEl && qSubEl.classList.contains('section-subtitle')) qSubEl.textContent = questionSubtitle;
+
+            const gSubEl = document.querySelector('#guess-section-title')?.nextElementSibling;
+            if (gSubEl && gSubEl.classList.contains('section-subtitle')) gSubEl.textContent = guessSubtitle;
         }
 
         renderPoolList() {
@@ -280,11 +292,12 @@
             const labels = this.configData.uiLabels || {};
             const secretHintTemplate = labels.secretHint || "Das System hat heimlich eine {item} gewählt.";
 
-            const name = reveal ? this.secretForm.name : (labels.secretPlaceholder || "Rechtsform"); // Fallback for placeholder
+            const topic = this.configData.topic || this.configData.uiLabels?.topic || "Rechtsform";
+            const name = reveal ? this.secretForm.name : (labels.secretPlaceholder || topic);
 
             // If strictly generic, we might want a generic placeholder from JSON like "Entity"
             // For now, let's look for a specific 'secretItemName' in uiLabels
-            const secretItemName = labels.secretItemName || "Rechtsform";
+            const secretItemName = labels.secretItemName || topic;
 
             const display = reveal ? `<span class="secret-name highlight">${name}</span>` : `<span class="secret-name">${secretItemName}</span>`;
 
