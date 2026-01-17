@@ -869,7 +869,22 @@
 
             } catch (err) {
                 console.error(err);
-                fatalError('Fehler beim Laden von Drive:\n' + err.message);
+
+                let userMsg = 'Fehler beim Laden von Drive:\n' + err.message;
+                const errString = err.toString();
+
+                // Check for common permission/404 errors
+                if (errString.includes('404') || errString.includes('File not found') || errString.includes('notFound')) {
+                    userMsg = `
+                        <strong>Ordner nicht gefunden oder kein Zugriff.</strong><br><br>
+                        Bitte stelle sicher, dass:<br>
+                        1. Der Link korrekt ist.<br>
+                        2. Der Ordner auf Google Drive für <em>"Jeder mit dem Link"</em> freigegeben ist.<br>
+                        (Da diese App keinen Login verwendet, muss der Ordner öffentlich lesbar sein.)
+                    `;
+                }
+
+                fatalError(userMsg);
                 // Reset button
                 viewBodyEl.innerHTML += `<br><button class="btn secondary" onclick="localStorage.removeItem('${STORAGE_KEY_FOLDER}'); location.reload()">Zurücksetzen</button>`;
             }
