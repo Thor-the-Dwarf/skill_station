@@ -1,16 +1,17 @@
 /**
  * ============================================================================
- * what_and_why.js - What & Why Spiellogik
+ * what_and_why.js - What & Why Spiellogik (Generic Refactor)
  * ============================================================================
  * 
  * ZWECK:
- * Zweistufiges Lernspiel: Erst What auswählen (Radio), dann passende
- * Why-Begründungen markieren (Checkboxen). Beide werden separat bewertet.
+ * Zweistufiges Lernspiel: Erst "Was" auswählen (Radio), dann passende
+ * "Warum"-Begründungen markieren (Checkboxen). Beide werden separat bewertet.
+ * Dynamisch konfigurierbar über JSON.
  * 
  * SPIELPRINZIP:
- * 1. WHAT-Phase: Spieler wählt eine Option aus (Radio-Buttons)
- * 2. WHY-Phase: Basierend auf What-Wahl erscheinen passende Why-Statements
- * 3. Evaluation: What (0-1 Punkt) + Why (0-1 Punkt) = max 2 Punkte pro Fall
+ * 1. STEP 1-Phase: Spieler wählt eine Option aus (Radio-Buttons)
+ * 2. STEP 2-Phase: Basierend auf Step 1-Wahl erscheinen passende Begründungen
+ * 3. Evaluation: Step 1 (0-1 Punkt) + Step 2 (0-1 Punkt) = max 2 Punkte pro Fall
  * 4. Nächster Fall oder Final Summary
  * 
  * ============================================================================
@@ -19,10 +20,6 @@
 (function () {
     'use strict';
 
-    /**
-     * What & Why Klasse
-     * Erweitert GameBase für JSON-Loading und Theme-Support
-     */
     class WhatAndWhy extends GameBase {
         constructor() {
             super({
@@ -32,6 +29,7 @@
 
             // Spiel-Daten (aus JSON)
             this.cases = [];              // Array von Cases
+            this.configData = {};
 
             // Spiel-State
             this.order = [];              // Shuffled indices
@@ -56,12 +54,17 @@
             this.whyGroupEl = null;
             this.checkBtn = null;
             this.restartBtn = null;
+
+            // Labels
+            this.whatLabel = "What";
+            this.whyLabel = "Why";
+            this.step1Title = "1 · Auswahl";
+            this.step2Title = "2 · Begründung";
         }
 
-        /**
-         * Wird von GameBase aufgerufen, nachdem JSON geladen wurde
-         */
         onDataLoaded(data) {
+            this.configData = data;
+
             // DOM-Referenzen holen
             this.roundLabelEl = document.getElementById('round-label');
             this.scoreFormEl = document.getElementById('score-form');
@@ -78,9 +81,23 @@
             this.checkBtn = document.getElementById('check-btn');
             this.restartBtn = document.getElementById('restart-btn');
 
-            // Payload-Daten anwenden
-            if (window.WhatAndWhyPayload) {
-                window.WhatAndWhyPayload.applyPayloadToGame(this, data);
+            // Apply Data
+            if (Array.isArray(data.cases)) {
+                this.cases = data.cases;
+            }
+
+            // UI Labels anwenden
+            this.applyUiLabels(data);
+
+            if (data.title) {
+                const titleEl = document.querySelector('.game-title');
+                if (titleEl) titleEl.textContent = data.title;
+                document.title = data.title;
+            }
+
+            if (data.description) {
+                const descEl = document.querySelector('.game-description');
+                if (descEl) descEl.textContent = data.description;
             }
 
             // Event-Listener
@@ -100,9 +117,39 @@
             this.renderCase();
         }
 
-        /**
-         * Shuffle-Funktion
-         */
+        applyUiLabels(data) {
+            const labels = data.uiLabels || {};
+
+            // Configurable "Topic" (optional)
+            const topic = data.topic || "Antwort";
+
+            // Labels for Badges
+            this.whatLabel = labels.whatLabel || "What";
+            this.whyLabel = labels.whyLabel || "Why";
+
+            // Section Titles
+            this.step1Title = labels.step1Title || `1 · ${topic} wählen`;
+            this.step2Title = labels.step2Title || `2 · Begründung`;
+
+            // Stat Labels
+            if (labels.statRound) document.querySelector('.label-round').textContent = labels.statRound;
+            if (labels.statWhat) document.querySelector('.label-what').textContent = labels.statWhat;
+            if (labels.statWhy) document.querySelector('.label-why').textContent = labels.statWhy;
+            if (labels.statTotal) document.querySelector('.label-total').textContent = labels.statTotal;
+
+            // Update DOM Static Text
+            const wTitleId = document.getElementById('what-section-title');
+            if (wTitleId) wTitleId.textContent = this.step1Title;
+
+            const yTitleId = document.getElementById('why-section-title');
+            if (yTitleId) yTitleId.textContent = this.step2Title;
+
+            if (labels.howto) {
+                const hEl = document.getElementById('howto-text');
+                if (hEl) hEl.innerHTML = `<strong>How to:</strong> ${labels.howto}`;
+            }
+        }
+
         shuffleArray(arr) {
             const a = arr.slice();
             for (let i = a.length - 1; i > 0; i--) {
@@ -112,23 +159,14 @@
             return a;
         }
 
-        /**
-         * Initialisiert shuffled Order
-         */
         initOrder() {
             this.order = this.shuffleArray(this.cases.map((c, idx) => idx));
         }
 
-        /**
-         * Gibt aktuellen Case zurück
-         */
         getCurrentCase() {
             return this.cases[this.order[this.currentIndex]];
         }
 
-        /**
-         * Rendert aktuellen Case
-         */
         renderCase() {
             const c = this.getCurrentCase();
             if (!c) {
@@ -159,7 +197,7 @@
                 });
             }
 
-            // What-Optionen rendern
+            // Step 1 Optionen rendern
             this.formOptionsEl.innerHTML = '';
             c.options.forEach(option => {
                 const li = document.createElement('li');
@@ -170,40 +208,40 @@
                         <input type="radio" name="what" id="${id}" value="${option.id}">
                         <div class="option-text">
                             ${option.label}
-                            <div class="option-badge">What</div>
+                            <div class="option-badge">${this.whatLabel}</div>
                         </div>
                     </label>
                 `;
                 this.formOptionsEl.appendChild(li);
             });
 
-            // Event-Listener für What-Toggle
+            // Event-Listener für Toggle
             this.formOptionsEl
                 .querySelectorAll('input[name="what"]')
                 .forEach(input => input.addEventListener('change', (e) => this.onWhatChanged(e)));
 
-            // Why-Bereich verstecken
+            // Step 2 verstecken
             this.whyGroupEl.style.display = 'none';
             this.reasonOptionsEl.innerHTML = '';
 
             // Feedback zurücksetzen
             this.feedbackBoxEl.className = 'feedback';
-            this.feedbackBoxEl.innerHTML = 'Wähle zuerst eine Antwort oben (What). Danach erscheinen passende Why-Statements.';
+            // Generic Prompt
+            const prompt = this.configData.uiLabels?.promptStart || `Wähle zuerst eine Option bei "${this.step1Title}".`;
+            this.feedbackBoxEl.innerHTML = prompt;
+
             this.infoSectionEl.innerHTML = '';
             this.checkBtn.disabled = false;
             this.checkBtn.innerHTML = '<span>✔</span> Antwort prüfen';
         }
 
-        /**
-         * Wird aufgerufen, wenn What-Option gewählt wird
-         */
         onWhatChanged(event) {
             const c = this.getCurrentCase();
             this.selectedWhatId = event.target.value;
             const option = c.options.find(o => o.id === this.selectedWhatId);
             if (!option) return;
 
-            // Why-Checkboxen passend zum gewählten What aufbauen
+            // Step 2 (Checkboxen) aufbauen
             this.reasonOptionsEl.innerHTML = '';
             if (Array.isArray(option.whys)) {
                 option.whys.forEach(why => {
@@ -215,7 +253,7 @@
                             <input type="checkbox" id="${id}" value="${why.id}">
                             <div class="option-text">
                                 ${why.text}
-                                <div class="option-badge">Why</div>
+                                <div class="option-badge">${this.whyLabel}</div>
                             </div>
                         </label>
                     `;
@@ -223,28 +261,24 @@
                 });
             }
 
-            // Why-Checkboxen enablen
+            // Enable Checkboxes
             this.reasonOptionsEl
                 .querySelectorAll('input[type="checkbox"]')
                 .forEach(cb => cb.disabled = false);
 
-            // Why-Gruppe anzeigen
+            // Anzeigen
             this.whyGroupEl.style.display = '';
             this.feedbackBoxEl.className = 'feedback';
-            this.feedbackBoxEl.innerHTML = 'Jetzt passende Why-Begründungen markieren und auf <strong>Antwort prüfen</strong> klicken.';
+
+            const promptStep2 = this.configData.uiLabels?.promptStep2 || `Jetzt passende Begründungen wählen und prüfen.`;
+            this.feedbackBoxEl.innerHTML = promptStep2;
         }
 
-        /**
-         * Gibt ausgewählte Why-IDs zurück
-         */
         getSelectedReasons() {
             const checked = Array.from(this.reasonOptionsEl.querySelectorAll('input[type="checkbox"]:checked'));
             return checked.map(cb => cb.value);
         }
 
-        /**
-         * Evaluiert die Antworten
-         */
         evaluate() {
             if (this.evaluated) return;
 
@@ -253,7 +287,7 @@
 
             if (!this.selectedWhatId) {
                 this.feedbackBoxEl.className = 'feedback error';
-                this.feedbackBoxEl.textContent = 'Bitte zuerst ein What auswählen.';
+                this.feedbackBoxEl.textContent = 'Bitte zuerst eine Auswahl treffen.';
                 return;
             }
 
@@ -262,14 +296,14 @@
 
             const selectedReasons = this.getSelectedReasons();
 
-            // Eingaben sperren
+            // Sperren
             this.formOptionsEl.querySelectorAll('input').forEach(i => i.disabled = true);
             this.reasonOptionsEl.querySelectorAll('input').forEach(i => i.disabled = true);
 
             let whatPoints = 0;
             let whyPoints = 0;
 
-            // What-Bewertung
+            // Step 1 Bewertung
             const formLabels = this.formOptionsEl.querySelectorAll('.option-label');
             formLabels.forEach(lbl => {
                 const input = lbl.querySelector('input');
@@ -290,7 +324,7 @@
                 this.scoreWhat += 1;
             }
 
-            // Why-Bewertung relativ zum gewählten What
+            // Step 2 Bewertung
             const correctWhyIds = option.whys.filter(w => w.correct).map(w => w.id);
             const selectedSet = new Set(selectedReasons);
             const correctSet = new Set(correctWhyIds);
@@ -325,22 +359,29 @@
             this.scoreReasonEl.textContent = this.scoreWhy;
             this.scoreTotalEl.textContent = this.scoreWhat + this.scoreWhy;
 
-            // Feedback
+            // Feedback (Uses Generic Labels if possible)
+            const feedbackLabels = this.configData.uiLabels?.feedback || {
+                perfect: "Perfekt! Deine Wahl und Begründung sind korrekt. (+2)",
+                p1_step1: "Auswahl korrekt (+1), aber Begründung nicht ganz.",
+                p1_step2: "Begründung logisch (+1), aber falsche Grundauswahl.",
+                fail: "Das war noch nicht richtig. (0)"
+            };
+
             if (gained === 2) {
                 this.feedbackBoxEl.className = 'feedback success';
-                this.feedbackBoxEl.innerHTML = 'Top: Deine Wahl (What) und die Why-Begründungen passen perfekt. (+2 Punkte)';
+                this.feedbackBoxEl.innerHTML = feedbackLabels.perfect;
             } else if (whatPoints === 1 && whyPoints === 0) {
                 this.feedbackBoxEl.className = 'feedback';
-                this.feedbackBoxEl.innerHTML = 'Das What passt (+1 Punkt), bei den Why-Statements ist noch Luft nach oben.';
+                this.feedbackBoxEl.innerHTML = feedbackLabels.p1_step1;
             } else if (whatPoints === 0 && whyPoints === 1) {
                 this.feedbackBoxEl.className = 'feedback';
-                this.feedbackBoxEl.innerHTML = 'Deine Why-Argumentation ist stimmig (+1 Punkt), aber das What war nicht optimal gewählt.';
+                this.feedbackBoxEl.innerHTML = feedbackLabels.p1_step2;
             } else {
                 this.feedbackBoxEl.className = 'feedback error';
-                this.feedbackBoxEl.innerHTML = 'What und Why überzeugen noch nicht – schau dir den Lösungshinweis an. (0 Punkte)';
+                this.feedbackBoxEl.innerHTML = feedbackLabels.fail;
             }
 
-            // Lösungshinweis anzeigen
+            // Lösungshinweis
             if (c.solution) {
                 this.infoSectionEl.innerHTML = `<strong>Lösungshinweis:</strong> ${c.solution}`;
             }
@@ -352,9 +393,6 @@
                     : '<span>📊</span> Auswertung';
         }
 
-        /**
-         * Zeigt finale Zusammenfassung
-         */
         showFinalSummary() {
             const maxWhat = this.cases.length;
             const maxWhy = this.cases.length;
@@ -363,8 +401,8 @@
 
             this.summaryBoxEl.innerHTML = `
                 <strong>Auswertung:</strong><br>
-                What-Punkte: ${this.scoreWhat} / ${maxWhat}<br>
-                Why-Punkte: ${this.scoreWhy} / ${maxWhy}<br>
+                ${this.whatLabel}-Punkte: ${this.scoreWhat} / ${maxWhat}<br>
+                ${this.whyLabel}-Punkte: ${this.scoreWhy} / ${maxWhy}<br>
                 Gesamt: ${total} / ${maxTotal}<br><br>
             `;
             this.feedbackBoxEl.className = 'feedback';
@@ -372,9 +410,6 @@
             this.checkBtn.disabled = true;
         }
 
-        /**
-         * Nächster Schritt: Evaluate oder Next Case
-         */
         nextStep() {
             if (!this.evaluated) {
                 this.evaluate();
@@ -388,9 +423,6 @@
             }
         }
 
-        /**
-         * Spiel neustarten
-         */
         restart() {
             this.scoreWhat = 0;
             this.scoreWhy = 0;
@@ -404,7 +436,6 @@
         }
     }
 
-    // Spiel initialisieren, wenn DOM geladen
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             const game = new WhatAndWhy();
