@@ -1,18 +1,12 @@
 /**
  * ============================================================================
- * quick_quiz.js - Quick-Quiz Spiellogik
+ * quick_quiz.js - Quick-Quiz Spiellogik (Generic Refactor)
  * ============================================================================
  * 
  * ZWECK:
  * Zeitbasiertes Quiz-Spiel mit Score-Tracking und Highscore.
- * Erweitert GameBase für JSON-Loading und Theme-Support.
- * 
- * SPIELPRINZIP:
- * - Frage wird angezeigt mit Timer
- * - Spieler wählt Antwort aus Buttons
- * - Bei korrekter Antwort: Score++ und Streak++
- * - Bei falscher Antwort oder Timeout: Streak = 0
- * - Nächste Frage automatisch nach kurzer Pause
+ * Erweitert GameBase für JSON-Loading.
+ * Dynamisch konfigurierbar über JSON (Text, Labels, Zeit).
  * 
  * ============================================================================
  */
@@ -20,10 +14,6 @@
 (function () {
     'use strict';
 
-    /**
-     * Quick-Quiz Klasse
-     * Erweitert GameBase für JSON-Loading und Theme-Support
-     */
     class QuickQuiz extends GameBase {
         constructor() {
             super({
@@ -35,6 +25,7 @@
             this.answerLabels = [];         // Array von String (Button-Labels)
             this.questions = [];            // Array von {text, correct}
             this.timePerQuestion = 12;      // Sekunden pro Frage
+            this.configData = {};           // Full JSON data
 
             // Spiel-State
             this.score = 0;
@@ -61,12 +52,16 @@
             this.restartBtn = null;
             this.restartIconEl = null;
             this.restartLabelEl = null;
+            this.sectionTitleEl = null;
+
+            // Labels
+            this.startLabel = "Start";
+            this.restartLabel = "Start";
         }
 
-        /**
-         * Wird von GameBase aufgerufen, nachdem JSON geladen wurde
-         */
         onDataLoaded(data) {
+            this.configData = data;
+
             // DOM-Referenzen holen
             this.questionTextEl = document.getElementById('question-text');
             this.sublineEl = document.getElementById('subline');
@@ -81,10 +76,27 @@
             this.restartBtn = document.getElementById('restart-btn');
             this.restartIconEl = document.getElementById('restart-icon');
             this.restartLabelEl = document.getElementById('restart-label');
+            this.sectionTitleEl = document.getElementById('question-section-title');
 
-            // Payload-Daten anwenden
-            if (window.QuickQuizPayload) {
-                window.QuickQuizPayload.applyPayloadToGame(this, data);
+            // Apply Data
+            if (Array.isArray(data.answerLabels)) {
+                this.answerLabels = data.answerLabels;
+            }
+            if (Array.isArray(data.questions)) {
+                this.questions = data.questions;
+            }
+            if (typeof data.timePerQuestionSeconds === 'number') {
+                this.timePerQuestion = data.timePerQuestionSeconds;
+                this.remainingTime = this.timePerQuestion;
+            }
+
+            // Apply UI Labels
+            this.applyUiLabels(data);
+
+            if (data.title) {
+                const titleEl = document.querySelector('.game-title');
+                if (titleEl) titleEl.textContent = data.title;
+                document.title = data.title;
             }
 
             // Event-Listener
@@ -99,21 +111,29 @@
             this.updateRestartButton();
         }
 
-        /**
-         * Shuffle-Array Funktion
-         */
-        shuffleArray(arr) {
-            const copy = [...arr];
-            for (let i = copy.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [copy[i], copy[j]] = [copy[j], copy[i]];
-            }
-            return copy;
+        applyUiLabels(data) {
+            const labels = data.uiLabels || {};
+
+            // Intro text mapping
+            const intro = labels.introText || data.introText || "Klick auf Start";
+            if (this.questionTextEl) this.questionTextEl.textContent = intro;
+
+            const sub = labels.sublineText || data.sublineText || "";
+            if (this.sublineEl) this.sublineEl.textContent = sub;
+
+            // Static labels
+            if (labels.sectionTitle && this.sectionTitleEl) this.sectionTitleEl.textContent = labels.sectionTitle;
+
+            if (labels.statScore) document.getElementById('label-score').textContent = labels.statScore;
+            if (labels.statHighscore) document.getElementById('label-highscore').textContent = labels.statHighscore;
+            if (labels.statQuestions) document.getElementById('label-questions').textContent = labels.statQuestions;
+            if (labels.statStreak) document.getElementById('label-streak').textContent = labels.statStreak;
+            if (labels.labelTimer) document.getElementById('label-timer').textContent = labels.labelTimer;
+
+            this.startLabel = labels.btnStart || "Start";
+            this.restartLabel = labels.btnRestart || "Neustart";
         }
 
-        /**
-         * Aktualisiert Stats-Anzeige
-         */
         updateStats() {
             this.scoreEl.textContent = String(this.score);
             this.highscoreEl.textContent = String(this.highscore);
@@ -121,17 +141,11 @@
             this.streakEl.textContent = String(this.streak);
         }
 
-        /**
-         * Setzt Feedback zurück
-         */
         resetFeedback() {
             this.feedbackEl.textContent = '';
             this.feedbackEl.className = '';
         }
 
-        /**
-         * Stoppt Timer
-         */
         stopTimer() {
             if (this.timerId !== null) {
                 clearInterval(this.timerId);
@@ -139,18 +153,12 @@
             }
         }
 
-        /**
-         * Aktualisiert Timer-UI
-         */
         updateTimerUI() {
             this.timerLabelEl.textContent = `${this.remainingTime.toFixed(1)} s`;
             const factor = Math.max(0, Math.min(1, this.remainingTime / this.timePerQuestion));
             this.timerBarInnerEl.style.transform = `scaleX(${factor})`;
         }
 
-        /**
-         * Startet Timer
-         */
         startTimer() {
             this.stopTimer();
             this.remainingTime = this.timePerQuestion;
@@ -169,9 +177,6 @@
             }, 100);
         }
 
-        /**
-         * Rendert Antwort-Buttons
-         */
         renderOptions() {
             this.optionsContainer.innerHTML = '';
             const labels = [...this.answerLabels];
@@ -185,9 +190,6 @@
             });
         }
 
-        /**
-         * Aktiviert/Deaktiviert Antwort-Buttons
-         */
         setOptionsDisabled(disabled) {
             const buttons = this.optionsContainer.querySelectorAll('.option-btn');
             buttons.forEach(btn => {
@@ -202,17 +204,21 @@
             });
         }
 
-        /**
-         * Wählt zufällige Frage
-         */
+        // Shuffle-Array Helper
+        shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
         pickRandomQuestion() {
             const shuffled = this.shuffleArray(this.questions);
             return shuffled[0];
         }
 
-        /**
-         * Nächste Frage
-         */
         nextQuestion() {
             if (!this.questions.length) {
                 this.questionTextEl.textContent = 'Keine Fragen definiert.';
@@ -229,9 +235,6 @@
             this.startTimer();
         }
 
-        /**
-         * Behandelt Timeout
-         */
         handleTimeout() {
             if (this.locked) return;
             this.locked = true;
@@ -248,7 +251,9 @@
                 }
             });
 
-            this.feedbackEl.textContent = `Zeit abgelaufen! Richtig wäre: ${this.currentQuestion.correct}.`;
+            const labels = this.configData.uiLabels?.feedback || {};
+            const msg = labels.timeout || `Zeit abgelaufen! Richtig wäre: ${this.currentQuestion.correct}.`;
+            this.feedbackEl.textContent = msg;
             this.feedbackEl.className = 'error';
 
             setTimeout(() => {
@@ -256,9 +261,6 @@
             }, 900);
         }
 
-        /**
-         * Behandelt Antwort-Auswahl
-         */
         handleAnswer(selected) {
             if (this.locked) return;
             this.locked = true;
@@ -266,6 +268,8 @@
             this.setOptionsDisabled(true);
 
             const isCorrect = selected === this.currentQuestion.correct;
+
+            const labels = this.configData.uiLabels?.feedback || {};
 
             // Buttons markieren
             const buttons = this.optionsContainer.querySelectorAll('.option-btn');
@@ -285,11 +289,13 @@
                 if (this.score > this.highscore) {
                     this.highscore = this.score;
                 }
-                this.feedbackEl.textContent = 'Korrekt – weiter!';
+                const msg = labels.correct || 'Korrekt – weiter!';
+                this.feedbackEl.textContent = msg;
                 this.feedbackEl.className = 'ok';
             } else {
                 this.streak = 0;
-                this.feedbackEl.textContent = `Falsch. Richtig wäre: ${this.currentQuestion.correct}.`;
+                const msg = (labels.wrong || "Falsch. Richtig wäre: {correct}.").replace('{correct}', this.currentQuestion.correct);
+                this.feedbackEl.textContent = msg;
                 this.feedbackEl.className = 'error';
             }
 
@@ -300,9 +306,6 @@
             }, 800);
         }
 
-        /**
-         * Startet Spiel neu
-         */
         restartGame() {
             this.score = 0;
             this.streak = 0;
@@ -313,24 +316,18 @@
             this.nextQuestion();
         }
 
-        /**
-         * Aktualisiert Restart-Button
-         */
         updateRestartButton() {
             if (!this.hasStarted) {
                 this.restartBtn.classList.remove('running');
                 this.restartIconEl.textContent = '▶';
-                this.restartLabelEl.textContent = 'Start';
+                this.restartLabelEl.textContent = this.startLabel;
             } else {
                 this.restartBtn.classList.add('running');
                 this.restartIconEl.textContent = '↻';
-                this.restartLabelEl.textContent = 'Neustart';
+                this.restartLabelEl.textContent = this.restartLabel;
             }
         }
 
-        /**
-         * Behandelt Restart-Button-Click
-         */
         handleRestartClick() {
             if (!this.hasStarted) {
                 this.hasStarted = true;
@@ -340,7 +337,6 @@
         }
     }
 
-    // Spiel initialisieren, wenn DOM geladen
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             const game = new QuickQuiz();
