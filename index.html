@@ -13,6 +13,12 @@
             min-height: 100vh;
         }
 
+        /* Fallback for critical variables if shared_theme loads late/fails */
+        :root {
+            --txt: 210 50% 98%;
+            --primary: 195 100% 60%;
+        }
+
         /* Helper to hide views */
         .hidden {
             display: none !important;
@@ -258,7 +264,9 @@
         .top-bar-title {
             font-weight: 600;
             font-size: 1rem;
-            color: hsl(var(--txt));
+            color: #ffffff;
+            /* Fallback */
+            color: hsl(var(--txt)) !important;
             text-align: center;
             justify-self: center;
             white-space: nowrap;
@@ -266,6 +274,8 @@
             text-overflow: ellipsis;
             max-width: 100%;
             text-shadow: 0 0 10px hsl(var(--primary) / 0.3);
+            z-index: 100;
+            position: relative;
         }
 
         @media (max-width: 600px) {
