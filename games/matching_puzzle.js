@@ -57,10 +57,6 @@
             // Backward Compatibility: Normalize titles/hints if using old schema and not new
             if (!data.columnTitles && data.columnTitles !== {}) { // Ensure it exists
                 // If undefined, maybe init? But JSON usually has it.
-                // If old JSON has columnTitles with column1/column2... wait, old JSON HAD column1...
-                // Let's check old JSON. It had "columnTitles": {"column1": "..."}
-                // New code looks for this.configData.columnTitles[key] where key is 'col1'.
-                // So we need to map column1 -> col1
             }
             if (data.columnTitles) {
                 if (data.columnTitles.column1 && !data.columnTitles.col1) data.columnTitles.col1 = data.columnTitles.column1;
@@ -188,11 +184,6 @@
             });
         }
 
-        clearWrongHighlight() {
-            const wrongCards = document.querySelectorAll('.card.wrong');
-            wrongCards.forEach(card => card.classList.remove('wrong'));
-        }
-
         makeCard(text, colKey, setId) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -299,162 +290,153 @@
                 this.setCardsDisabled(false);
                 this.updateStats();
 
-                this.feedbackEl.className = 'ok';
+                this.checkRoundCompletion();
+            } else {
+                // NO MATCH
+                selectedCards.forEach(card => card.classList.add('wrong'));
+
+                if (this.feedbackEl) {
+                    this.feedbackEl.textContent = 'Das passt noch nicht zusammen. Versuch es erneut.';
+                    this.feedbackEl.className = 'error';
+                }
+
+                this.setCardsDisabled(true);
+
+                setTimeout(() => {
+                    selectedCards.forEach(card => {
+                        card.classList.remove('selected', 'wrong');
+                    });
+                    this.columnKeys.forEach(key => this.selection[key] = null);
+
+                    this.setCardsDisabled(false);
+                    this.evaluationLock = false;
+                    this.updateStats();
+                }, 900);
             }
-            this.checkRoundCompletion();
         }
-    } else {
-        // NO MATCH
-        selectedCards.forEach(card => card.classList.add('wrong'));
-
-        if (this.feedbackEl) {
-            this.feedbackEl.textContent = 'Das passt noch nicht zusammen. Versuch es erneut.';
-            this.feedbackEl.className = 'error';
-        }
-
-        this.setCardsDisabled(true);
-
-        setTimeout(() => {
-            selectedCards.forEach(card => {
-                card.classList.remove('selected', 'wrong');
-            });
-            this.columnKeys.forEach(key => this.selection[key] = null);
-
-            this.setCardsDisabled(false);
-            this.evaluationLock = false;
-            this.updateStats();
-        }, 900);
-    }
-}
 
         onCardClick(event) {
-    if (this.evaluationLock) return;
-    const card = event.currentTarget;
-    if (card.classList.contains('matched')) return;
+            if (this.evaluationLock) return;
+            const card = event.currentTarget;
+            if (card.classList.contains('matched')) return;
 
-    const colKey = card.dataset.colKey;
+            const colKey = card.dataset.colKey;
 
-    // Toggle off if same card clicked
-    if (this.selection[colKey] === card) {
-        card.classList.remove('selected');
-        this.selection[colKey] = null;
-        return;
-    }
+            // Toggle off if same card clicked
+            if (this.selection[colKey] === card) {
+                card.classList.remove('selected');
+                this.selection[colKey] = null;
+                return;
+            }
 
-    // Deselect previous in this column
-    if (this.selection[colKey]) {
-        this.selection[colKey].classList.remove('selected');
-    }
+            // Deselect previous in this column
+            if (this.selection[colKey]) {
+                this.selection[colKey].classList.remove('selected');
+            }
 
-    // Select new
-    card.classList.add('selected');
-    this.selection[colKey] = card;
+            // Select new
+            card.classList.add('selected');
+            this.selection[colKey] = card;
 
-    // Check if full set selected
-    const countSelected = this.columnKeys.filter(k => !!this.selection[k]).length;
+            // Check if full set selected
+            const countSelected = this.columnKeys.filter(k => !!this.selection[k]).length;
 
-    if (countSelected === this.columnKeys.length) {
-        this.evaluateSelection();
-    } else {
-        if (this.feedbackEl) {
-            this.feedbackEl.textContent = 'Wähle noch aus den anderen Spalten, um ein Set zu bilden.';
-            this.feedbackEl.className = 'info';
-        }
-    }
-}
-
+            if (countSelected === this.columnKeys.length) {
+                this.evaluateSelection();
+            } else {
+                if (this.feedbackEl) {
+                    this.feedbackEl.textContent = 'Wähle noch aus den anderen Spalten, um ein Set zu bilden.';
+                    this.feedbackEl.className = 'info';
+                }
+            }
         }
 
-checkRoundCompletion() {
-    // Check if all Sets in current batch are found
-    // Since foundSets is global, we need track progress relative to batch size
-    // OR: Simply check if all cards in DOM are matched/disabled
+        checkRoundCompletion() {
+            // Check if all Sets in current batch are found
+            const currentBatchSize = (this.batches[this.currentRoundIndex] || []).length;
+            this.roundFoundSets++;
 
-    const currentBatchSize = (this.batches[this.currentRoundIndex] || []).length;
-    this.roundFoundSets++;
+            if (this.roundFoundSets >= currentBatchSize) {
+                // Round Complete
+                if (this.feedbackEl) {
+                    this.feedbackEl.textContent = 'Runde geschafft! Weiter geht\'s.';
+                }
 
-    if (this.roundFoundSets >= currentBatchSize) {
-        // Round Complete
-        if (this.feedbackEl) {
-            this.feedbackEl.textContent = 'Runde geschafft! Weiter geht\'s.';
+                // Show Next Button if more rounds exist
+                if (this.currentRoundIndex < this.batches.length - 1) {
+                    if (this.nextRoundBtn) {
+                        this.nextRoundBtn.style.display = 'inline-flex';
+                    }
+                } else {
+                    // Game Complete
+                    if (this.feedbackEl) {
+                        this.feedbackEl.textContent = 'Alle Runden gelöst – Glückwunsch!';
+                    }
+                }
+            }
         }
 
-        // Show Next Button if more rounds exist
-        if (this.currentRoundIndex < this.batches.length - 1) {
+        nextRound() {
+            if (this.currentRoundIndex >= this.batches.length - 1) return;
+
+            this.currentRoundIndex++;
+            this.roundFoundSets = 0;
+
+            this.renderGrid();
+            this.updateStats();
+
+            // Hide button again until round done
             if (this.nextRoundBtn) {
-                this.nextRoundBtn.style.display = 'inline-flex';
-                // Highlight button focus?
+                this.nextRoundBtn.style.display = 'none';
             }
-        } else {
-            // Game Complete
+
             if (this.feedbackEl) {
-                this.feedbackEl.textContent = 'Alle Runden gelöst – Glückwunsch!';
+                this.feedbackEl.textContent = 'Finde die passenden Sets!';
+                this.feedbackEl.className = 'info';
             }
         }
+
+        resetGame() {
+            // Re-init Logic
+            // Make sure to shuffle all and rebuild batches
+            if (this.sets && this.sets.length > 0) {
+                this.batches = this.prepareBatches(this.sets);
+            } else {
+                this.batches = [];
+            }
+
+            this.currentRoundIndex = 0;
+            this.foundSets = 0;
+            this.roundFoundSets = 0;
+            this.attempts = 0;
+
+            // Clear selection object
+            this.columnKeys.forEach(key => this.selection[key] = null);
+            this.evaluationLock = false;
+
+            if (this.feedbackEl) {
+                this.feedbackEl.textContent = 'Wähle je eine Karte aus jeder Spalte, um passende Dreier-Sets zu finden.';
+                this.feedbackEl.className = 'info';
+            }
+
+            if (this.nextRoundBtn) {
+                this.nextRoundBtn.style.display = 'none';
+            }
+
+            this.renderGrid();
+            this.setCardsDisabled(false);
+            this.updateStats();
+        }
     }
-}
 
-nextRound() {
-    if (this.currentRoundIndex >= this.batches.length - 1) return;
-
-    this.currentRoundIndex++;
-    this.roundFoundSets = 0;
-
-    this.renderGrid();
-    this.updateStats();
-
-    // Hide button again until round done
-    if (this.nextRoundBtn) {
-        this.nextRoundBtn.style.display = 'none';
-    }
-
-    if (this.feedbackEl) {
-        this.feedbackEl.textContent = 'Finde die passenden Sets!';
-        this.feedbackEl.className = 'info';
-    }
-}
-
-resetGame() {
-    // Re-init Logic
-    // Make sure to shuffle all and rebuild batches
-    if (this.sets && this.sets.length > 0) {
-        this.batches = this.prepareBatches(this.sets);
+    // Init
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            const game = new MatchingPuzzle();
+            game.init();
+        });
     } else {
-        this.batches = [];
-    }
-
-    this.currentRoundIndex = 0;
-    this.foundSets = 0;
-    this.roundFoundSets = 0;
-    this.attempts = 0;
-
-    // Clear selection object
-    this.columnKeys.forEach(key => this.selection[key] = null);
-    this.evaluationLock = false;
-
-    if (this.feedbackEl) {
-        this.feedbackEl.textContent = 'Wähle je eine Karte aus jeder Spalte, um passende Dreier-Sets zu finden.';
-        this.feedbackEl.className = 'info';
-    }
-
-    if (this.nextRoundBtn) {
-        this.nextRoundBtn.style.display = 'none';
-    }
-
-    this.renderGrid();
-    this.setCardsDisabled(false);
-    this.updateStats();
-}
-    }
-
-// Init
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
         const game = new MatchingPuzzle();
         game.init();
-    });
-} else {
-    const game = new MatchingPuzzle();
-    game.init();
-}
-}) ();
+    }
+})();
