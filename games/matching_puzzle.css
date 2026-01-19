@@ -105,13 +105,13 @@ h1 {
     background: hsl(var(--bg-surface) / var(--bg-surface-2-alpha));
 }
 
-/* New Game Button */
-#new-game-btn {
+/* Next Round Button */
+#next-round-btn {
     border-radius: 999px;
-    border: 1px solid hsl(var(--success) / 0.7);
+    border: 1px solid hsl(var(--primary) / 0.7);
     background: radial-gradient(circle at top left,
-            hsl(var(--success) / 0.25),
-            hsl(var(--success) / 0.12));
+            hsl(var(--primary) / 0.25),
+            hsl(var(--primary) / 0.12));
     color: hsl(var(--txt));
     padding: 8px 14px;
     font-size: 13px;
@@ -122,16 +122,16 @@ h1 {
     transition: filter 0.15s, background 0.15s;
 }
 
-#new-game-btn span.icon {
+#next-round-btn span.icon {
     font-size: 16px;
     transform: translateY(-1px);
 }
 
-#new-game-btn:hover {
+#next-round-btn:hover {
     filter: brightness(1.08);
     background: radial-gradient(circle at top left,
-            hsl(var(--success) / 0.35),
-            hsl(var(--success) / 0.18));
+            hsl(var(--primary) / 0.35),
+            hsl(var(--primary) / 0.18));
 }
 
 /* Stats Row */
