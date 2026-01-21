@@ -230,10 +230,7 @@
     async function buildTreeData(id) {
         const all = await fetchChildren(id);
         const folders = all.filter(f => f.mimeType === FOLDER_MIME);
-        const files = all.filter(f =>
-            f.mimeType !== FOLDER_MIME &&
-            (f.mimeType === 'application/json' || f.mimeType === 'application/pdf' || f.name.endsWith('.json') || f.name.endsWith('.pdf'))
-        );
+        const files = all.filter(f => f.mimeType !== FOLDER_MIME);
 
         folders.sort((a, b) => a.name.localeCompare(b.name));
         files.sort((a, b) => a.name.localeCompare(b.name));
@@ -246,7 +243,7 @@
 
         return [
             ...folderNodes,
-            ...files.map(f => ({ id: f.id, name: f.name, isFolder: false, kind: f.name.endsWith('.json') ? 'json' : 'pdf' }))
+            ...files.map(f => ({ id: f.id, name: f.name, isFolder: false, kind: f.name.endsWith('.json') ? 'json' : 'file' }))
         ];
     }
 
@@ -280,7 +277,7 @@
             icon.className = 'tree-icon';
             icon.textContent = node.isFolder
                 ? (appState.closedIds.includes(node.id) ? '📁' : '📂')
-                : (node.kind === 'pdf' ? '👁' : '🏋');
+                : (node.kind !== 'json' ? '👁' : '🏋');
             row.appendChild(icon);
 
             const label = document.createElement('button');
