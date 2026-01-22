@@ -243,7 +243,13 @@
 
         return [
             ...folderNodes,
-            ...files.map(f => ({ id: f.id, name: f.name, isFolder: false, kind: f.name.endsWith('.json') ? 'json' : 'file' }))
+            ...files.map(f => {
+                const name = f.name.toLowerCase();
+                let kind = 'file';
+                if (name.endsWith('.json')) kind = 'json';
+                else if (name.endsWith('.pptx') || name.endsWith('.ppt')) kind = 'pptx';
+                return { id: f.id, name: f.name, isFolder: false, kind, mimeType: f.mimeType };
+            })
         ];
     }
 
@@ -317,13 +323,16 @@
     }
 
     function onNodeClick(e, node) {
-        if (!node.isFolder && node.kind !== 'json') {
-            // Öffne NICHT-JSON-Dateien im Google Viewer in neuem Tab
+        // Öffne alle Dateien außer JSON und PPTX im Google Viewer in neuem Tab
+        if (!node.isFolder && node.kind !== 'json' && node.kind !== 'pptx') {
             const url = `https://drive.google.com/file/d/${node.id}/preview`;
             window.open(url, '_blank');
             return;
         }
-        selectNode(node.id);
+        // JSON-Dateien werden normal geladen, PPTX und Ordner werden ignoriert
+        if (node.kind === 'json') {
+            selectNode(node.id);
+        }
     }
 
     function selectNode(id) {
