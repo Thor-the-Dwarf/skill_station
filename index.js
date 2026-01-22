@@ -319,7 +319,7 @@
     function onNodeClick(e, node) {
         if (!node.isFolder && node.kind !== 'json') {
             // Öffne NICHT-JSON-Dateien im Google Viewer in neuem Tab
-            const url = `https://drive.google.com/viewerng/viewer?embedded=true&url=https://drive.google.com/uc?id=${node.id}`;
+            const url = `https://drive.google.com/file/d/${node.id}/preview`;
             window.open(url, '_blank');
             return;
         }
