@@ -255,6 +255,8 @@
 
     function buildTreeHelper(container, nodes, level) {
         nodes.forEach(node => {
+            console.log('Building tree node:', { name: node.name, kind: node.kind, isFolder: node.isFolder });
+
             const div = document.createElement('div');
             div.className = 'tree-node';
             div.dataset.id = node.id;
@@ -323,15 +325,27 @@
     }
 
     function onNodeClick(e, node) {
+        console.log('onNodeClick aufgerufen:', {
+            name: node.name,
+            isFolder: node.isFolder,
+            kind: node.kind,
+            id: node.id
+        });
+
         // Öffne alle Dateien außer JSON und PPTX im Google Viewer in neuem Tab
         if (!node.isFolder && node.kind !== 'json' && node.kind !== 'pptx') {
             const url = `https://drive.google.com/file/d/${node.id}/preview`;
+            console.log('Öffne URL in neuem Tab:', url);
             window.open(url, '_blank');
             return;
         }
+
         // JSON-Dateien werden normal geladen, PPTX und Ordner werden ignoriert
         if (node.kind === 'json') {
+            console.log('JSON-Datei wird geladen');
             selectNode(node.id);
+        } else {
+            console.log('Datei wird ignoriert (PPTX oder Ordner)');
         }
     }
 
