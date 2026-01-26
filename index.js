@@ -13,6 +13,8 @@
 
     const STORAGE_KEY_FOLDER = 'drive_root_folder_id';
     const HISTORY_KEY = 'drive_history_v1';
+    const CACHE_KEY_PREFIX = 'drive_cache_';
+    const CACHE_TTL = 60 * 60 * 1000; // 1 Stunde in Millisekunden
     let driveHistory = [];
 
     // App State
@@ -191,6 +193,82 @@
         document.getElementById('view-body').innerHTML = `<p style="color:red">${msg}</p>`;
     }
 
+    // --- Cache Helper Functions ---
+    function getCachedData(key) {
+        try {
+            const cached = localStorage.getItem(CACHE_KEY_PREFIX + key);
+            if (!cached) return null;
+
+            const data = JSON.parse(cached);
+            const now = Date.now();
+
+            // Prüfe ob Cache abgelaufen ist
+            if (now - data.timestamp > CACHE_TTL) {
+                localStorage.removeItem(CACHE_KEY_PREFIX + key);
+                return null;
+            }
+
+            console.log(`[Cache HIT] ${key}`);
+            return data.value;
+        } catch (e) {
+            console.warn('Cache-Lesefehler:', e);
+            return null;
+        }
+    }
+
+    function setCachedData(key, value) {
+        try {
+            const data = {
+                timestamp: Date.now(),
+                value: value
+            };
+            localStorage.setItem(CACHE_KEY_PREFIX + key, JSON.stringify(data));
+            console.log(`[Cache SET] ${key}`);
+        } catch (e) {
+            console.warn('Cache-Schreibfehler (möglicherweise voll):', e);
+            // Versuche alten Cache zu löschen
+            clearOldCache();
+        }
+    }
+
+    function clearOldCache() {
+        try {
+            const keys = Object.keys(localStorage);
+            const cacheKeys = keys.filter(k => k.startsWith(CACHE_KEY_PREFIX));
+            const now = Date.now();
+
+            cacheKeys.forEach(key => {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (now - data.timestamp > CACHE_TTL) {
+                        localStorage.removeItem(key);
+                    }
+                } catch (_) {
+                    localStorage.removeItem(key);
+                }
+            });
+        } catch (e) {
+            console.warn('Fehler beim Löschen alten Caches:', e);
+        }
+    }
+
+    function clearDriveCache() {
+        try {
+            const keys = Object.keys(localStorage);
+            const cacheKeys = keys.filter(k => k.startsWith(CACHE_KEY_PREFIX));
+            cacheKeys.forEach(key => localStorage.removeItem(key));
+            console.log('Drive-Cache gelöscht');
+            alert('Cache wurde gelöscht. Die Seite wird neu geladen.');
+            location.reload();
+        } catch (e) {
+            console.warn('Fehler beim Löschen des Caches:', e);
+        }
+    }
+
+    // Expose clearDriveCache globally for UI button
+    window.clearDriveCache = clearDriveCache;
+
+
     async function fetchJson(url) {
         const res = await fetch(url);
         if (!res.ok) {
@@ -202,29 +280,63 @@
     }
 
     async function fetchFolderMeta(id) {
+        // Cache Check
+        const cacheKey = `meta_${id}`;
+        const cached = getCachedData(cacheKey);
+        if (cached) return cached;
+
         const params = new URLSearchParams({ key: API_KEY, fields: 'id,name', supportsAllDrives: 'true' });
-        return fetchJson(`${DRIVE_FILES_ENDPOINT}/${id}?${params}`);
+        try {
+            const data = await fetchJson(`${DRIVE_FILES_ENDPOINT}/${id}?${params}`);
+            setCachedData(cacheKey, data);
+            return data;
+        } catch (error) {
+            handleApiError(error);
+            throw error;
+        }
+    }
+
+    // Hilfsfunktion für Error Handling
+    function handleApiError(error) {
+        const msg = error.message || '';
+        if (msg.includes('403') || msg.includes('429')) {
+            console.error('API Quota überschritten:', error);
+            // Wir werfen einen benutzerfreundlicheren Fehler, der oben gefangen wird
+            throw new Error('Google Drive Limit erreicht (zu viele Zugriffe). Bitte warte einen Moment oder lade die Seite neu.');
+        }
     }
 
     async function fetchChildren(id) {
+        // Cache Check für Children
+        const cacheKey = `children_${id}`;
+        const cached = getCachedData(cacheKey);
+        if (cached) return cached;
+
         let files = [];
         let token = '';
-        do {
-            const params = new URLSearchParams({
-                key: API_KEY,
-                q: `'${id}' in parents and trashed=false`,
-                fields: 'nextPageToken,files(id,name,mimeType)',
-                pageSize: '1000',
-                includeItemsFromAllDrives: 'true',
-                supportsAllDrives: 'true'
-            });
-            if (token) params.set('pageToken', token);
+        try {
+            do {
+                const params = new URLSearchParams({
+                    key: API_KEY,
+                    q: `'${id}' in parents and trashed=false`,
+                    fields: 'nextPageToken,files(id,name,mimeType)',
+                    pageSize: '1000',
+                    includeItemsFromAllDrives: 'true',
+                    supportsAllDrives: 'true'
+                });
+                if (token) params.set('pageToken', token);
 
-            const data = await fetchJson(`${DRIVE_FILES_ENDPOINT}?${params}`);
-            if (data.files) files.push(...data.files);
-            token = data.nextPageToken;
-        } while (token);
-        return files;
+                const data = await fetchJson(`${DRIVE_FILES_ENDPOINT}?${params}`);
+                if (data.files) files.push(...data.files);
+                token = data.nextPageToken;
+            } while (token);
+
+            setCachedData(cacheKey, files);
+            return files;
+        } catch (error) {
+            handleApiError(error);
+            throw error;
+        }
     }
 
     async function buildTreeData(id) {
