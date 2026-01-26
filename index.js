@@ -131,7 +131,27 @@
 
             // Start state: No game selected, reset selection
             appState.selectedId = null;
+
+            // Check URL param ?open=FILE_ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const openId = urlParams.get('open');
+
+            if (openId) {
+                console.log('URL Param open gefunden:', openId);
+                // Validierung: Prüfen ob Node existiert und JSON ist
+                const targetNode = findNode(rootTree, openId);
+                if (targetNode && targetNode.kind === 'json') {
+                    appState.selectedId = openId;
+                }
+            }
+
             saveAppState();
+
+            if (appState.selectedId) {
+                // Wenn wir via URL eine Selection haben, führe sie aus
+                // Kleiner Timeout um sicherzustellen, dass DOM bereit ist
+                setTimeout(() => selectNode(appState.selectedId), 50);
+            }
 
             // Clear view
             document.getElementById('view-title').textContent = 'Bereit';
@@ -376,7 +396,14 @@
 
             const row = document.createElement('div');
             row.className = 'tree-row';
+            // Click Handler für Links-Klick
             row.onclick = (e) => onNodeClick(e, node);
+            // AuxHandler für Mittel-Klick
+            row.onauxclick = (e) => {
+                if (e.button === 1) { // 1 = Middle Button
+                    onNodeClick(e, node);
+                }
+            };
 
             if (node.isFolder) {
                 const btn = document.createElement('button');
@@ -437,12 +464,33 @@
     }
 
     function onNodeClick(e, node) {
-        console.log('onNodeClick aufgerufen:', {
+        // Prüfe auf Mittelklick (Button 1) oder Ctrl/Meta + Links-Klick
+        const isMiddleClick = e.button === 1 || ((e.ctrlKey || e.metaKey) && e.button === 0);
+
+        console.log('onNodeClick:', {
             name: node.name,
-            isFolder: node.isFolder,
             kind: node.kind,
-            id: node.id
+            isMiddleClick,
+            button: e.button
         });
+
+        if (isMiddleClick && node.kind === 'json') {
+            e.preventDefault();
+            // Aktuelle URL nehmen, Parameter anfügen
+            const url = new URL(window.location.href);
+            url.searchParams.set('open', node.id);
+            console.log('Öffne Spiel in neuem Tab:', url.toString());
+            window.open(url.toString(), '_blank');
+            return;
+        }
+
+        // Wenn es ein reiner Linksklick ist (ohne Modifier) - mache normale Logik
+        if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+            // proceed below
+        } else {
+            // Andere Klicks ignorieren wir hier (z.B. Rechtsklick)
+            return;
+        }
 
         // Öffne alle Dateien außer JSON und PPTX im Google Viewer in neuem Tab
         if (!node.isFolder && node.kind !== 'json' && node.kind !== 'pptx') {
