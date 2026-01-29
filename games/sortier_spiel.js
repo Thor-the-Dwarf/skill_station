@@ -95,7 +95,9 @@
          */
         renderColumns() {
             this.columnsGridEl.innerHTML = '';
-            this.columns.forEach(col => {
+            // Shuffle columns to avoid fixed positions
+            const shuffledCols = this.shuffle(this.columns);
+            shuffledCols.forEach(col => {
                 const colDiv = document.createElement('div');
                 colDiv.className = 'sort-column';
                 colDiv.dataset.form = col.id;

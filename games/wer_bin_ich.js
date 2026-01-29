@@ -218,9 +218,19 @@
             return false;
         }
 
+        shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
         initQuestionButtons() {
             this.questionListEl.innerHTML = '';
-            this.questions.forEach(q => {
+            const shuffledInputs = this.shuffleArray(this.questions);
+            shuffledInputs.forEach(q => {
                 const btn = document.createElement('button');
                 btn.className = 'question-btn';
                 btn.type = 'button';

@@ -179,7 +179,8 @@
 
         renderOptions() {
             this.optionsContainer.innerHTML = '';
-            const labels = [...this.answerLabels];
+            // Shuffle labels for display to prevent patterns
+            const labels = this.shuffleArray([...this.answerLabels]);
             labels.forEach(label => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';

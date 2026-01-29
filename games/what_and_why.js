@@ -199,7 +199,7 @@
 
             // Step 1 Optionen rendern
             this.formOptionsEl.innerHTML = '';
-            c.options.forEach(option => {
+            this.shuffleArray(c.options).forEach(option => {
                 const li = document.createElement('li');
                 li.className = 'option';
                 const id = `what-${c.id}-${option.id}`;
@@ -244,7 +244,7 @@
             // Step 2 (Checkboxen) aufbauen
             this.reasonOptionsEl.innerHTML = '';
             if (Array.isArray(option.whys)) {
-                option.whys.forEach(why => {
+                this.shuffleArray(option.whys).forEach(why => {
                     const li = document.createElement('li');
                     li.className = 'option';
                     const id = `why-${c.id}-${this.selectedWhatId}-${why.id}`;

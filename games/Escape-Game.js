@@ -59,6 +59,11 @@
             this.totalSections = sections.length;
             this.solvedSections.clear();
 
+            // Randomize Sections Order if desired? Maybe better to keep section order for narrative?
+            // User said "sämtliche positionen". But sections usually follow a path.
+            // If sections are independent, we could shuffle them. But usually escape game is linear or parallel.
+            // I'll leave sections order but shuffle content.
+
             sections.forEach(section => {
                 // Determine container
                 const sectionEl = document.createElement("section");
@@ -114,6 +119,15 @@
 
         // --- Renderers ---
 
+        shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
         renderSort(section, container) {
             // Pool
             const pool = document.createElement("div");
@@ -127,7 +141,7 @@
             container.appendChild(board);
 
             // Create Zones
-            (section.sortColumns || []).forEach(col => {
+            this.shuffleArray(section.sortColumns || []).forEach(col => {
                 const zone = document.createElement("div");
                 zone.className = "escape-dropzone";
                 zone.dataset.zone = col.zone;
@@ -163,7 +177,7 @@
 
                 const ul = document.createElement("ul");
                 ul.className = "quiz-options";
-                (q.options || []).forEach(opt => {
+                this.shuffleArray(q.options || []).forEach(opt => {
                     const li = document.createElement("li");
                     li.innerHTML = `<label><input type="radio" name="${section.id}_${q.id}" value="${opt.value}"> ${opt.text}</label>`;
                     ul.appendChild(li);
@@ -193,7 +207,7 @@
             `;
             const tbody = table.querySelector("tbody");
 
-            (section.rows || []).forEach(row => {
+            this.shuffleArray(section.rows || []).forEach(row => {
                 const tr = document.createElement("tr");
                 const tdLabel = document.createElement("td");
                 tdLabel.textContent = row.label;
@@ -204,7 +218,7 @@
                 select.dataset.sectionId = section.id;
 
                 // Options
-                (row.options || []).forEach(opt => {
+                this.shuffleArray(row.options || []).forEach(opt => {
                     const option = document.createElement("option");
                     option.value = opt.value;
                     option.textContent = opt.text;
@@ -463,7 +477,7 @@
             });
 
             // Re-create cards in pool
-            (section.sortCards || []).forEach(cardData => {
+            this.shuffleArray(section.sortCards || []).forEach(cardData => {
                 const el = this.createSortCard(cardData);
                 pool.appendChild(el);
             });
