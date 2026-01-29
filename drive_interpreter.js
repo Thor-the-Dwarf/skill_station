@@ -2,55 +2,30 @@
  * ============================================================================
  * drive_interpreter.js - Google Drive zu Spiel-Interpreter
  * ============================================================================
- *
- * ZWECK:
- * Dieses Modul ist die Brücke zwischen Google Drive und den Spiel-Dateien.
- * Es lädt JSON-Konfigurationen aus Drive, interpretiert sie und lädt das
- * entsprechende Spiel in einem iframe.
- *
- * DATENFLUSS:
- * -----------
- * 1. Benutzer wählt eine JSON-Datei aus dem Drive-Tree aus
- * 2. drive_interpreter.js lädt die JSON-Datei über die Drive API
- * 3. JSON wird analysiert und der game_type extrahiert
- * 4. JSON wird in sessionStorage gespeichert (Key: 'game_payload_' + fileId)
- * 5. Das entsprechende Spiel-HTML wird in ein iframe geladen
- * 6. game_base.js im iframe liest das Payload aus sessionStorage
- * 7. Das Spiel wird mit den Daten aus dem JSON konfiguriert
- *
- * UNTERSTÜTZTE SPIELTYPEN:
- * ------------------------
- * - 'escape_game': Zeitbasiertes Rätselspiel mit mehreren Aufgaben
- * - Weitere Spieltypen können in _resolveGameHtmlByType() hinzugefügt werden
- *
- * VERWENDUNG:
- * -----------
- * const result = await window.DriveInterpreter.loadGame({
- *     fileId: 'GOOGLE_DRIVE_FILE_ID',
- *     apiKey: 'DEIN_API_KEY',
- *     driveFilesEndpoint: 'https://www.googleapis.com/drive/v3/files',
- *     containerEl: document.getElementById('game-container'),
- *     basePath: 'games',
- *     iframeClassName: 'game-iframe'
- * });
- *
- * ============================================================================
  */
 
 (function () {
     'use strict';
 
-    /**
-     * Prefix für sessionStorage-Keys
-     * Alle Spiel-Payloads werden unter diesem Prefix gespeichert
-     * @constant {string}
-     */
     const JSON_SESSION_PREFIX = 'game_payload_';
 
     function _normalizeBasePath(basePath) {
         const p = (basePath || 'games').trim();
         if (!p) return 'games';
         return p.endsWith('/') ? p.slice(0, -1) : p;
+    }
+
+    function _normalizeGameType(gameType) {
+        return String(gameType || '')
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, '_')
+            .replace(/-+/g, '_');
+    }
+
+    function _extractGameType(payload) {
+        if (!payload || typeof payload !== 'object') return '';
+        return payload.game_type || payload.gameType || '';
     }
 
     async function _fetchDriveJson(fileId, apiKey, driveFilesEndpoint) {
@@ -76,18 +51,41 @@
 
     function _resolveGameHtmlByType(gameType, basePath) {
         const base = _normalizeBasePath(basePath);
-        const type = String(gameType).trim();
+        const type = _normalizeGameType(gameType);
 
         console.log(`[DriveInterpreter] Resolving game type: "${type}"`);
 
-        if (type === 'escape_game') return `${base}/Escape-Game.html`;
-        if (type === 'matching_puzzle' || type === 'matching-puzzle') return `${base}/matching_puzzle.html`;
-        if (type === 'wer_bin_ich' || type === 'wer-bin-ich') return `${base}/wer_bin_ich.html`;
-        if (type === 'quick_quiz' || type === 'quick-quiz') return `${base}/quick_quiz.html`;
-        if (type === 'what_and_why' || type === 'what-and-why') return `${base}/what_and_why.html`;
-        if (type === 'sortier_spiel' || type === 'sortier-spiel') return `${base}/sortier_spiel.html`;
+        // escape
+        if (type === 'escape_game' || type === 'escape' || type === 'escape_room' || type === 'mini_escape_room') {
+            return `${base}/Escape-Game.html`;
+        }
 
-        throw new Error(`Unbekannter game_type: "${type}"`);
+        // matching
+        if (type === 'matching_puzzle' || type === 'matching') {
+            return `${base}/matching_puzzle.html`;
+        }
+
+        // wer bin ich
+        if (type === 'wer_bin_ich' || type === 'werbinich') {
+            return `${base}/wer_bin_ich.html`;
+        }
+
+        // quick quiz
+        if (type === 'quick_quiz' || type === 'quickquiz') {
+            return `${base}/quick_quiz.html`;
+        }
+
+        // what & why
+        if (type === 'what_and_why' || type === 'whatwhy') {
+            return `${base}/what_and_why.html`;
+        }
+
+        // sortier spiel
+        if (type === 'sortier_spiel' || type === 'sortierspiel') {
+            return `${base}/sortier_spiel.html`;
+        }
+
+        throw new Error(`Unbekannter game_type: "${type || String(gameType || '').trim()}"`);
     }
 
     function _storePayload(fileId, payload) {
@@ -107,6 +105,12 @@
         } catch (_) {
             return null;
         }
+    }
+
+    function _dropStoredPayload(fileId) {
+        try {
+            sessionStorage.removeItem(JSON_SESSION_PREFIX + fileId);
+        } catch (_) { }
     }
 
     function _applyThemeToIframe(iframe) {
@@ -133,16 +137,34 @@
         if (!driveFilesEndpoint) throw new Error('driveFilesEndpoint fehlt.');
         if (!containerEl) throw new Error('containerEl fehlt.');
 
-        // 1) Cache zuerst (kein Drive)
+        // 1) Cache zuerst (kein Drive) – aber: nur verwenden, wenn game_type plausibel ist
         let payload = _readStoredPayload(fileId);
+        if (payload) {
+            const t = _extractGameType(payload);
+            const norm = _normalizeGameType(t);
 
-        // 2) Nur wenn nicht da: von Drive holen
+            // Wenn Cache-Schrott drin hängt (z.B. "unknown"), wegwerfen und neu fetchen
+            if (!norm || norm === 'unknown') {
+                _dropStoredPayload(fileId);
+                payload = null;
+            } else {
+                try {
+                    // Probe: würde der Typ auf eine HTML-Datei mappen?
+                    _resolveGameHtmlByType(t, basePath);
+                } catch (_) {
+                    _dropStoredPayload(fileId);
+                    payload = null;
+                }
+            }
+        }
+
+        // 2) Nur wenn nicht da/invalid: von Drive holen
         if (!payload) {
             payload = await _fetchDriveJson(fileId, apiKey, driveFilesEndpoint);
             _storePayload(fileId, payload);
         }
 
-        const gameType = payload.game_type || payload.gameType || null;
+        const gameType = _extractGameType(payload);
         if (!gameType) throw new Error('Im JSON fehlt das Feld "game_type".');
 
         const gameHtml = _resolveGameHtmlByType(gameType, basePath);
@@ -156,10 +178,8 @@
 
         iframe.onload = () => _applyThemeToIframe(iframe);
 
-        return { gameType, gameHtml, iframe, payload };
+        return { gameType: _normalizeGameType(gameType), gameHtml, iframe, payload };
     }
 
-    window.DriveInterpreter = {
-        loadGame
-    };
+    window.DriveInterpreter = { loadGame };
 })();
