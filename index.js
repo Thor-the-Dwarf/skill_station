@@ -15,6 +15,10 @@
     const HISTORY_KEY = 'drive_history_v1';
     const CACHE_KEY_PREFIX = 'drive_cache_';
     const CACHE_TTL = 60 * 60 * 1000; // 1 Stunde in Millisekunden
+
+    // Tree-Cache pro Tab-Session (überlebt Reload im selben Tab)
+    const TREE_SESSION_PREFIX = 'drive_tree_children_';
+
     let driveHistory = [];
 
     // App State
@@ -87,7 +91,6 @@
         initTheme();
 
         // Drawer / Nav
-        // Drawer / Nav
         drawerBackdrop.addEventListener('click', () => setDrawer(false));
         topBarMenuBtn.addEventListener('click', toggleDrawer);
 
@@ -124,6 +127,7 @@
             // Update History Name
             saveHistoryEntry(currentFolderId, rootName);
 
+            // Nur 1 Ebene laden (lazy)
             rootTree = await buildTreeData(currentFolderId);
             const treeRootEl = document.getElementById('tree-root');
             treeRootEl.innerHTML = '';
@@ -138,30 +142,44 @@
 
             if (openId) {
                 console.log('URL Param open gefunden:', openId);
-                // Validierung: Prüfen ob Node existiert und JSON ist
+
+                // 1) Versuch: existiert im aktuellen (lazy) Tree?
                 const targetNode = findNode(rootTree, openId);
                 if (targetNode && targetNode.kind === 'json') {
                     appState.selectedId = openId;
+                    saveAppState();
+                    setTimeout(() => selectNode(appState.selectedId), 50);
+                } else {
+                    // 2) Fallback: Meta holen und direkt laden (ohne Tree)
+                    try {
+                        const fmeta = await fetchFolderMeta(openId); // liefert id,name,mimeType
+                        const isFolder = fmeta && fmeta.mimeType === FOLDER_MIME;
+                        const isJson = fmeta && typeof fmeta.name === 'string' && fmeta.name.toLowerCase().endsWith('.json');
+
+                        if (!isFolder && isJson) {
+                            appState.selectedId = openId;
+                            saveAppState();
+                            setTimeout(() => renderViewForDirectOpen(openId, fmeta.name), 50);
+                        }
+                    } catch (_) {
+                        // ignore
+                    }
                 }
             }
 
             saveAppState();
 
-            if (appState.selectedId) {
-                // Wenn wir via URL eine Selection haben, führe sie aus
-                // Kleiner Timeout um sicherzustellen, dass DOM bereit ist
-                setTimeout(() => selectNode(appState.selectedId), 50);
+            // Clear view (nur wenn nichts direkt geöffnet wurde)
+            if (!openId) {
+                document.getElementById('view-title').textContent = 'Bereit';
+                document.getElementById('view-path').textContent = '';
+                viewBody.innerHTML = '<p style="padding:2rem; color: #888;">Bitte wähle eine Datei aus dem Menü.</p>';
+
+                document.querySelector('.content-header').classList.remove('hidden');
+                document.querySelector('.content').classList.remove('full-screen');
+                viewBody.classList.remove('iframe-container');
+                viewBody.classList.add('card');
             }
-
-            // Clear view
-            document.getElementById('view-title').textContent = 'Bereit';
-            document.getElementById('view-path').textContent = '';
-            viewBody.innerHTML = '<p style="padding:2rem; color: #888;">Bitte wähle eine Datei aus dem Menü.</p>';
-
-            document.querySelector('.content-header').classList.remove('hidden');
-            document.querySelector('.content').classList.remove('full-screen');
-            viewBody.classList.remove('iframe-container');
-            viewBody.classList.add('card');
 
             applySelectedCss();
         } catch (err) {
@@ -288,6 +306,25 @@
     // Expose clearDriveCache globally for UI button
     window.clearDriveCache = clearDriveCache;
 
+    // --- Tree session cache (pro Tab) ---
+    function getSessionTreeChildren(folderId) {
+        try {
+            const raw = sessionStorage.getItem(TREE_SESSION_PREFIX + folderId);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function setSessionTreeChildren(folderId, children) {
+        try {
+            sessionStorage.setItem(TREE_SESSION_PREFIX + folderId, JSON.stringify(children));
+        } catch (_) {
+            // ignore
+        }
+    }
 
     async function fetchJson(url) {
         const res = await fetch(url);
@@ -305,7 +342,7 @@
         const cached = getCachedData(cacheKey);
         if (cached) return cached;
 
-        const params = new URLSearchParams({ key: API_KEY, fields: 'id,name', supportsAllDrives: 'true' });
+        const params = new URLSearchParams({ key: API_KEY, fields: 'id,name,mimeType', supportsAllDrives: 'true' });
         try {
             const data = await fetchJson(`${DRIVE_FILES_ENDPOINT}/${id}?${params}`);
             setCachedData(cacheKey, data);
@@ -359,6 +396,7 @@
         }
     }
 
+    // Nur 1 Ebene: Ordner als lazy Nodes (children=null)
     async function buildTreeData(id) {
         const all = await fetchChildren(id);
         const folders = all.filter(f => f.mimeType === FOLDER_MIME);
@@ -367,11 +405,14 @@
         folders.sort((a, b) => a.name.localeCompare(b.name));
         files.sort((a, b) => a.name.localeCompare(b.name));
 
-        const folderNodes = [];
-        for (const f of folders) {
-            const kids = await buildTreeData(f.id);
-            folderNodes.push({ id: f.id, name: f.name, isFolder: true, children: kids });
-        }
+        const folderNodes = folders.map(f => ({
+            id: f.id,
+            name: f.name,
+            isFolder: true,
+            children: null,
+            _loaded: false,
+            _loading: false
+        }));
 
         return [
             ...folderNodes,
@@ -385,6 +426,43 @@
         ];
     }
 
+    async function ensureChildrenLoaded(node, childCont, level) {
+        if (!node || !node.isFolder) return;
+        if (node._loaded || node._loading) return;
+
+        node._loading = true;
+
+        // 1) Session-Cache (pro Tab) – kein Drive
+        const sessionKids = getSessionTreeChildren(node.id);
+        if (sessionKids) {
+            node.children = sessionKids;
+            node._loaded = true;
+            node._loading = false;
+
+            childCont.innerHTML = '';
+            buildTreeHelper(childCont, node.children, level);
+            return;
+        }
+
+        // 2) Laden (Drive nur wenn localStorage-cache miss)
+        childCont.innerHTML = `<div style="padding:.25rem .5rem;color:var(--txt-muted);font-size:.85rem;">Lade…</div>`;
+
+        try {
+            const kids = await buildTreeData(node.id);
+            node.children = kids;
+            node._loaded = true;
+            setSessionTreeChildren(node.id, kids);
+
+            childCont.innerHTML = '';
+            buildTreeHelper(childCont, kids, level);
+        } catch (e) {
+            childCont.innerHTML = `<div style="padding:.25rem .5rem;color:var(--error);font-size:.85rem;">Fehler: ${String(e.message || e)}</div>`;
+            throw e;
+        } finally {
+            node._loading = false;
+        }
+    }
+
     function buildTreeHelper(container, nodes, level) {
         nodes.forEach(node => {
             console.log('Building tree node:', { name: node.name, kind: node.kind, isFolder: node.isFolder });
@@ -392,10 +470,14 @@
             const div = document.createElement('div');
             div.className = 'tree-node';
             div.dataset.id = node.id;
-            if (appState.closedIds.includes(node.id)) div.classList.add('tree-node--collapsed');
+
+            const lazyCollapsed = node.isFolder && !node._loaded;
+            const stateCollapsed = appState.closedIds.includes(node.id);
+            if (stateCollapsed || lazyCollapsed) div.classList.add('tree-node--collapsed');
 
             const row = document.createElement('div');
             row.className = 'tree-row';
+
             // Click Handler für Links-Klick
             row.onclick = (e) => onNodeClick(e, node);
             // AuxHandler für Mittel-Klick
@@ -405,13 +487,16 @@
                 }
             };
 
+            const childCont = document.createElement('div');
+            childCont.className = 'tree-children';
+
             if (node.isFolder) {
                 const btn = document.createElement('button');
                 btn.className = 'tree-toggle';
-                btn.textContent = appState.closedIds.includes(node.id) ? '▸' : '▾';
+                btn.textContent = div.classList.contains('tree-node--collapsed') ? '▸' : '▾';
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    toggleNode(div, node.id, btn);
+                    toggleNode(div, node, btn, childCont, level + 1);
                 };
                 row.appendChild(btn);
             } else {
@@ -423,7 +508,7 @@
             const icon = document.createElement('span');
             icon.className = 'tree-icon';
             icon.textContent = node.isFolder
-                ? (appState.closedIds.includes(node.id) ? '📁' : '📂')
+                ? (div.classList.contains('tree-node--collapsed') ? '📁' : '📂')
                 : (node.kind !== 'json' ? '👁' : '🏋');
             row.appendChild(icon);
 
@@ -434,33 +519,51 @@
 
             div.appendChild(row);
 
-            const childCont = document.createElement('div');
-            childCont.className = 'tree-children';
-            if (node.isFolder && node.children) {
+            // Falls children schon geladen (z.B. aus SessionCache), sofort rendern
+            if (node.isFolder && node._loaded && Array.isArray(node.children)) {
                 buildTreeHelper(childCont, node.children, level + 1);
             }
-            div.appendChild(childCont);
 
+            div.appendChild(childCont);
             container.appendChild(div);
         });
     }
 
-    function toggleNode(div, id, btn) {
-        const idx = appState.closedIds.indexOf(id);
-        if (idx >= 0) {
-            appState.closedIds.splice(idx, 1);
+    async function toggleNode(div, node, btn, childCont, level) {
+        const isCollapsedNow = div.classList.contains('tree-node--collapsed');
+
+        if (isCollapsedNow) {
+            // öffnen
             div.classList.remove('tree-node--collapsed');
             btn.textContent = '▾';
+
+            const idx = appState.closedIds.indexOf(node.id);
+            if (idx >= 0) appState.closedIds.splice(idx, 1);
+            saveAppState();
+
+            const icon = div.querySelector('.tree-icon');
+            if (icon && node.isFolder) icon.textContent = '📂';
+
+            if (node.isFolder && !node._loaded) {
+                try {
+                    await ensureChildrenLoaded(node, childCont, level);
+                } catch (_) {
+                    // bei Fehler wieder einklappen
+                    div.classList.add('tree-node--collapsed');
+                    btn.textContent = '▸';
+                    if (icon && node.isFolder) icon.textContent = '📁';
+                }
+            }
         } else {
-            appState.closedIds.push(id);
+            // schließen
             div.classList.add('tree-node--collapsed');
             btn.textContent = '▸';
+            if (!appState.closedIds.includes(node.id)) appState.closedIds.push(node.id);
+            saveAppState();
+
+            const icon = div.querySelector('.tree-icon');
+            if (icon && node.isFolder) icon.textContent = '📁';
         }
-
-        saveAppState();
-
-        const icon = div.querySelector('.tree-icon');
-        if (icon) icon.textContent = appState.closedIds.includes(id) ? '📁' : '📂';
     }
 
     function onNodeClick(e, node) {
@@ -584,6 +687,25 @@
         }
     }
 
+    function renderViewForDirectOpen(fileId, fileName) {
+        const viewTitle = document.getElementById('view-title');
+        const viewPath = document.getElementById('view-path');
+        const viewBody = document.getElementById('view-body');
+        const contentEl = document.querySelector('.content');
+
+        viewTitle.textContent = fileName || fileId;
+        viewPath.textContent = fileName || fileId;
+
+        document.querySelector('.content-header').classList.add('hidden');
+        contentEl.classList.add('full-screen');
+
+        viewBody.innerHTML = '';
+        viewBody.classList.remove('card');
+        viewBody.classList.add('iframe-container');
+
+        loadGame({ id: fileId, name: fileName || fileId, kind: 'json', isFolder: false });
+    }
+
     async function loadGame(node) {
         const viewBody = document.getElementById('view-body');
         try {
@@ -698,7 +820,6 @@
         if (idRegex.test(url) && !url.includes('/')) return url;
         return null;
     }
-
 
     // --- Boot ---
     document.getElementById('theme-toggle-app').addEventListener('click', toggleTheme);

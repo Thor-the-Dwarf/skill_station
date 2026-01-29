@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Skill-Station – Escape JSON → Offline-HTML</title>
 
   <!-- Tool-UI nutzt dein Shared Theme -->
   <style id="__ASSET_SHARED_THEME__">
-/**
+    /**
  * ============================================================================
  * shared_theme.css - Globales Theme-System für Skill-Station
  * ============================================================================
@@ -75,8 +76,8 @@
  * ============================================================================
  */
 
-:root {
-    /* 
+    :root {
+      /* 
        HSL Color System - "Cyber-Glass" Edition
        High Transparency & Neon Glows
        
@@ -97,236 +98,236 @@
        Statt: color: hsl(195, 100%, 60%);
        Nutze: color: hsl(var(--primary)); /* nutzt die Variable */
 
-    /*Mit Transparenz:*/
-        background: hsl(var(--primary) / 0.5);
-    /* 50% transparent */
-    /**!*/
-    /* Brand / Accent - Cyan/Electric Blue */
-    --primary-hue: 195;
-    --primary-sat: 100%;
-    --primary-lig: 60%;
+      /*Mit Transparenz:*/
+      background: hsl(var(--primary) / 0.5);
+      /* 50% transparent */
+      /**!*/
+      /* Brand / Accent - Cyan/Electric Blue */
+      --primary-hue: 195;
+      --primary-sat: 100%;
+      --primary-lig: 60%;
 
-    --primary: var(--primary-hue) var(--primary-sat) var(--primary-lig);
-    --primary-fg: 0 0% 100%;
+      --primary: var(--primary-hue) var(--primary-sat) var(--primary-lig);
+      --primary-fg: 0 0% 100%;
 
-    /* Base - Deep Space Dark */
-    --bg-hue: 230;
-    --bg-sat: 30%;
-    --bg-lig: 6%;
+      /* Base - Deep Space Dark */
+      --bg-hue: 230;
+      --bg-sat: 30%;
+      --bg-lig: 6%;
 
-    --bg: var(--bg-hue) var(--bg-sat) var(--bg-lig);
+      --bg: var(--bg-hue) var(--bg-sat) var(--bg-lig);
 
-    /* Surface Colors - Base opacity 0.3 for glass feel */
-    --bg-surface: 230 30% 15%;
-    --bg-surface-alpha: 0.75;
-    /* 25% opacity = 75% transparent */
-    --bg-surface-2-alpha: 0.35;
+      /* Surface Colors - Base opacity 0.3 for glass feel */
+      --bg-surface: 230 30% 15%;
+      --bg-surface-alpha: 0.75;
+      /* 25% opacity = 75% transparent */
+      --bg-surface-2-alpha: 0.35;
 
-    /* Text */
-    --txt: 210 50% 98%;
-    --txt-muted: 215 30% 75%;
-    /* Brighter muted for contrast on dark */
+      /* Text */
+      --txt: 210 50% 98%;
+      --txt-muted: 215 30% 75%;
+      /* Brighter muted for contrast on dark */
 
-    /* Status */
-    --success: 142 80% 50%;
-    --error: 0 90% 65%;
+      /* Status */
+      --success: 142 80% 50%;
+      --error: 0 90% 65%;
 
-    /* Sizing */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1.25rem;
+      /* Sizing */
+      --radius-sm: 0.5rem;
+      --radius-md: 0.75rem;
+      --radius-lg: 1.25rem;
 
-    /* Shadows & Glows */
-    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      /* Shadows & Glows */
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 
-    /* Neon Glows */
-    --glow-primary: 0 0 15px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--primary) / 0.3);
-    --glow-text: 0 0 10px hsl(var(--primary) / 0.8);
-    --glow-border: 0 0 8px hsl(var(--primary) / 0.4);
+      /* Neon Glows */
+      --glow-primary: 0 0 15px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--primary) / 0.3);
+      --glow-text: 0 0 10px hsl(var(--primary) / 0.8);
+      --glow-border: 0 0 8px hsl(var(--primary) / 0.4);
 
-    /* Glass Vars */
-    --glass-bg: 230 30% 10%;
-    --glass-opacity: 0.85;
-    /* Extremely transparent (85%) */
-    --glass-border: 210 50% 30%;
-    --glass-blur: 20px;
-}
+      /* Glass Vars */
+      --glass-bg: 230 30% 10%;
+      --glass-opacity: 0.85;
+      /* Extremely transparent (85%) */
+      --glass-border: 210 50% 30%;
+      --glass-blur: 20px;
+    }
 
-/* Light Theme Override - Kept "Frosty" */
-:root.theme-light {
-    --bg-hue: 210;
-    --bg-sat: 30%;
-    --bg-lig: 95%;
+    /* Light Theme Override - Kept "Frosty" */
+    :root.theme-light {
+      --bg-hue: 210;
+      --bg-sat: 30%;
+      --bg-lig: 95%;
 
-    --bg: var(--bg-hue) var(--bg-sat) var(--bg-lig);
+      --bg: var(--bg-hue) var(--bg-sat) var(--bg-lig);
 
-    /* FIX: gültige HSL-Werte für Light-Theme-Flächen */
-    --bg-surface: 0 0% 100%;
-    --bg-surface-alpha: 0.4;
-    --bg-surface-2-alpha: 0.5;
+      /* FIX: gültige HSL-Werte für Light-Theme-Flächen */
+      --bg-surface: 0 0% 100%;
+      --bg-surface-alpha: 0.4;
+      --bg-surface-2-alpha: 0.5;
 
-    --txt: 222 47% 11%;
-    --txt-muted: 215 16% 47%;
+      --txt: 222 47% 11%;
+      --txt-muted: 215 16% 47%;
 
-    /* FIX: gültige HSL-Werte für Glas-Hintergrund im Light-Theme */
-    --glass-bg: 0 0% 100%;
-    --glass-opacity: 0.3;
-    --glass-border: 214 32% 80%;
+      /* FIX: gültige HSL-Werte für Glas-Hintergrund im Light-Theme */
+      --glass-bg: 0 0% 100%;
+      --glass-opacity: 0.3;
+      --glass-border: 214 32% 80%;
 
-    --glow-primary: 0 4px 20px hsl(var(--primary) / 0.4);
-    --glow-text: none;
-}
+      --glow-primary: 0 4px 20px hsl(var(--primary) / 0.4);
+      --glow-text: none;
+    }
 
-/* --- Global Resets & Typography --- */
-body {
-    background-color: hsl(var(--bg));
-    color: hsl(var(--txt));
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    margin: 0;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-}
+    /* --- Global Resets & Typography --- */
+    body {
+      background-color: hsl(var(--bg));
+      color: hsl(var(--txt));
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      margin: 0;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
 
-* {
-    box-sizing: border-box;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-/* --- Components --- */
+    /* --- Components --- */
 
-/* Cards - Glassy */
-.card,
-.section-card {
-    background: hsl(var(--bg-surface) / var(--bg-surface-alpha));
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid hsl(var(--glass-border) / 0.5);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    /* Glass shadow */
-    margin-bottom: 1.5rem;
-    color: hsl(var(--txt));
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
+    /* Cards - Glassy */
+    .card,
+    .section-card {
+      background: hsl(var(--bg-surface) / var(--bg-surface-alpha));
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid hsl(var(--glass-border) / 0.5);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      /* Glass shadow */
+      margin-bottom: 1.5rem;
+      color: hsl(var(--txt));
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
 
-.card:hover {
-    border-color: hsl(var(--glass-border));
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.02);
-}
+    .card:hover {
+      border-color: hsl(var(--glass-border));
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.02);
+    }
 
-.card h2,
-.section-title {
-    margin-top: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    color: hsl(var(--txt));
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
+    .card h2,
+    .section-title {
+      margin-top: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: hsl(var(--txt));
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
 
-.section-sub {
-    color: hsl(var(--txt-muted));
-    font-size: 0.925rem;
-    margin-bottom: 1rem;
-}
+    .section-sub {
+      color: hsl(var(--txt-muted));
+      font-size: 0.925rem;
+      margin-bottom: 1rem;
+    }
 
-/* Buttons */
-.btn {
-    appearance: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.2rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.925rem;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    background: hsl(var(--bg-surface) / 0.3);
-    color: hsl(var(--txt));
-    border: 1px solid hsl(var(--glass-border));
-    text-decoration: none;
-    backdrop-filter: blur(4px);
-}
+    /* Buttons */
+    .btn {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.925rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      background: hsl(var(--bg-surface) / 0.3);
+      color: hsl(var(--txt));
+      border: 1px solid hsl(var(--glass-border));
+      text-decoration: none;
+      backdrop-filter: blur(4px);
+    }
 
-.btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    border-color: hsl(var(--primary));
-    box-shadow: var(--glow-primary);
-    color: hsl(var(--primary));
-    text-shadow: 0 0 8px hsl(var(--primary) / 0.5);
-    background: hsl(var(--bg-surface) / 0.5);
-}
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: hsl(var(--primary));
+      box-shadow: var(--glow-primary);
+      color: hsl(var(--primary));
+      text-shadow: 0 0 8px hsl(var(--primary) / 0.5);
+      background: hsl(var(--bg-surface) / 0.5);
+    }
 
-.btn:active:not(:disabled) {
-    transform: translateY(0);
-}
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
 
-.btn.primary {
-    background: hsl(var(--primary) / 0.8);
-    color: hsl(var(--primary-fg));
-    border-color: transparent;
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
-}
+    .btn.primary {
+      background: hsl(var(--primary) / 0.8);
+      color: hsl(var(--primary-fg));
+      border-color: transparent;
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+    }
 
-.btn.primary:hover:not(:disabled) {
-    filter: brightness(1.2);
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.6);
-}
+    .btn.primary:hover:not(:disabled) {
+      filter: brightness(1.2);
+      box-shadow: 0 0 30px hsl(var(--primary) / 0.6);
+    }
 
-/* Inputs */
-input,
-select,
-textarea {
-    background: hsl(var(--bg-surface) / 0.8);
-    border: 1px solid hsl(var(--glass-border));
-    color: hsl(var(--txt));
-    padding: 0.6rem 0.8rem;
-    border-radius: var(--radius-md);
-    font-size: 0.95rem;
-    width: 100%;
-    transition: all 0.3s;
-    backdrop-filter: blur(4px);
-}
+    /* Inputs */
+    input,
+    select,
+    textarea {
+      background: hsl(var(--bg-surface) / 0.8);
+      border: 1px solid hsl(var(--glass-border));
+      color: hsl(var(--txt));
+      padding: 0.6rem 0.8rem;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      width: 100%;
+      transition: all 0.3s;
+      backdrop-filter: blur(4px);
+    }
 
-input:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: hsl(var(--primary));
-    box-shadow: var(--glow-primary);
-    background: hsl(var(--bg-surface) / 0.8);
-}
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: hsl(var(--primary));
+      box-shadow: var(--glow-primary);
+      background: hsl(var(--bg-surface) / 0.8);
+    }
 
-/* Status Pills */
-.section-status {
-    font-size: 0.7rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    background: hsl(var(--bg-surface) / 0.7);
-    border: 1px solid hsl(var(--glass-border));
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: hsl(var(--txt-muted));
-    display: inline-block;
-    backdrop-filter: blur(4px);
-}
+    /* Status Pills */
+    .section-status {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      background: hsl(var(--bg-surface) / 0.7);
+      border: 1px solid hsl(var(--glass-border));
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: hsl(var(--txt-muted));
+      display: inline-block;
+      backdrop-filter: blur(4px);
+    }
 
-.section-status--done {
-    background: hsl(var(--success) / 0.85);
-    color: hsl(var(--success));
-    border-color: hsl(var(--success) / 0.4);
-    box-shadow: 0 0 10px hsl(var(--success) / 0.2);
-}
+    .section-status--done {
+      background: hsl(var(--success) / 0.85);
+      color: hsl(var(--success));
+      border-color: hsl(var(--success) / 0.4);
+      box-shadow: 0 0 10px hsl(var(--success) / 0.2);
+    }
 
-.section-status--fail {
-    background: hsl(var(--error) / 0.85);
-    color: hsl(var(--error));
-    border-color: hsl(var(--error) / 0.4);
-    box-shadow: 0 0 10px hsl(var(--error) / 0.2);
-}
+    .section-status--fail {
+      background: hsl(var(--error) / 0.85);
+      color: hsl(var(--error));
+      border-color: hsl(var(--error) / 0.4);
+      box-shadow: 0 0 10px hsl(var(--error) / 0.2);
+    }
   </style>
 
   <style>
@@ -335,14 +336,17 @@ textarea:focus {
       margin: 0 auto;
       padding: 18px;
     }
+
     .tool-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
+
     .tool-card {
       padding: 14px;
     }
+
     textarea.tool-text {
       width: 100%;
       min-height: 420px;
@@ -351,6 +355,7 @@ textarea:focus {
       font-size: 12.5px;
       line-height: 1.4;
     }
+
     .tool-actions {
       display: flex;
       flex-wrap: wrap;
@@ -358,14 +363,21 @@ textarea:focus {
       align-items: center;
       margin-top: 10px;
     }
+
     .tool-note {
       color: hsl(var(--txt-muted));
       font-size: 12px;
       margin-top: 8px;
     }
+
     @media (max-width: 980px) {
-      .tool-grid { grid-template-columns: 1fr; }
-      textarea.tool-text { min-height: 320px; }
+      .tool-grid {
+        grid-template-columns: 1fr;
+      }
+
+      textarea.tool-text {
+        min-height: 320px;
+      }
     }
   </style>
 
@@ -510,7 +522,7 @@ body {
 body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: var(--text);
-    background: var(--bg);
+    background: var(--body-bg-gradient, var(--bg));
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -1705,7 +1717,8 @@ body {
         <header class="header" style="margin-bottom: 12px;">
           <div class="title-block">
             <h1>Escape JSON → Offline-HTML</h1>
-            <p>JSON rein, fertige Offline-HTML raus (inkl. CSS/JS). Öffne Tool und erzeugte Datei einfach per Doppelklick.</p>
+            <p>JSON rein, fertige Offline-HTML raus (inkl. CSS/JS). Öffne Tool und erzeugte Datei einfach per
+              Doppelklick.</p>
           </div>
           <div class="stats">
             <div class="stat-chip">
@@ -1734,132 +1747,138 @@ body {
             </div>
 
             <div id="errBox" class="tool-note" style="color:hsl(var(--error));display:none;"></div>
-            <div class="tool-note">Hinweis: Erzeugt eine <b>komplett selbstständige</b> HTML-Datei (alles inline). Kein Hardcoding von Beispiel-JSON.</div>
+            <div class="tool-note">Hinweis: Erzeugt eine <b>komplett selbstständige</b> HTML-Datei (alles inline). Kein
+              Hardcoding von Beispiel-JSON.</div>
           </section>
 
           <section class="card tool-card">
             <h2 style="margin:0 0 8px 0;font-size:16px;">Output HTML</h2>
-            <textarea id="htmlOutput" class="tool-text" readonly placeholder="Hier erscheint die generierte Offline-HTML..."></textarea>
-            <div class="tool-note">Wenn dein Browser Downloads aus <code>file://</code> blockt: Output kopieren und als <code>.html</code> speichern.</div>
+            <textarea id="htmlOutput" class="tool-text" readonly
+              placeholder="Hier erscheint die generierte Offline-HTML..."></textarea>
+            <div class="tool-note">Wenn dein Browser Downloads aus <code>file://</code> blockt: Output kopieren und als
+              <code>.html</code> speichern.</div>
           </section>
         </div>
       </div>
     </main>
   </div>
 
-<script>
-(function () {
-  'use strict';
+  <script>
+    (function () {
+      'use strict';
 
-  const END_SCRIPT = '</scr' + 'ipt>';
+      const END_SCRIPT = '</scr' + 'ipt>';
 
-  const jsonInput = document.getElementById('jsonInput');
-  const htmlOutput = document.getElementById('htmlOutput');
-  const btnGenerate = document.getElementById('btnGenerate');
-  const btnDownload = document.getElementById('btnDownload');
-  const btnClear = document.getElementById('btnClear');
-  const errBox = document.getElementById('errBox');
-  const fileInput = document.getElementById('fileInput');
+      const jsonInput = document.getElementById('jsonInput');
+      const htmlOutput = document.getElementById('htmlOutput');
+      const btnGenerate = document.getElementById('btnGenerate');
+      const btnDownload = document.getElementById('btnDownload');
+      const btnClear = document.getElementById('btnClear');
+      const errBox = document.getElementById('errBox');
+      const fileInput = document.getElementById('fileInput');
 
-  const sharedThemeCss = document.getElementById('__ASSET_SHARED_THEME__').textContent;
-  const escapeCss = document.getElementById('__ASSET_ESCAPE_CSS__').textContent;
-  const gameBaseJs = document.getElementById('__ASSET_GAME_BASE_JS__').textContent;
-  const escapeJs = document.getElementById('__ASSET_ESCAPE_JS__').textContent;
+      const sharedThemeCss = document.getElementById('__ASSET_SHARED_THEME__').textContent;
+      const escapeCss = document.getElementById('__ASSET_ESCAPE_CSS__').textContent;
+      const gameBaseJs = document.getElementById('__ASSET_GAME_BASE_JS__').textContent;
+      const escapeJs = document.getElementById('__ASSET_ESCAPE_JS__').textContent;
 
-  let lastGeneratedHtml = '';
+      let lastGeneratedHtml = '';
 
-  function showError(msg) {
-    errBox.style.display = 'block';
-    errBox.textContent = String(msg || 'Fehler');
-  }
+      function showError(msg) {
+        errBox.style.display = 'block';
+        errBox.textContent = String(msg || 'Fehler');
+      }
 
-  function clearError() {
-    errBox.style.display = 'none';
-    errBox.textContent = '';
-  }
+      function clearError() {
+        errBox.style.display = 'none';
+        errBox.textContent = '';
+      }
 
-  function safeFileName(title) {
-    const base = (title || 'Escape-Game-offline').toString().trim() || 'Escape-Game-offline';
-    return base
-      .replace(/\s+/g, ' ')
-      .replace(/[\\/:*?"<>|]/g, '')
-      .slice(0, 80)
-      .trim()
-      .replace(/\s+/g, '_')
-      + '.html';
-  }
+      function safeFileName(title) {
+        const base = (title || 'Escape-Game-offline').toString().trim() || 'Escape-Game-offline';
+        return base
+          .replace(/\s+/g, ' ')
+          .replace(/[\\/:*?"<>|]/g, '')
+          .slice(0, 80)
+          .trim()
+          .replace(/\s+/g, '_')
+          + '.html';
+      }
 
-  function escapeScriptClose(s) {
+      function escapeScriptClose(s) {
     // schützt eingebettetes JSON vor </script>
-    return String(s).replace(/<\/script/gi, '<\\/script');
-  }
+  return String(s).replace(/<\ /script/gi, '<\\/script' ); } function escapeHtml(s) { return String(s).replace(/[&<>
+    "']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
+      function buildOfflineEscapeHtml(payload) {
+      const title = payload && payload.title ? String(payload.title) : 'Mini-Escape-Game';
+      const json = JSON.stringify(payload, null, 2);
 
-  function buildOfflineEscapeHtml(payload) {
-    const title = payload && payload.title ? String(payload.title) : 'Mini-Escape-Game';
-    const json = JSON.stringify(payload, null, 2);
+      return `
+      <!DOCTYPE html>
+      <html lang="de">
 
-    return `<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>${escapeHtml(title)}</title>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>${escapeHtml(title)}</title>
 
-  <style>
-${sharedThemeCss}
-  </style>
+        <style>
+          $ {
+            sharedThemeCss
+          }
+        </style>
 
-  <style>
-${escapeCss}
-  </style>
-</head>
+        <style>
+          $ {
+            escapeCss
+          }
+        </style>
+      </head>
 
-<body>
-  <div class="page" id="game-root">
-    <main class="panel">
-      <div class="game-content">
-        <header class="header">
-          <div class="title-block">
-            <h1>Mini-Escape-Room</h1>
-            <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
-          </div>
-          <div class="stats">
-            <div class="stat-chip stat-chip--timer">
-              <span>Zeit</span>
-              <span id="stat-timer">03:00</span>
+      <body>
+        <div class="page" id="game-root">
+          <main class="panel">
+            <div class="game-content">
+              <header class="header">
+                <div class="title-block">
+                  <h1>Mini-Escape-Room</h1>
+                  <p>Löse alle Aufgaben, bevor die Zeit ebgelaufen ist</p>
+                </div>
+                <div class="stats">
+                  <div class="stat-chip stat-chip--timer">
+                    <span>Zeit</span>
+                    <span id="stat-timer">03:00</span>
+                  </div>
+                  <div class="stat-chip">
+                    <span>Rätsel gelöst</span>
+                    <span id="stat-solved">0 / 0</span>
+                  </div>
+                </div>
+              </header>
+
+              <div class="toolbar">
+                <button class="btn-secondary btn" id="restart-btn" type="button">
+                  <span>↻</span> Neu starten
+                </button>
+              </div>
+
+              <div class="door-wrapper">
+                <div class="door-scene">
+                  <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
+                  <div class="door" id="door"></div>
+                  <div class="door-floor"></div>
+                  <div class="door-glow" id="door-glow"></div>
+                </div>
+              </div>
+
+              <div class="layout-grid" id="puzzle-container"></div>
             </div>
-            <div class="stat-chip">
-              <span>Rätsel gelöst</span>
-              <span id="stat-solved">0 / 0</span>
-            </div>
-          </div>
-        </header>
-
-        <div class="toolbar">
-          <button class="btn-secondary btn" id="restart-btn" type="button">
-            <span>↻</span> Neu starten
-          </button>
+          </main>
         </div>
 
-        <div class="door-wrapper">
-          <div class="door-scene">
-            <div class="door-sign door-sign--closed" id="door-sign">GESCHLOSSEN</div>
-            <div class="door" id="door"></div>
-            <div class="door-floor"></div>
-            <div class="door-glow" id="door-glow"></div>
-          </div>
-        </div>
-
-        <div class="layout-grid" id="puzzle-container"></div>
-      </div>
-    </main>
-  </div>
-
-  <script id="__GAME_PAYLOAD__" type="application/json">
+        <script id="__GAME_PAYLOAD__" type="application/json">
 ${escapeScriptClose(json)}
   ${END_SCRIPT}
 
@@ -1954,5 +1973,6 @@ ${escapeJs}
   });
 })();
 </script>
-</body>
-</html>
+      </body>
+
+      </html>
