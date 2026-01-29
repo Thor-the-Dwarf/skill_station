@@ -2,6 +2,10 @@
  * ============================================================================
  * drive_interpreter.js - Google Drive zu Spiel-Interpreter
  * ============================================================================
+ *
+ * Lädt JSON aus Drive, erkennt game_type (oder leitet ihn ab) und lädt das
+ * passende Spiel-HTML im iframe. Payload wird in sessionStorage gespeichert:
+ * Key: 'game_payload_' + fileId
  */
 
 (function () {
@@ -26,6 +30,27 @@
     function _extractGameType(payload) {
         if (!payload || typeof payload !== 'object') return '';
         return payload.game_type || payload.gameType || '';
+    }
+
+    function _inferGameType(payload) {
+        if (!payload || typeof payload !== 'object') return '';
+
+        // escape_game: sections[]
+        if (Array.isArray(payload.sections)) return 'escape_game';
+
+        // quick_quiz: questions[] + answerLabels[]
+        if (Array.isArray(payload.questions) && Array.isArray(payload.answerLabels)) return 'quick_quiz';
+
+        // wer_bin_ich: legalForms[]
+        if (Array.isArray(payload.legalForms)) return 'wer_bin_ich';
+
+        // what_and_why: cases[]
+        if (Array.isArray(payload.cases)) return 'what_and_why';
+
+        // matching_puzzle: sets[] + columnTitles
+        if (Array.isArray(payload.sets) && payload.columnTitles && typeof payload.columnTitles === 'object') return 'matching_puzzle';
+
+        return '';
     }
 
     async function _fetchDriveJson(fileId, apiKey, driveFilesEndpoint) {
@@ -55,37 +80,14 @@
 
         console.log(`[DriveInterpreter] Resolving game type: "${type}"`);
 
-        // escape
-        if (type === 'escape_game' || type === 'escape' || type === 'escape_room' || type === 'mini_escape_room') {
-            return `${base}/Escape-Game.html`;
-        }
+        if (type === 'escape_game' || type === 'escape' || type === 'escape_room') return `${base}/Escape-Game.html`;
+        if (type === 'matching_puzzle' || type === 'matching') return `${base}/matching_puzzle.html`;
+        if (type === 'wer_bin_ich' || type === 'werbinich') return `${base}/wer_bin_ich.html`;
+        if (type === 'quick_quiz' || type === 'quickquiz') return `${base}/quick_quiz.html`;
+        if (type === 'what_and_why' || type === 'whatwhy') return `${base}/what_and_why.html`;
+        if (type === 'sortier_spiel' || type === 'sortierspiel') return `${base}/sortier_spiel.html`;
 
-        // matching
-        if (type === 'matching_puzzle' || type === 'matching') {
-            return `${base}/matching_puzzle.html`;
-        }
-
-        // wer bin ich
-        if (type === 'wer_bin_ich' || type === 'werbinich') {
-            return `${base}/wer_bin_ich.html`;
-        }
-
-        // quick quiz
-        if (type === 'quick_quiz' || type === 'quickquiz') {
-            return `${base}/quick_quiz.html`;
-        }
-
-        // what & why
-        if (type === 'what_and_why' || type === 'whatwhy') {
-            return `${base}/what_and_why.html`;
-        }
-
-        // sortier spiel
-        if (type === 'sortier_spiel' || type === 'sortierspiel') {
-            return `${base}/sortier_spiel.html`;
-        }
-
-        throw new Error(`Unbekannter game_type: "${type || String(gameType || '').trim()}"`);
+        throw new Error(`Unbekannter game_type: "${String(gameType || '').trim()}"`);
     }
 
     function _storePayload(fileId, payload) {
@@ -137,19 +139,18 @@
         if (!driveFilesEndpoint) throw new Error('driveFilesEndpoint fehlt.');
         if (!containerEl) throw new Error('containerEl fehlt.');
 
-        // 1) Cache zuerst (kein Drive) – aber: nur verwenden, wenn game_type plausibel ist
+        // 1) sessionStorage Cache
         let payload = _readStoredPayload(fileId);
+
+        // Cache wegwerfen, wenn game_type leer/unknown/unmappbar
         if (payload) {
             const t = _extractGameType(payload);
             const norm = _normalizeGameType(t);
-
-            // Wenn Cache-Schrott drin hängt (z.B. "unknown"), wegwerfen und neu fetchen
             if (!norm || norm === 'unknown') {
                 _dropStoredPayload(fileId);
                 payload = null;
             } else {
                 try {
-                    // Probe: würde der Typ auf eine HTML-Datei mappen?
                     _resolveGameHtmlByType(t, basePath);
                 } catch (_) {
                     _dropStoredPayload(fileId);
@@ -158,27 +159,41 @@
             }
         }
 
-        // 2) Nur wenn nicht da/invalid: von Drive holen
+        // 2) Drive fetch wenn nötig
         if (!payload) {
             payload = await _fetchDriveJson(fileId, apiKey, driveFilesEndpoint);
             _storePayload(fileId, payload);
         }
 
-        const gameType = _extractGameType(payload);
-        if (!gameType) throw new Error('Im JSON fehlt das Feld "game_type".');
+        // 3) game_type prüfen / ableiten
+        let gameType = _extractGameType(payload);
+        let normType = _normalizeGameType(gameType);
+
+        if (!normType || normType === 'unknown') {
+            const inferred = _inferGameType(payload);
+            if (inferred) {
+                payload.game_type = inferred; // wichtig: damit GameBase expectedGameType passt
+                gameType = inferred;
+                normType = _normalizeGameType(inferred);
+                _storePayload(fileId, payload);
+            }
+        }
+
+        if (!normType || normType === 'unknown') {
+            throw new Error('Im JSON fehlt ein gültiger "game_type" (und konnte nicht abgeleitet werden).');
+        }
 
         const gameHtml = _resolveGameHtmlByType(gameType, basePath);
 
         containerEl.innerHTML = '';
         const iframe = document.createElement('iframe');
         iframe.className = opts.iframeClassName || 'game-iframe';
-
         iframe.src = `${gameHtml}?fileId=${encodeURIComponent(fileId)}`;
         containerEl.appendChild(iframe);
 
         iframe.onload = () => _applyThemeToIframe(iframe);
 
-        return { gameType: _normalizeGameType(gameType), gameHtml, iframe, payload };
+        return { gameType: normType, gameHtml, iframe, payload };
     }
 
     window.DriveInterpreter = { loadGame };
