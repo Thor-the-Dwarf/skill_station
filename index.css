@@ -27,8 +27,9 @@ body {
     top: 64px;
     left: 0;
     height: calc(100vh - 64px);
-    width: 25vw;
-    min-width: 320px;
+    width: var(--drawer-width, 320px);
+    min-width: 200px;
+    max-width: 80vw;
     background: hsl(var(--bg-surface) / 0.32);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -39,8 +40,23 @@ body {
     gap: 1rem;
     padding: 1.5rem;
     transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0s;
     z-index: 30;
+}
+
+.drawer-resizer {
+    position: absolute;
+    top: 0;
+    right: -10px;
+    width: 20px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 1000;
+    background: transparent;
+}
+
+.drawer-resizer:hover, .drawer-resizer.resizing {
+    background: hsl(var(--primary) / 0.1);
 }
 
 #app-view.tree-open .drawer {
