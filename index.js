@@ -477,6 +477,7 @@
 
             const row = document.createElement('div');
             row.className = 'tree-row';
+            row.style.setProperty('--level', level);
 
             // Click Handler für Links-Klick
             row.onclick = (e) => onNodeClick(e, node);

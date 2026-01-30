@@ -1002,6 +1002,7 @@
 
                 const row = document.createElement('div');
                 row.className = 'tree-row';
+                row.style.setProperty('--level', level);
                 row.onclick = (e) => onNodeClick(e, node);
 
                 // Toggle/Spacer
