@@ -36,8 +36,9 @@
             top: 64px;
             left: 0;
             height: calc(100vh - 64px);
-            width: 25vw;
-            min-width: 320px;
+            width: var(--drawer-width, 320px);
+            min-width: 200px;
+            max-width: 80vw;
             background: hsl(var(--bg-surface) / 0.32);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -48,8 +49,24 @@
             gap: 1rem;
             padding: 1.5rem;
             transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0s;
             z-index: 30;
+        }
+
+        .drawer-resizer {
+            position: absolute;
+            top: 0;
+            right: -5px;
+            width: 10px;
+            height: 100%;
+            cursor: col-resize;
+            z-index: 100;
+            transition: background 0.2s;
+        }
+
+        .drawer-resizer:hover,
+        .drawer-resizer.resizing {
+            background: hsl(var(--primary) / 0.3);
         }
 
         #app-view.tree-open .drawer {
@@ -494,6 +511,7 @@
 
         <!-- Tree-Drawer -->
         <aside class="drawer" id="tree-drawer">
+            <div id="drawer-resizer" class="drawer-resizer"></div>
             <header class="drawer-header">
                 <div class="drawer-title" id="drawer-title">Drive-Ordner</div>
             </header>
@@ -598,7 +616,8 @@
         let appState = {
             selectedId: null,
             closedIds: [],
-            drawerOpen: false
+            drawerOpen: false,
+            drawerWidth: 320
         };
         const STATE_KEY = 'driveTreeSpaState_v2';
         let rootTree = [];
@@ -779,7 +798,42 @@
                 applyDrawerState();
             }
 
+            initResizer();
             renderConnectView();
+        }
+
+        function initResizer() {
+            const resizer = document.getElementById('drawer-resizer');
+            const drawer = document.getElementById('tree-drawer');
+            let isResizing = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+                resizer.classList.add('resizing');
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+
+                let newWidth = e.clientX;
+                if (newWidth < 200) newWidth = 200;
+                if (newWidth > window.innerWidth * 0.8) newWidth = window.innerWidth * 0.8;
+
+                appState.drawerWidth = newWidth;
+                drawer.style.setProperty('--drawer-width', newWidth + 'px');
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    resizer.classList.remove('resizing');
+                    saveAppState();
+                }
+            });
         }
 
         function renderConnectView() {
@@ -913,6 +967,13 @@
         function applyDrawerState() {
             const backdrop = document.getElementById('drawer-backdrop');
             const menuBtn = document.getElementById('menu-tree-btn');
+            const drawer = document.getElementById('tree-drawer');
+
+            // Apply saved width
+            if (appState.drawerWidth) {
+                drawer.style.setProperty('--drawer-width', appState.drawerWidth + 'px');
+            }
+
             if (appState.drawerOpen) {
                 document.getElementById('app-view').classList.add('tree-open');
                 menuBtn.classList.add('active');
